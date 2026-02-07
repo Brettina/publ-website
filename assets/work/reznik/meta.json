@@ -2,11 +2,14 @@
   "id": "reznik",
   "title": "Geheimnisse der Morphologie für erfolgreiche Beziehungen - von Peter S. Reznik",
   "published": "2026-02-14",
+      "available": "ja",
+
   "updated": "2026-01-19",
       "eigenanteil": "Übersetzung ins Deutsche, Buchsatz, Verlegung und Marketing",
 
     "tags": ["relationship", "facereading", "guide","publishing", "book","translation"],
     "excerpt": "Das Buch richtet sich an alle phenomenologisch Interessierten.",
+     "price":27,
   "alsoPublished": [
     { "label": "Autorenwebsite", "url": "https://www.drpeterreznik.com/" }
   ]

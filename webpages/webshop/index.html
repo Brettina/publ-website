@@ -453,33 +453,38 @@
   <div class="modal-backdrop" id="product-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <article class="card modal">
       <img id="modal-img" class="modal-img" alt="" />
-      <div class="modal-body">
-        <div class="modal-top">
-          <h3 id="modal-title" style="margin:0;"></h3>
-          <button type="button" class="btn-mini" id="modal-close" aria-label="Schließen">✕</button>
-        </div>
+<div class="modal-body">
+  <div class="modal-top">
+    <h3 id="modal-title" style="margin:0;"></h3>
+    <button type="button" class="btn-mini" id="modal-close" aria-label="Schließen">✕</button>
+  </div>
 
-        <div class="fineprint" id="modal-status"></div>
-        <div class="fineprint" id="modal-pickup" style="display:none;"></div>
+  <div class="fineprint" id="modal-status"></div>
+  <div class="fineprint" id="modal-price"></div>
+  <div class="fineprint" id="modal-availability"></div>
+  <div class="fineprint" id="modal-tags"></div>
+  <div class="fineprint" id="modal-eigenanteil"></div>
+  <div class="fineprint" id="modal-links"></div>
 
-        <p id="modal-long" style="margin:0;"></p>
+  <p id="modal-long" style="margin:0;"></p>
 
-        <div class="shop-row">
-          <div class="field">
-            <label for="modal-variant">Variante</label>
-            <select id="modal-variant"></select>
-          </div>
-          <div class="field">
-            <label for="modal-qty">Menge</label>
-            <input id="modal-qty" type="number" min="1" max="50" value="1" />
-          </div>
-        </div>
+  <div class="shop-row">
+    <div class="field">
+      <label for="modal-variant">Variante</label>
+      <select id="modal-variant"></select>
+    </div>
+    <div class="field">
+      <label for="modal-qty">Menge</label>
+      <input id="modal-qty" type="number" min="1" max="50" value="1" />
+    </div>
+  </div>
 
-        <div class="modal-actions">
-          <span class="fineprint" id="modal-unit"></span>
-          <button type="button" class="button" id="modal-add">In Auswahl</button>
-        </div>
-      </div>
+  <div class="modal-actions">
+    <span class="fineprint" id="modal-unit"></span>
+    <button type="button" class="button" id="modal-add">In Auswahl</button>
+  </div>
+</div>
+
     </article>
   </div>
 
@@ -525,17 +530,23 @@
     const sendHint = $("#send-hint");
 
     // Modal elements
+    // Modal elements
     const modalBackdrop = $("#product-modal");
     const modalClose = $("#modal-close");
     const modalImg = $("#modal-img");
     const modalTitle = $("#modal-title");
     const modalStatus = $("#modal-status");
-    const modalPickup = $("#modal-pickup");
+    const modalPrice = $("#modal-price");
+    const modalAvailability = $("#modal-availability");
+    const modalTags = $("#modal-tags");
+    const modalEigen = $("#modal-eigenanteil");
+    const modalLinks = $("#modal-links");
     const modalLong = $("#modal-long");
     const modalVariant = $("#modal-variant");
     const modalQty = $("#modal-qty");
     const modalUnit = $("#modal-unit");
     const modalAdd = $("#modal-add");
+
 
     let products = [];
     let cart = []; // {id, name, image, variant, qty, unit, pickupRequired}
@@ -655,7 +666,7 @@
 
         const badge = document.createElement("span");
         badge.className = "shop-badge";
-        badge.textContent = (p.tags && p.tags.length) ? String(p.tags[0]) : "Buch";
+        badge.textContent = p.status || "Buch";
 
         top.appendChild(h);
         top.appendChild(badge);
@@ -815,44 +826,79 @@
     }
 
     function openProductModal(p, opts = {}) {
-      activeProduct = p;
+  activeProduct = p;
 
-      modalTitle.textContent = p.name || p.id;
-      modalImg.src = safeImage(p);
-      modalImg.alt = p.name || p.id;
+  const meta = p._meta || {};
 
-      modalStatus.textContent = (p.updated ? `Aktualisiert: ${p.updated}` : "");
+  modalTitle.textContent = p.name || p.id;
+  modalImg.src = safeImage(p);
+  modalImg.alt = p.name || p.id;
 
-      modalPickup.style.display = p.pickupRequired ? "block" : "none";
-      modalPickup.textContent = p.pickupRequired ? "Abholung erforderlich" : "";
+  // status line
+  modalStatus.textContent = p.updated ? `Aktualisiert: ${p.updated}` : "";
 
-      const longText = (p.longDescription || p.description || "").toString().trim();
-      modalLong.textContent = longText;
+  // price line
+  if (modalPrice) {
+    modalPrice.textContent = (p.price != null) ? `Preis: ${formatEUR(p.price)}` : "";
+  }
 
-      modalVariant.innerHTML = "";
-      safeVariants(p).forEach(v => {
-        const opt = document.createElement("option");
-        opt.value = v;
-        opt.textContent = v;
-        modalVariant.appendChild(opt);
-      });
+  // availability from meta (your structure: published.available)
+  if (modalAvailability) {
+    const avail = (meta?.published?.available ?? meta?.available ?? "").toString();
+    modalAvailability.textContent = avail ? `Verfügbarkeit: ${avail}` : "";
+  }
 
-      const preselect = (opts.preselectVariant || "").toString().trim();
-      if (preselect) {
-        const match = Array.from(modalVariant.options).find(o => o.value === preselect);
-        if (match) modalVariant.value = preselect;
-      }
+  // tags
+  if (modalTags) {
+    const tags = Array.isArray(p.tags) ? p.tags : [];
+    modalTags.textContent = tags.length ? `Tags: ${tags.join(", ")}` : "";
+  }
 
-      const presetQty = parseInt(opts.presetQty || "1", 10);
-      modalQty.value = String(Math.min(50, Math.max(1, isNaN(presetQty) ? 1 : presetQty)));
+  // eigenanteil (seen in your screenshot)
+  if (modalEigen) {
+    const eigen = (meta?.eigenanteil || "").toString().trim();
+    modalEigen.textContent = eigen ? `Eigenanteil: ${eigen}` : "";
+  }
 
-      const priceTxt = (p.price != null) ? ` · ${formatEUR(p.price)} / ${safeUnit(p)}` : "";
-      modalUnit.textContent = `Einheit: ${safeUnit(p)}${priceTxt}`;
+  // links: alsoPublished [{label,url}]
+  if (modalLinks) {
+    const pubs = Array.isArray(meta?.alsoPublished) ? meta.alsoPublished : [];
+    modalLinks.innerHTML = pubs
+      .filter(x => x && x.url)
+      .map(x => `<a href="${x.url}" target="_blank" rel="noopener">${x.label || x.url}</a>`)
+      .join(" · ");
+  }
 
-      modalBackdrop.classList.add("is-open");
-      document.body.style.overflow = "hidden";
-      setTimeout(() => modalClose?.focus(), 0);
-    }
+  // long text
+  const longText = (meta?.excerpt || meta?.description || p.longDescription || p.description || "").toString().trim();
+  modalLong.textContent = longText;
+
+  // variants
+  modalVariant.innerHTML = "";
+  safeVariants(p).forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = v;
+    modalVariant.appendChild(opt);
+  });
+
+  const preselect = (opts.preselectVariant || "").toString().trim();
+  if (preselect) {
+    const match = Array.from(modalVariant.options).find(o => o.value === preselect);
+    if (match) modalVariant.value = preselect;
+  }
+
+  // qty
+  const presetQty = parseInt(opts.presetQty || "1", 10);
+  modalQty.value = String(Math.min(50, Math.max(1, isNaN(presetQty) ? 1 : presetQty)));
+
+  const priceTxt = (p.price != null) ? ` · ${formatEUR(p.price)} / ${safeUnit(p)}` : "";
+  modalUnit.textContent = `Einheit: ${safeUnit(p)}${priceTxt}`;
+
+  modalBackdrop.classList.add("is-open");
+  document.body.style.overflow = "hidden";
+  setTimeout(() => modalClose?.focus(), 0);
+}
 
     function closeProductModal() {
       modalBackdrop.classList.remove("is-open");
@@ -973,77 +1019,146 @@
       a.remove();
     }
 
-    async function loadBooksFromWorkIndex() {
-      const res = await fetch("/assets/work-index.json", { cache: "no-store" });
-      if (!res.ok) throw new Error("work-index.json missing");
-      const data = await res.json();
+function isAvailableFromMeta(meta) {
+  const raw = (meta?.available ?? meta?.published?.available ?? "").toString().toLowerCase().trim();
+  return ["ja", "yes", "true", "1", "verfügbar", "available"].includes(raw);
+}
 
-      const items = Array.isArray(data.items) ? data.items : [];
+async function pickFirstExistingImage(urls) {
+  for (const u of urls) {
+    if (!u) continue;
+    try {
+      const r = await fetch(u, { method: "HEAD", cache: "no-store" });
+      if (r.ok) return u;
+    } catch {}
+  }
+  return "/img/webicon.png";
+}
 
-      const workItems = items
-        .filter(x => x && (x.type === "work" || !x.type))
-        .map(x => ({
-          id: String(x.slug || x.id || "").trim(),
-          slug: String(x.slug || x.id || "").trim(),
-          cover: x.cover || "",
-          metaUrl: x.metaUrl || (x.slug ? `/assets/work/${encodeURIComponent(x.slug)}/meta.json` : ""),
-          contentUrl: x.contentUrl || "",
-          updated: x.updated || "",
-        }))
-        .filter(x => x.id && x.metaUrl);
+function encodeFilenameInUrl(url) {
+  // encodes only the last segment (filename), keeps folders intact
+  return url.replace(/[^/]+$/g, (fn) => encodeURIComponent(fn));
+}
 
-      const metas = await Promise.all(workItems.map(async (w) => {
-        try {
-          const mRes = await fetch(w.metaUrl, { cache: "no-store" });
-          if (!mRes.ok) return { w, meta: null };
-          const meta = await mRes.json();
-          return { w, meta };
-        } catch {
-          return { w, meta: null };
-        }
-      }));
+async function resolveWorkImage({ slug, meta, indexCover }) {
+  const base = `/assets/work/${encodeURIComponent(slug)}/`;
 
-      const built = metas
-        .map(({ w, meta }) => {
-          if (!meta) return null;
+  // 1) explicit meta cover/image if you add it later
+  const metaImg = (meta?.cover || meta?.image || "").toString().trim();
 
-          const price = toNumber(meta.price);
-          if (price == null) return null;
+  // 2) cover from index (if your work-index has it)
+  const idxImg = (indexCover || "").toString().trim();
 
-          const title = (meta.title || w.id).toString();
-          const excerpt = (meta.excerpt || meta.description || "").toString();
+  // 3) common cover filenames inside the folder (add more if needed)
+  const candidates = [
+    metaImg,
+    idxImg,
+    base + "umschlag.png",
+    base + "umschlag.jpg",
+    base + "umschlag.jpeg",
+    base + "cover.png",
+    base + "cover.jpg",
+    base + "cover.jpeg",
+    base + "thumbnail.png",
+    base + "thumbnail.jpg",
+    base + "thumb.png",
+    base + "thumb.jpg"
+  ].filter(Boolean).map(encodeFilenameInUrl);
 
-          return {
-            id: w.id,
-            slug: w.slug,
+  return await pickFirstExistingImage(candidates);
+}
 
-            name: title,
-            description: excerpt,
-            longDescription: excerpt,
+async function loadBooksFromWorkIndex() {
+  const res = await fetch("/assets/work-index.json", { cache: "no-store" });
+  if (!res.ok) throw new Error("work-index.json missing");
+  const data = await res.json();
 
-            image: meta.cover || w.cover || "/img/webicon.png",
+  // accept common shapes
+  const items =
+    Array.isArray(data) ? data :
+    Array.isArray(data.items) ? data.items :
+    Array.isArray(data.works) ? data.works :
+    Array.isArray(data.entries) ? data.entries :
+    [];
 
-            price,
-            currency: "EUR",
+  const workItems = items
+    .filter(x => x && (x.slug || x.id))
+    .map(x => {
+      const slug = String(x.slug || x.id || "").trim();
+      return {
+        id: slug,
+        slug,
+        updated: String(x.updated || x.published || "").trim(),
+        cover: x.cover || x.image || "",
+        metaUrl: x.metaUrl || `/assets/work/${encodeURIComponent(slug)}/meta.json`,
+        contentUrl: x.contentUrl || x.articleUrl || ""
+      };
+    })
+    .filter(x => x.id && x.metaUrl);
 
-            unit: (meta.unit || "Buch").toString(),
-            variants: (Array.isArray(meta.variants) && meta.variants.length) ? meta.variants : ["Print", "E-Book"],
-            tags: Array.isArray(meta.tags) ? meta.tags : [],
-
-            metaUrl: w.metaUrl,
-            contentUrl: w.contentUrl,
-
-            updated: (meta.updated || w.updated || meta.published || "").toString(),
-
-            status: "",
-            pickupRequired: false,
-          };
-        })
-        .filter(Boolean)
-        .sort((a, b) => String(b.updated || "").localeCompare(String(a.updated || "")));
-
-      products = built;
+  const metas = await Promise.all(workItems.map(async (w) => {
+    try {
+      const mRes = await fetch(w.metaUrl, { cache: "no-store" });
+      if (!mRes.ok) return { w, meta: null };
+      return { w, meta: await mRes.json() };
+    } catch {
+      return { w, meta: null };
     }
+  }));
+
+  const built = (await Promise.all(metas.map(async ({ w, meta }) => {
+    if (!meta) return null;
+
+    // show ONLY available books
+    if (!isAvailableFromMeta(meta)) return null;
+
+    const price = toNumber(meta.price);
+    if (price == null) return null; // only sell items with price
+
+    const image = await resolveWorkImage({ slug: w.slug, meta, indexCover: w.cover });
+
+    const title = String(meta.title || w.id);
+    const excerpt = String(meta.excerpt || meta.description || "");
+    const tags = Array.isArray(meta.tags) ? meta.tags : [];
+
+    // store full meta for the popup
+    return {
+      id: w.id,
+      slug: w.slug,
+
+      name: title,
+      description: excerpt,
+      longDescription: excerpt,
+
+      image,
+
+      price,
+      currency: "EUR",
+
+      unit: String(meta.unit || "Buch"),
+      variants: (Array.isArray(meta.variants) && meta.variants.length) ? meta.variants : ["Print", "E-Book"],
+      tags,
+
+      updated: String(meta.updated || w.updated || meta.published?.date || meta.published || "").trim(),
+
+      // badge text
+      status: "verfügbar",
+
+      pickupRequired: false,
+
+      metaUrl: w.metaUrl,
+      contentUrl: w.contentUrl,
+
+      _meta: meta
+    };
+  }))).filter(Boolean);
+
+  // newest first
+  built.sort((a, b) => String(b.updated || "").localeCompare(String(a.updated || "")));
+
+  products = built;
+}
+
 
     function populateTagFilter() {
       if (!status) return;

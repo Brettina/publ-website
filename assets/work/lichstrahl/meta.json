@@ -2,11 +2,14 @@
     "id": "angela",
   "title": "Ein Lichtstrahl seiner Liebe - von Angela Jung",
     "published": "2025-02-18",
+        "available": "ja",
+
   "updated": "2025-02-18",
       "eigenanteil": "Übersetzung ins Englische",
 
       "excerpt": "Angela Jung schreibt von ihren Erlebnissen mit Jesus.",
     "tags": ["christian", "biography", "book","translation"],
+     "price":18.95,
   "alsoPublished": [
     { "label": "Amazon", "url": "https://www.amazon.de/Lichtstrahl-Seiner-Liebe-Angela-Jung/dp/3949073310" }
   ]
