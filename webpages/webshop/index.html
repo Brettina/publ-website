@@ -246,24 +246,28 @@
     }
     .modal-backdrop.is-open { display: flex; }
 
-    .modal {
-      width: min(760px, 100%);
-      border-radius: 18px;
-      overflow: hidden;
-    }
+.modal {
+  width: min(760px, 100%);
+  border-radius: 18px;
+  overflow: hidden;
 
-    .modal-img {
-      width: 100%;
-      height: 280px;
-      object-fit: cover;
-      display: block;
-    }
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+}
 
-    .modal .modal-body {
-      padding: 14px;
-      display: grid;
-      gap: 12px;
-    }
+.modal-img { flex: 0 0 auto; }
+
+.modal .modal-body {
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 
     .modal-top {
       display: flex;
@@ -585,6 +589,20 @@
     const coPayment = $("#co-payment");
     const coNotes = $("#co-notes");
 
+    // Product modal bindings (MISSING)
+    const modalBackdrop = $("#product-modal");
+    const modalClose = $("#modal-close");
+    const modalImg = $("#modal-img");
+    const modalTitle = $("#modal-title");
+    const modalStatus = $("#modal-status");
+    const modalPrice = $("#modal-price");
+    const modalTags = $("#modal-tags");
+    const modalLinks = $("#modal-links");
+    const modalKlappentext = $("#modal-klappentext");
+    const modalVariant = $("#modal-variant");
+    const modalQty = $("#modal-qty");
+    const modalUnit = $("#modal-unit");
+    const modalAdd = $("#modal-add");
 
     let products = [];
     let cart = []; // {id, name, image, variant, qty, unit, pickupRequired}
@@ -595,9 +613,10 @@
 
     function safeImage(p) { return p?.image || "/img/webicon.png"; }
     function safeVariants(p) {
-      if (Array.isArray(p?.variants) && p.variants.length) return p.variants;
+      if (Array.isArray(p?.variants)) return p.variants; // even if empty
       return ["Print", "E-Book"];
     }
+
     function safeUnit(p) { return p?.unit || "Buch"; }
 
     function toNumber(x) {
@@ -866,24 +885,35 @@
         ? "Hinweis: Mindestens ein Artikel erfordert Abholung (steht in der Auswahl)."
         : "Klicke auf „Kaufen“, um die E-Mail zu öffnen.";
     }
+function getUnitPriceForVariant(p, variant) {
+  const v = String(variant || "").toLowerCase();
+  if (v.includes("e-book") || v.includes("ebook") || v.includes("digital")) return p.priceDigital ?? null;
+  return p.pricePrint ?? p.price ?? null;
+}
+
+function renderModalPriceForVariant(p) {
+  const v = modalVariant?.value || "Print";
+  const unitPrice = getUnitPriceForVariant(p, v);
+
+  if (modalPrice) {
+    modalPrice.textContent = (unitPrice != null) ? `Preis: ${formatEUR(unitPrice)}` : "";
+  }
+
+  const priceTxt = (unitPrice != null) ? ` · ${formatEUR(unitPrice)} / ${safeUnit(p)}` : "";
+  modalUnit.textContent = `Einheit: ${safeUnit(p)}${priceTxt}`;
+}
 
 
 function openProductModal(p, opts = {}) {
   activeProduct = p;
-
   const meta = p._meta || {};
 
   modalTitle.textContent = p.name || p.id;
   modalImg.src = safeImage(p);
   modalImg.alt = p.name || p.id;
 
-  // status line (keep updated only)
+  // status line
   modalStatus.textContent = p.updated ? `Aktualisiert: ${p.updated}` : "";
-
-  // BIG price (no availability here)
-  if (modalPrice) {
-    modalPrice.textContent = (p.price != null) ? `Preis: ${formatEUR(p.price)}` : "";
-  }
 
   // tags
   if (modalTags) {
@@ -901,7 +931,7 @@ function openProductModal(p, opts = {}) {
     modalLinks.innerHTML = html;
   }
 
-  // KLAPPENTEXT (preferred), fallback to excerpt/description
+  // klappentext
   const klappentext =
     (meta?.klappentext || "").toString().trim() ||
     (meta?.excerpt || "").toString().trim() ||
@@ -919,6 +949,7 @@ function openProductModal(p, opts = {}) {
     modalVariant.appendChild(opt);
   });
 
+  // preselect variant
   const preselect = (opts.preselectVariant || "").toString().trim();
   if (preselect) {
     const match = Array.from(modalVariant.options).find(o => o.value === preselect);
@@ -929,8 +960,9 @@ function openProductModal(p, opts = {}) {
   const presetQty = parseInt(opts.presetQty || "1", 10);
   modalQty.value = String(Math.min(50, Math.max(1, isNaN(presetQty) ? 1 : presetQty)));
 
-  const priceTxt = (p.price != null) ? ` · ${formatEUR(p.price)} / ${safeUnit(p)}` : "";
-  modalUnit.textContent = `Einheit: ${safeUnit(p)}${priceTxt}`;
+  // price must be updated AFTER variants exist / selected
+  modalVariant.onchange = () => renderModalPriceForVariant(p);
+  renderModalPriceForVariant(p);
 
   modalBackdrop.classList.add("is-open");
   document.body.style.overflow = "hidden";
@@ -959,6 +991,8 @@ function openProductModal(p, opts = {}) {
       if (existing) {
         existing.qty = Math.min(50, (parseInt(existing.qty, 10) || 0) + qty);
       } else {
+        const unitPrice = getUnitPriceForVariant(activeProduct, variant);
+
         cart.push({
           id: activeProduct.id,
           name: activeProduct.name || activeProduct.id,
@@ -966,8 +1000,10 @@ function openProductModal(p, opts = {}) {
           variant,
           qty,
           unit: safeUnit(activeProduct),
+          unitPrice, // NEW
           pickupRequired: !!activeProduct.pickupRequired
         });
+
       }
 
       saveCartToStorage();
@@ -989,6 +1025,8 @@ function openProductModal(p, opts = {}) {
     });
 
     function buildMailtoFromForm(fd) {
+      const total = cartTotalEUR();
+
       const name = (fd.get("name") || "").toString().trim();
       const notes = (fd.get("notes") || "").toString().trim();
 
@@ -1006,9 +1044,8 @@ function openProductModal(p, opts = {}) {
         ? "— (nur digital)"
         : [street, `${zip} ${town}`.trim(), country].filter(Boolean).join("\r\n");
 
-      const orderLines = cart.map(it =>
-        `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`
-      );
+      const orderLines = cartLinesText();
+
 
       const CRLF = "\r\n";
 
@@ -1025,6 +1062,11 @@ function openProductModal(p, opts = {}) {
         notes || "—",
         "",
         `Bezahlung: ${payment || "—"}.`,
+        "",
+        "Summe (ohne Versand):",
+        formatEUR(total),
+        "",
+
         `Versandweg: ${shipping || "—"}.`,
         "",
         "Vielen Dank!",
@@ -1056,10 +1098,19 @@ function openProductModal(p, opts = {}) {
       a.remove();
     }
 
-    function cartLinesText() {
-  return cart.map(it =>
-    `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`
-  );
+function cartLinesText() {
+  return cart.map(it => {
+    const p = typeof it.unitPrice === "number" ? ` — ${formatEUR(it.unitPrice)}` : "";
+    return `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${p}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`;
+  });
+}
+
+function cartTotalEUR() {
+  return cart.reduce((sum, it) => {
+    const up = (typeof it.unitPrice === "number") ? it.unitPrice : 0;
+    const q = parseInt(it.qty || 0, 10) || 0;
+    return sum + (up * q);
+  }, 0);
 }
 
 function renderCheckoutCartPreview() {
@@ -1256,45 +1307,60 @@ async function loadBooksFromWorkIndex() {
     // show ONLY available books
     if (!isAvailableFromMeta(meta)) return null;
 
-    const price = toNumber(meta.price);
-    if (price == null) return null; // only sell items with price
+    const pricePrint = toNumber(meta["price-print"] ?? meta.pricePrint ?? meta.price_print ?? meta.price);
+const priceDigital = toNumber(meta["price-digital"] ?? meta.priceDigital ?? meta.price_digital);
 
-    const image = await resolveWorkImage({ slug: w.slug, meta, indexCover: w.cover });
+if (pricePrint == null && priceDigital == null) return null; // nothing sellable
 
-    const title = String(meta.title || w.id);
-    const excerpt = String(meta.excerpt || meta.description || "");
-    const tags = Array.isArray(meta.tags) ? meta.tags : [];
+// only offer variants that actually have a numeric price
+const variants = [];
+if (pricePrint != null) variants.push("Print");
+if (priceDigital != null) variants.push("E-Book");
 
-    // store full meta for the popup
-    return {
-      id: w.id,
-      slug: w.slug,
+// for list sorting/display: use the lowest available price
+const priceMin = Math.min(
+  pricePrint != null ? pricePrint : Number.POSITIVE_INFINITY,
+  priceDigital != null ? priceDigital : Number.POSITIVE_INFINITY
+);
+const displayPrice = Number.isFinite(priceMin) ? priceMin : null;
 
-      name: title,
-      description: excerpt,
-      longDescription: excerpt,
+const image = await resolveWorkImage({ slug: w.slug, meta, indexCover: w.cover });
 
-      image,
+const title = String(meta.title || w.id);
+const excerpt = String(meta.excerpt || meta.description || "");
+const tags = Array.isArray(meta.tags) ? meta.tags : [];
 
-      price,
-      currency: "EUR",
+return {
+  id: w.id,
+  slug: w.slug,
 
-      unit: String(meta.unit || "Buch"),
-      variants: (Array.isArray(meta.variants) && meta.variants.length) ? meta.variants : ["Print", "E-Book"],
-      tags,
+  name: title,
+  description: excerpt,
+  longDescription: excerpt,
 
-      updated: String(meta.updated || w.updated || meta.published?.date || meta.published || "").trim(),
+  image,
 
-      // badge text
-      status: "verfügbar",
+  price: displayPrice,   // list/sort price (“from”)
+  pricePrint,
+  priceDigital,
+  currency: "EUR",
 
-      pickupRequired: false,
+  unit: String(meta.unit || "Buch"),
+  variants,
+  tags,
 
-      metaUrl: w.metaUrl,
-      contentUrl: w.contentUrl,
+  updated: String(meta.updated || w.updated || meta.published?.date || meta.published || "").trim(),
 
-      _meta: meta
-    };
+  status: "verfügbar",
+  pickupRequired: false,
+
+  metaUrl: w.metaUrl,
+  contentUrl: w.contentUrl,
+
+  _meta: meta
+};
+
+
   }))).filter(Boolean);
 
   // newest first

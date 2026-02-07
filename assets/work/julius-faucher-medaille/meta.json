@@ -8,7 +8,8 @@
     "eigenanteil": "Libertärer Standpunkt zur Unschuld der Boomer an der Wirtschaftskrise",
     "tags": ["libertarian", "politics", "article", "book"],
     "excerpt": "Ich habe für 2025 einen Artikel mit dem libertären Standpunkt der PDV eingereicht und den Hauptpreis gewonnen",
- "price":20,
+ "price-print":20,
+  "price-digital":10,
     "alsoPublished": [
     { "label": "Eigentümlich frei", "url": "https://www.kopp-verlag.de/a/eigentuemlich-frei-ausgabe-nr.-259-januar%2Ffebruar-2026" }
   ]

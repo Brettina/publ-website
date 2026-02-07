@@ -11,7 +11,8 @@
 
     "tags": ["relationship", "facereading", "guide","publishing", "book","translation"],
     "excerpt": "Das Buch richtet sich an alle phenomenologisch Interessierten.",
-     "price":27,
+ "price-print":27,
+  "price-digital":10,  
   "alsoPublished": [
     { "label": "Autorenwebsite", "url": "https://www.drpeterreznik.com/" }
   ]
