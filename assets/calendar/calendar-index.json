@@ -3,26 +3,38 @@
     {
       "date": "2026-01-16",
       "title": "EF-Konferenz",
-      "projects": ["article"],
       "tags": ["politics", "activism", "libertarian"],
       "where": "Usedom",
+      "projects":"medaille",
       "note": "Preisverleihungsalarm!"
     },
-         {
-      "date": "2026-05-01",
-      "title": "Am Tag der Arbeit eine Erfrischung gefällig?",
-      "projects": ["saftladen"],
-      "tags": ["saftladen", "pickup"],
-      "where": "Niederwürschnitz",
-      "note": "Ich stehe an der Fahrradstrecke und schenke euch gern Saft aus."
-    },
+    
      {
-      "date": "2026-05-14",
-      "title": "Himmelfahrt",
-      "projects": ["saftladen"],
-      "tags": ["saftladen", "pickup"],
-      "where": "Niederwürschnitz",
-      "note": "Ich stehe an der Fahrradstrecke und schenke euch gern Saft aus."
+      "date": "2026-11-07",
+      "title": "Wohlfühlmesse Gelsenkirchen",
+      "tags": ["publishing", "fair"],
+      "where": "Gelsenkirchen",
+            "projects":["reznik", "angela"],
+
+      "note": "Gern lege ich auch Ihr Buch mit aus."
+    } ,
+     {
+      "date": "2026-09-03",
+      "title": "Vorarlberger Buchmesse in Österreich",
+      "tags": ["publishing", "fair"],
+      "where": "Vorarlberg",
+            "projects":["reznik", "angela"],
+
+      "note": "IGern lege ich auch Ihr Buch mit aus."
+    }  ,
+     {
+      "date": "2026-11-07",
+      "title": "Messe Seitenwechsel",
+      "tags": ["publishing", "fair"],
+      "where": "Halle",
+            "projects":["reznik", "angela"],
+
+      "note": "Gern lege ich auch Ihr Buch mit aus."
     }  
   ]
 }

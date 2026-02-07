@@ -656,7 +656,6 @@
 <ul>
     <li>Die Inhalte dienen ausschließlich der Information und Meinungsbildung.</li>
     <li>Sie stellen <strong>keine</strong> Rechtsberatung, medizinische Behandlung oder Psychotherapie dar.</li>
-    <li>Coaching, Seelsorge und Unterstützungsarbeit erfolgen <strong>außerhalb</strong> regulierter medizinischer oder heilkundlicher Rahmen, sofern nicht ausdrücklich anders gekennzeichnet.</li>
     <li>Für Inhalte veröffentlichter Bücher und Beiträge wird <strong>keine Haftung oder Verantwortung</strong> übernommen; insbesondere nicht für deren Nutzung oder Auslegung durch Dritte.</li>
     <li>Politische Analysen beruhen auf methodischer Bewertung; trotz Sorgfalt sind Unsicherheiten und Fehler möglich.</li>
     <li>Teile von Texten, Workflows oder Entwürfen können <strong>KI-unterstützt</strong> erstellt sein; sie werden geprüft, dennoch können Fehler verbleiben.</li>
@@ -750,9 +749,11 @@
 
     const html = list.map(ev => {
       const projects = Array.isArray(ev.projects) ? ev.projects : [];
-      const projectLinks = projects.map(slug => {
-        return `<a href="/webpages/projects/?open=${encodeURIComponent(slug)}#entries-title">${escapeHtml(slug)}</a>`;
+      const projectLinks = projects.map(id => {
+        const href = `/assets/work/${encodeURIComponent(id)}/article.html`;
+        return `<a href="${href}">${escapeHtml(id)}</a>`;
       }).join(", ");
+
 
       const where = ev.where ? `<div class="fineprint">Ort: ${escapeHtml(ev.where)}</div>` : "";
       const note = ev.note ? `<div class="fineprint">${escapeHtml(ev.note)}</div>` : "";
