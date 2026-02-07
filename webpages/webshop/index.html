@@ -70,6 +70,22 @@
       display: grid;
       gap: 10px;
     }
+    .modal {
+  max-height: calc(100dvh - 32px); /* viewport-safe incl. mobile */
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-img {
+  flex: 0 0 auto;
+}
+
+.modal .modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 
     .shop-topline {
       display: flex;
@@ -212,6 +228,10 @@
       padding: 0 6px;
       opacity: 0.95;
     }
+    #modal-klappentext {
+  line-height: 1.45;
+}
+
 
     /* Modal */
     .modal-backdrop {
