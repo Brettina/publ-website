@@ -356,10 +356,16 @@
         </div>
 
         <aside class="cart-hero" aria-labelledby="cart">
-          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-            <h2 id="cart" style="margin:0;">Deine Auswahl</h2>
-            <button class="btn-mini" type="button" id="cart-clear" style="display:none;">Alles leeren</button>
-          </div>
+<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+  <h2 id="cart" style="margin:0;">Deine Auswahl</h2>
+  <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+    <button class="btn-mini" type="button" id="cart-clear" style="display:none;">Alles leeren</button>
+    <button class="button" type="button" id="buy-btn" disabled>Kaufen</button>
+  </div>
+</div>
+
+<p class="fineprint" id="buy-hint" style="margin-top:8px; opacity:0.9;"></p>
+
 
           <p class="fineprint" style="margin-top:6px;">
             Klick auf ein Buch → Details → Variante/Menge → in Auswahl.
@@ -374,126 +380,140 @@
       </div>
     </section>
 
-    <section class="section" aria-labelledby="checkout">
-      <h2 id="checkout">Anfrage senden</h2>
 
-      <div class="checkout-grid">
-        <div class="card" style="padding:14px;">
-          <h3 style="margin-top:0;">Kontakt</h3>
-
-          <form id="checkout-form" class="form">
-            <div class="field" style="position:absolute; left:-9999px;" aria-hidden="true">
-              <label for="company-webshop">Company</label>
-              <input id="company-webshop" name="company" autocomplete="off" tabindex="-1" />
-            </div>
-
-            <div class="field">
-              <label for="name">Name</label>
-              <input id="name" name="name" autocomplete="name" required />
-            </div>
-
-            <div class="field">
-              <label for="shipping">Versandweg</label>
-              <select id="shipping" name="shipping" required>
-                <option value="">Bitte wählen…</option>
-                <option value="DHL">DHL</option>
-                <option value="Hermes">Hermes</option>
-                <option value="Nur digital">Nur digital</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="address">Straße + Hausnummer</label>
-              <input id="address" name="address" autocomplete="street-address" required />
-            </div>
-
-            <div class="field">
-              <label for="zip">PLZ</label>
-              <input id="zip" name="zip" autocomplete="postal-code" required />
-            </div>
-
-            <div class="field">
-              <label for="town">Ort</label>
-              <input id="town" name="town" autocomplete="address-level2" required />
-            </div>
-
-            <div class="field">
-              <label for="country">Land</label>
-              <input id="country" name="country" autocomplete="country-name" required />
-            </div>
-
-            <div class="field">
-              <label for="payment">Bezahlung</label>
-              <select id="payment" name="payment" required>
-                <option value="">Bitte wählen…</option>
-                <option value="BTC">BTC</option>
-                <option value="Wise">Wise</option>
-                <option value="PayPal">PayPal</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="notes">Notizen</label>
-              <textarea id="notes" name="notes" rows="4" placeholder="Sonderwünsche, Alternativen, etc."></textarea>
-            </div>
-
-            <div class="field checkbox">
-              <input id="consent" name="consent" type="checkbox" required />
-              <label for="consent">Ich stimme zu, dass meine Daten zur Beantwortung meiner Anfrage verwendet werden.</label>
-            </div>
-
-            <p class="fineprint">
-              Siehe <a href="/regulation/privacy/">Datenschutz</a>, <a href="/regulation/cookies/">Cookies</a>, <a href="/regulation/imprint/">Impressum</a>.
-            </p>
-
-            <button class="button" type="submit" id="send-btn" disabled>Anfrage per E-Mail senden</button>
-            <p class="fineprint" id="send-hint" style="margin-top:10px; opacity:0.9;"></p>
-          </form>
-        </div>
-      </div>
-    </section>
   </main>
 
   <!-- Product modal -->
-  <div class="modal-backdrop" id="product-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+<div class="modal-backdrop" id="product-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <article class="card modal">
-  <img id="modal-img" class="modal-img" alt="" />
-  <div class="modal-body">
-    <div class="modal-top">
-      <h3 id="modal-title" style="margin:0;"></h3>
-      <button type="button" class="btn-mini" id="modal-close" aria-label="Schließen">✕</button>
-    </div>
+    <img id="modal-img" class="modal-img" alt="" />
+        <div class="modal-body">
+          <div class="modal-top">
+            <h3 id="modal-title" style="margin:0;"></h3>
+            <button type="button" class="btn-mini" id="modal-close" aria-label="Schließen">✕</button>
+          </div>
 
-    <div class="fineprint" id="modal-status"></div>
+          <div class="fineprint" id="modal-status"></div>
 
-    <!-- BIG PRICE -->
-    <div id="modal-price" class="modal-price"></div>
+          <!-- BIG PRICE -->
+          <div id="modal-price" class="modal-price"></div>
 
-    <div class="fineprint" id="modal-tags"></div>
-    <div class="fineprint" id="modal-links"></div>
+          <div class="fineprint" id="modal-tags"></div>
+          <div class="fineprint" id="modal-links"></div>
 
-    <!-- KLAPPENTEXT -->
-    <p id="modal-klappentext" style="margin:0;"></p>
+          <!-- KLAPPENTEXT -->
+          <p id="modal-klappentext" style="margin:0;"></p>
 
-    <div class="shop-row">
-      <div class="field">
-        <label for="modal-variant">Variante</label>
-        <select id="modal-variant"></select>
-      </div>
-      <div class="field">
-        <label for="modal-qty">Menge</label>
-        <input id="modal-qty" type="number" min="1" max="50" value="1" />
-      </div>
-    </div>
+          <div class="shop-row">
+            <div class="field">
+              <label for="modal-variant">Variante</label>
+              <select id="modal-variant"></select>
+            </div>
+            <div class="field">
+              <label for="modal-qty">Menge</label>
+              <input id="modal-qty" type="number" min="1" max="50" value="1" />
+            </div>
+          </div>
 
-    <div class="modal-actions">
-      <span class="fineprint" id="modal-unit"></span>
-      <button type="button" class="button" id="modal-add">In Auswahl</button>
-    </div>
+          <div class="modal-actions">
+            <span class="fineprint" id="modal-unit"></span>
+            <button type="button" class="button" id="modal-add">In Auswahl</button>
+          </div>
+        </div>
+    </article>
+
   </div>
-</article>
+<!-- Checkout modal (Kaufen) -->
+<div class="modal-backdrop" id="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+  <article class="card modal">
+    <div class="modal-body">
+      <div class="modal-top">
+        <h3 id="checkout-title" style="margin:0;">Kaufen</h3>
+        <button type="button" class="btn-mini" id="checkout-close" aria-label="Schließen">✕</button>
+      </div>
 
-  </div>
+      <p class="fineprint" style="margin:0;">
+        Es wird ein E-Mail-Entwurf geöffnet (mailto:). Keine Zahlung auf der Website.
+      </p>
+
+      <div class="card" style="padding:12px;">
+        <strong>Deine Auswahl</strong>
+        <div id="checkout-cart-preview" class="fineprint" style="margin-top:8px;"></div>
+      </div>
+
+      <form id="checkout-modal-form" class="form">
+        <div class="field" style="position:absolute; left:-9999px;" aria-hidden="true">
+          <label for="company-webshop-modal">Company</label>
+          <input id="company-webshop-modal" name="company" autocomplete="off" tabindex="-1" />
+        </div>
+
+        <div class="field">
+          <label for="co-name">Name</label>
+          <input id="co-name" name="name" autocomplete="name" required />
+        </div>
+
+        <div class="field">
+          <label for="co-shipping">Versandweg</label>
+          <select id="co-shipping" name="shipping" required>
+            <option value="">Bitte wählen…</option>
+            <option value="DHL">DHL</option>
+            <option value="Hermes">Hermes</option>
+            <option value="Nur digital">Nur digital</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="co-address">Straße + Hausnummer</label>
+          <input id="co-address" name="address" autocomplete="street-address" required />
+        </div>
+
+        <div class="field">
+          <label for="co-zip">PLZ</label>
+          <input id="co-zip" name="zip" autocomplete="postal-code" required />
+        </div>
+
+        <div class="field">
+          <label for="co-town">Ort</label>
+          <input id="co-town" name="town" autocomplete="address-level2" required />
+        </div>
+
+        <div class="field">
+          <label for="co-country">Land</label>
+          <input id="co-country" name="country" autocomplete="country-name" required />
+        </div>
+
+        <div class="field">
+          <label for="co-payment">Bezahlung</label>
+          <select id="co-payment" name="payment" required>
+            <option value="">Bitte wählen…</option>
+            <option value="BTC">BTC</option>
+            <option value="Wise">Wise</option>
+            <option value="PayPal">PayPal</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="co-notes">Notizen</label>
+          <textarea id="co-notes" name="notes" rows="4" placeholder="Sonderwünsche, Alternativen, etc."></textarea>
+        </div>
+
+        <div class="field checkbox">
+          <input id="co-consent" name="consent" type="checkbox" required />
+          <label for="co-consent">Ich stimme zu, dass meine Daten zur Beantwortung meiner Anfrage verwendet werden.</label>
+        </div>
+
+        <p class="fineprint">
+          Siehe <a href="/regulation/privacy/">Datenschutz</a>, <a href="/regulation/cookies/">Cookies</a>, <a href="/regulation/imprint/">Impressum</a>.
+        </p>
+
+        <div class="modal-actions">
+          <span class="fineprint" id="checkout-hint"></span>
+          <button type="submit" class="button" id="checkout-send">E-Mail öffnen</button>
+        </div>
+      </form>
+    </div>
+  </article>
+</div>
 
   <footer class="site-footer">
     <p>© <span id="year"></span> Verlag Lohr</p>
@@ -524,35 +544,26 @@
     const cartCount = $("#cart-count");
     const cartClear = $("#cart-clear");
 
-    const form = $("#checkout-form");
-    const shippingSel = $("#shipping");
-    const paymentSel = $("#payment");
+    // Cart "Kaufen" controls (NEW)
+    const buyBtn = $("#buy-btn");
+    const buyHint = $("#buy-hint");
 
-    const addressEl = $("#address");
-    const zipEl = $("#zip");
-    const townEl = $("#town");
-    const countryEl = $("#country");
+    // Checkout modal (NEW)
+    const checkoutBackdrop = $("#checkout-modal");
+    const checkoutClose = $("#checkout-close");
+    const checkoutForm = $("#checkout-modal-form");
+    const checkoutCartPreview = $("#checkout-cart-preview");
+    const checkoutHint = $("#checkout-hint");
 
-    const sendBtn = $("#send-btn");
-    const sendHint = $("#send-hint");
-
-    // Modal elements
-    // Modal elements
-const modalBackdrop = $("#product-modal");
-const modalClose = $("#modal-close");
-const modalImg = $("#modal-img");
-const modalTitle = $("#modal-title");
-const modalStatus = $("#modal-status");
-const modalPrice = $("#modal-price");
-const modalTags = $("#modal-tags");
-const modalLinks = $("#modal-links");
-const modalKlappentext = $("#modal-klappentext");
-const modalVariant = $("#modal-variant");
-const modalQty = $("#modal-qty");
-const modalUnit = $("#modal-unit");
-const modalAdd = $("#modal-add");
-
-
+    // Checkout fields (NEW)
+    const coName = $("#co-name");
+    const coShipping = $("#co-shipping");
+    const coAddress = $("#co-address");
+    const coZip = $("#co-zip");
+    const coTown = $("#co-town");
+    const coCountry = $("#co-country");
+    const coPayment = $("#co-payment");
+    const coNotes = $("#co-notes");
 
 
     let products = [];
@@ -822,18 +833,20 @@ const modalAdd = $("#modal-add");
 
     function syncCheckoutState() {
       const ok = cart.length > 0;
-      sendBtn.disabled = !ok;
+
+      if (buyBtn) buyBtn.disabled = !ok;
 
       if (!ok) {
-        sendHint.textContent = "Füge mindestens ein Buch hinzu, dann kannst du die Anfrage senden.";
+        if (buyHint) buyHint.textContent = "Füge mindestens ein Buch hinzu, dann kannst du kaufen.";
         return;
       }
 
       const needsPickup = cart.some(x => x.pickupRequired);
-      sendHint.textContent = needsPickup
+      if (buyHint) buyHint.textContent = needsPickup
         ? "Hinweis: Mindestens ein Artikel erfordert Abholung (steht in der Auswahl)."
-        : "Du kannst jetzt die Anfrage senden.";
+        : "Klicke auf „Kaufen“, um die E-Mail zu öffnen.";
     }
+
 
 function openProductModal(p, opts = {}) {
   activeProduct = p;
@@ -991,7 +1004,7 @@ function openProductModal(p, opts = {}) {
         "Notizen:",
         notes || "—",
         "",
-        `Bezahlung: ${isDigital ? "— (nur digital)" : (payment || "—")}.`,
+        `Bezahlung: ${payment || "—"}.`,
         `Versandweg: ${shipping || "—"}.`,
         "",
         "Vielen Dank!",
@@ -1022,6 +1035,112 @@ function openProductModal(p, opts = {}) {
       a.click();
       a.remove();
     }
+
+    function cartLinesText() {
+  return cart.map(it =>
+    `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`
+  );
+}
+
+function renderCheckoutCartPreview() {
+  if (!checkoutCartPreview) return;
+  const lines = cartLinesText();
+  checkoutCartPreview.textContent = lines.length ? lines.join("\n") : "—";
+  checkoutCartPreview.style.whiteSpace = "pre-wrap";
+}
+
+function setCheckoutAddressFieldsEnabled(enabled) {
+  const addressFields = [coAddress, coZip, coTown, coCountry];
+  addressFields.forEach(el => { if (el) el.disabled = !enabled; });
+
+  addressFields.forEach(el => {
+    if (!el) return;
+    if (enabled) el.setAttribute("required", "");
+    else el.removeAttribute("required");
+  });
+
+  if (!enabled) {
+    [coAddress, coZip, coTown, coCountry].forEach(el => { if (el) el.value = ""; });
+  }
+}
+
+function applyCheckoutShippingRules() {
+  const shipping = (coShipping?.value || "").toLowerCase().trim();
+  const isDigital = shipping === "nur digital";
+
+  // Address not needed for digital
+  setCheckoutAddressFieldsEnabled(!isDigital);
+
+  // Payment is ALWAYS required (including digital)
+  if (coPayment) {
+    coPayment.disabled = false;
+    coPayment.setAttribute("required", "");
+  }
+
+  if (checkoutHint) {
+    checkoutHint.textContent = isDigital
+      ? "Nur digital gewählt: Adresse wird nicht benötigt. Bezahlung bleibt erforderlich."
+      : "";
+  }
+}
+
+
+
+function openCheckoutModal() {
+  if (!cart.length) return;
+
+  renderCheckoutCartPreview();
+  applyCheckoutShippingRules();
+
+  checkoutBackdrop?.classList.add("is-open");
+  document.body.style.overflow = "hidden";
+  setTimeout(() => coName?.focus(), 0);
+}
+
+function closeCheckoutModal() {
+  checkoutBackdrop?.classList.remove("is-open");
+  document.body.style.overflow = "";
+}
+
+buyBtn?.addEventListener("click", openCheckoutModal);
+
+checkoutClose?.addEventListener("click", closeCheckoutModal);
+checkoutBackdrop?.addEventListener("click", (e) => { if (e.target === checkoutBackdrop) closeCheckoutModal(); });
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && checkoutBackdrop?.classList.contains("is-open")) closeCheckoutModal();
+});
+
+coShipping?.addEventListener("change", applyCheckoutShippingRules);
+
+checkoutForm?.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const honey = checkoutForm.querySelector('input[name="company"]');
+  if (honey && honey.value.trim() !== "") return;
+
+  if (!cart.length) return;
+
+  const consent = checkoutForm.querySelector("#co-consent");
+  if (consent && !consent.checked) return;
+
+  if (!checkoutForm.reportValidity()) return;
+
+  const fd = new FormData(checkoutForm);
+
+  const mail = buildMailtoFromForm(fd);
+  openMailto(mail);
+
+  // Optional: clear cart after opening email draft
+  cart = [];
+  saveCartToStorage();
+  renderCart();
+  syncCheckoutState();
+
+  checkoutForm.reset();
+  renderCheckoutCartPreview();
+  closeCheckoutModal();
+});
 
 function isAvailableFromMeta(meta) {
   const raw = (meta?.available ?? meta?.published?.available ?? "").toString().toLowerCase().trim();
@@ -1185,86 +1304,6 @@ async function loadBooksFromWorkIndex() {
     // Wire controls
     [q, status, sort].forEach(el => el.addEventListener("input", renderProducts));
 
-    shippingSel?.addEventListener("change", () => {
-      applyShippingRules();
-      syncCheckoutState();
-    });
-
-    function setPhysicalFieldsEnabled(enabled) {
-      const fields = [paymentSel, addressEl, zipEl, townEl, countryEl];
-      fields.forEach(el => { if (el) el.disabled = !enabled; });
-
-      [addressEl, zipEl, townEl, countryEl].forEach(el => {
-        if (!el) return;
-        if (enabled) el.setAttribute("required", "");
-        else el.removeAttribute("required");
-      });
-
-      if (paymentSel) {
-        if (enabled) paymentSel.setAttribute("required", "");
-        else paymentSel.removeAttribute("required");
-      }
-
-      if (!enabled) {
-        if (paymentSel) paymentSel.value = "";
-        [addressEl, zipEl, townEl, countryEl].forEach(el => { if (el) el.value = ""; });
-      }
-    }
-
-    function applyShippingRules() {
-      const shipping = (shippingSel?.value || "").toLowerCase().trim();
-      const isDigital = shipping === "nur digital";
-      setPhysicalFieldsEnabled(!isDigital);
-
-      sendHint.textContent = isDigital
-        ? "Nur digital gewählt: Adresse & Bezahlung werden nicht benötigt."
-        : "Bitte Adresse ausfüllen und Bezahlung auswählen.";
-    }
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const honey = form.querySelector('input[name="company"]');
-      if (honey && honey.value.trim() !== "") return;
-
-      if (!cart.length) return;
-
-      const consent = form.querySelector("#consent");
-      if (consent && !consent.checked) return;
-
-      if (!form.reportValidity()) {
-        sendHint.textContent = "Bitte alle Pflichtfelder ausfüllen.";
-        return;
-      }
-
-      sendBtn.disabled = true;
-      sendBtn.textContent = "Öffne E-Mail…";
-
-      try {
-        const fd = new FormData(form);
-        const mail = buildMailtoFromForm(fd);
-        openMailto(mail);
-
-        setTimeout(() => {
-          sendHint.textContent = "E-Mail-Entwurf sollte geöffnet sein. Falls nicht: Mail-App/Handler (mailto:) im System/Browser einrichten.";
-        }, 50);
-
-        // clear cart & persist
-        cart = [];
-        saveCartToStorage();
-        renderCart();
-        syncCheckoutState();
-
-        form.reset();
-        applyShippingRules();
-      } catch (err) {
-        alert(`Öffnen des Mailprogramms fehlgeschlagen: ${err?.message || err}`);
-        syncCheckoutState();
-      } finally {
-        sendBtn.textContent = "Anfrage per E-Mail senden";
-        sendBtn.disabled = cart.length === 0;
-      }
-    });
 
     // init
     (async function init() {
@@ -1280,7 +1319,7 @@ async function loadBooksFromWorkIndex() {
       renderCart();
       syncCheckoutState();
       syncCartBadge();
-      applyShippingRules();
+
     })();
   </script>
 </body>
