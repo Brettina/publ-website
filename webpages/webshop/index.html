@@ -1,0 +1,1224 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Buchshop - Lohr-Verlag</title>
+
+  <meta name="description" content="Buchshop. Anfrage per E-Mail." />
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="icon" href="/img/webicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/img/header_library.png" />
+  <meta name="color-scheme" content="light dark" />
+
+  <style>
+    /* Webshop-local layout (keeps your global styles intact) */
+    .shop-head {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .shop-controls {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr;
+      align-items: end;
+    }
+    @media (min-width: 900px) {
+      .shop-controls {
+        grid-template-columns: 1.2fr 0.8fr 0.8fr;
+      }
+    }
+
+    .shop-search { width: 100%; }
+
+    .shop-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    @media (min-width: 720px) {
+      .shop-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 1100px) {
+      .shop-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .shop-card {
+      overflow: hidden;
+      border-radius: 16px;
+      cursor: pointer;
+    }
+
+    .shop-img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .shop-body {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .shop-topline {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .shop-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.85em;
+      border: 1px solid currentColor;
+      opacity: 0.9;
+      white-space: nowrap;
+    }
+
+    /* Prominent cart area */
+    .cart-hero {
+      margin-top: 18px;
+      border-radius: 18px;
+      padding: 14px;
+      border: 2px solid currentColor;
+      background: rgba(255, 230, 150, 0.20);
+    }
+
+    /* Put cart near the top on wide screens (prominent) */
+    .shop-layout {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 1100px) {
+      .shop-layout {
+        grid-template-columns: 1.35fr 0.65fr;
+        align-items: start;
+      }
+      .cart-hero {
+        position: sticky;
+        top: 12px;
+      }
+    }
+
+    .cart-items {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .cart-item {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 14px;
+    }
+
+    .cart-item-grid {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+    .cart-thumb {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 1px solid rgba(127,127,127,0.35);
+    }
+
+    .cart-item-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .cart-item-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      opacity: 0.9;
+    }
+
+    .cart-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-mini {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid currentColor;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .checkout-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 900px) {
+      .checkout-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .empty {
+      opacity: 0.8;
+      padding: 14px;
+      border-radius: 14px;
+    }
+
+    /* Cart icon badge in nav */
+    .cart-link {
+      position: relative;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .cart-count {
+      display: inline-flex;
+      min-width: 22px;
+      height: 22px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid currentColor;
+      font-size: 0.85em;
+      padding: 0 6px;
+      opacity: 0.95;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+    }
+    .modal-backdrop.is-open { display: flex; }
+
+    .modal {
+      width: min(760px, 100%);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .modal-img {
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .modal .modal-body {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .modal-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .shop-row {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .shop-row .field { margin: 0; }
+
+    .shop-row input, .shop-row select {
+      width: 100%;
+    }
+
+    /* Make product cards clearly clickable */
+    .shop-card:focus {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+
+<body class="page-webshop">
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a class="brand" href="/">Bettina Lohr, M Sc.</a>
+      <ul class="nav-list">
+        <li><a href="/" aria-label="Shop verlassen">← Zur Startseite</a></li>
+        <li>
+          <a href="#cart" class="cart-link" aria-label="Zum Warenkorb">
+            <span aria-hidden="true">🛒</span>
+            <span class="cart-count" id="cart-count" aria-label="Anzahl im Warenkorb">0</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main" class="container">
+    <header class="page-hero shop-head">
+      <h1>Webshop</h1>
+      <p class="lead" style="margin:0;">
+        Kleine Serien / Prototypen. Keine Zahlung auf der Website — du stellst hier eine Auswahl zusammen und sendest eine Anfrage per E-Mail.
+      </p>
+
+      <div class="note-block" style="margin-top:12px;">
+        <p class="fineprint" style="margin:0;">
+          Bestellung = Anfrage/Reservierung. Ich bestätige per Mail. Sonderwünsche (Material/Farbe) einfach in die Notizen.
+        </p>
+      </div>
+    </header>
+
+    <section class="section" aria-labelledby="shop">
+      <div class="section-head">
+        <h2 id="shop" style="margin:0;">Produkte</h2>
+<p class="fineprint" style="margin:0;">
+  Quelle: <code>/assets/work-index.json</code> + <code>/assets/work/*/meta.json</code>
+</p>
+
+      </div>
+
+      <div class="shop-controls" style="margin-top:12px;">
+        <div class="field">
+          <label for="q">Suche</label>
+          <input id="q" class="shop-search" type="search" placeholder="z.B. reznik …" />
+        </div>
+
+        <div class="field">
+          <label for="status">Tag</label>
+          <select id="status">
+            <option value="">Alle</option>
+            <option value="verfügbar">verfügbar</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="sort">Sortierung</label>
+          <select id="sort">
+            <option value="name">Name (A–Z)</option>
+            <option value="status">Status</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="shop-layout" style="margin-top:14px;">
+        <div>
+          <div id="shop-grid" class="shop-grid" aria-live="polite"></div>
+
+          <div id="shop-empty" class="card empty" style="display:none; margin-top:14px;">
+            <p class="fineprint" style="margin:0;">
+              Keine Treffer. (Falls alles leer ist: prüfe, ob <code>/assets/products.json</code> auf dem Server existiert und Produkte enthält.)
+            </p>
+          </div>
+        </div>
+
+        <aside class="cart-hero" aria-labelledby="cart">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <h2 id="cart" style="margin:0;">Deine Auswahl</h2>
+            <button class="btn-mini" type="button" id="cart-clear" style="display:none;">Alles leeren</button>
+          </div>
+
+          <p class="fineprint" style="margin-top:6px;">
+            Klick auf ein Produkt → Details → Variante/Menge → in Auswahl.
+          </p>
+
+          <div id="cart-items" class="cart-items"></div>
+
+          <div id="cart-empty" class="card empty" style="margin-top:12px;">
+            <p class="fineprint" style="margin:0;">Noch nichts ausgewählt. Öffne ein Produkt und füge es hinzu.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="checkout">
+      <h2 id="checkout">Anfrage senden</h2>
+
+      <div class="checkout-grid">
+        <div class="card" style="padding:14px;">
+          <h3 style="margin-top:0;">Kontakt</h3>
+
+          <form id="checkout-form" class="form">
+            <div class="field" style="position:absolute; left:-9999px;" aria-hidden="true">
+              <label for="company-webshop">Company</label>
+              <input id="company-webshop" name="company" autocomplete="off" tabindex="-1" />
+            </div>
+
+            <div class="field">
+              <label for="name">Name</label>
+              <input id="name" name="name" autocomplete="name" required />
+            </div>
+
+           <div class="field">
+
+            <div class="field">
+  <label for="shipping">Versandweg</label>
+  <select id="shipping" name="shipping" required>
+    <option value="">Bitte wählen…</option>
+    <option value="DHL">DHL</option>
+    <option value="Hermes">Hermes</option>
+    <option value="Nur digital">Nur digital</option>
+  </select>
+</div>
+  <label for="address">Straße + Hausnummer</label>
+  <input id="address" name="address" autocomplete="street-address" required />
+</div>
+
+<div class="field">
+  <label for="zip">PLZ</label>
+  <input id="zip" name="zip" autocomplete="postal-code" required />
+</div>
+
+<div class="field">
+  <label for="town">Ort</label>
+  <input id="town" name="town" autocomplete="address-level2" required />
+</div>
+
+<div class="field">
+  <label for="country">Land</label>
+  <input id="country" name="country" autocomplete="country-name" required />
+</div>
+
+
+
+<div class="field">
+  <label for="payment">Bezahlung</label>
+  <select id="payment" name="payment" required>
+    <option value="">Bitte wählen…</option>
+    <option value="BTC">BTC</option>
+    <option value="Wise">Wise</option>
+    <option value="PayPal">PayPal</option>
+
+  </select>
+</div>
+
+            <div class="field">
+              <label for="notes">Notizen</label>
+              <textarea id="notes" name="notes" rows="4" placeholder="Sonderwünsche, Alternativ-Zeiten, Material/Farbe, etc."></textarea>
+            </div>
+
+            <div class="field checkbox">
+              <input id="consent" name="consent" type="checkbox" required />
+              <label for="consent">Ich stimme zu, dass meine Daten zur Beantwortung meiner Anfrage verwendet werden.</label>
+            </div>
+
+            <p class="fineprint">
+              Siehe <a href="/regulation/privacy/">Datenschutz</a>, <a href="/regulation/cookies/">Cookies</a>, <a href="/regulation/imprint/">Impressum</a>.
+            </p>
+
+            <button class="button" type="submit" id="send-btn" disabled>Anfrage per E-Mail senden</button>
+            <p class="fineprint" id="send-hint" style="margin-top:10px; opacity:0.9;"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Product modal -->
+  <div class="modal-backdrop" id="product-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <article class="card modal">
+      <img id="modal-img" class="modal-img" alt="" />
+      <div class="modal-body">
+        <div class="modal-top">
+          <h3 id="modal-title" style="margin:0;"></h3>
+          <button type="button" class="btn-mini" id="modal-close" aria-label="Schließen">✕</button>
+        </div>
+
+        <div class="fineprint" id="modal-status"></div>
+        <div class="fineprint" id="modal-pickup" style="display:none;"></div>
+
+        <p id="modal-long" style="margin:0;"></p>
+
+        <div class="shop-row">
+          <div class="field">
+            <label for="modal-variant">Variante</label>
+            <select id="modal-variant"></select>
+          </div>
+          <div class="field">
+            <label for="modal-qty">Menge</label>
+            <input id="modal-qty" type="number" min="1" max="50" value="1" />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <span class="fineprint" id="modal-unit"></span>
+          <button type="button" class="button" id="modal-add">In Auswahl</button>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Weichware Lohr</p>
+    <ul class="footer-links">
+      <li><a href="/regulation/privacy/">Datenschutz</a></li>
+      <li><a href="/regulation/cookies/">Cookies</a></li>
+      <li><a href="/regulation/imprint/">Impressum</a></li>
+    </ul>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    const CONTACT_EMAIL = "anfrage@weichware-lohr.de";
+    const CART_KEY = "weichware_webshop_cart_v1";
+
+    const $ = (s) => document.querySelector(s);
+
+    const grid = $("#shop-grid");
+    const empty = $("#shop-empty");
+
+    const q = $("#q");
+    const status = $("#status");
+    const sort = $("#sort");
+
+    const cartWrap = $("#cart-items");
+    const cartEmpty = $("#cart-empty");
+    const cartCount = $("#cart-count");
+    const cartClear = $("#cart-clear");
+
+    const form = $("#checkout-form");
+    const shippingSel = $("#shipping");
+const paymentSel = $("#payment");
+
+const addressEl = $("#address");
+const zipEl = $("#zip");
+const townEl = $("#town");
+const countryEl = $("#country");
+
+    const sendBtn = $("#send-btn");
+    const sendHint = $("#send-hint");
+
+    // Modal elements
+    const modalBackdrop = $("#product-modal");
+    const modalClose = $("#modal-close");
+    const modalImg = $("#modal-img");
+    const modalTitle = $("#modal-title");
+    const modalStatus = $("#modal-status");
+    const modalPickup = $("#modal-pickup");
+    const modalLong = $("#modal-long");
+    const modalVariant = $("#modal-variant");
+    const modalQty = $("#modal-qty");
+    const modalUnit = $("#modal-unit");
+    const modalAdd = $("#modal-add");
+
+    
+
+    let products = [];
+    let cart = []; // {id, name, image, variant, qty, unit, pickupRequired}
+
+    let activeProduct = null;
+
+    function normalize(s) { return (s || "").toString().toLowerCase().trim(); }
+    function compare(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
+
+    function safeImage(p) { return p?.image || "/img/webicon.png"; }
+function safeVariants(p) {
+  // allow meta to override
+  if (Array.isArray(p?.variants) && p.variants.length) return p.variants;
+  return ["Print", "E-Book"];
+}
+function safeUnit(p) { return p?.unit || "Buch"; }
+
+function toNumber(x) {
+  const n = typeof x === "number" ? x : parseFloat(String(x || "").replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+function formatEUR(n) {
+  try {
+    return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
+  } catch {
+    return `${n} EUR`;
+  }
+}
+
+    function loadCartFromStorage() {
+      try {
+        const raw = localStorage.getItem(CART_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveCartToStorage() {
+      try {
+        localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      } catch {}
+    }
+
+    function cartTotalQty() {
+      return cart.reduce((sum, it) => sum + (parseInt(it.qty || 0, 10) || 0), 0);
+    }
+
+    function syncCartBadge() {
+      const n = cartTotalQty();
+      cartCount.textContent = String(n);
+      cartClear.style.display = cart.length ? "inline-flex" : "none";
+    }
+
+    function getFilteredProducts() {
+      const qq = normalize(q.value);
+      const st = normalize(status.value);
+
+      let list = products.slice();
+
+      if (qq) {
+        list = list.filter(p => {
+          const hay = normalize(p.name) + " " + normalize(p.description) + " " + normalize(p.longDescription) + " " + normalize(p.id);
+          return hay.includes(qq);
+        });
+      }
+      if (st) {
+        list = list.filter(p => (p.tags || []).some(t => normalize(t) === st));
+      }
+
+
+      const mode = sort.value;
+      list.sort((a, b) => {
+        if (mode === "status") return compare(normalize(a.status), normalize(b.status)) || compare(normalize(a.name), normalize(b.name));
+        return compare(normalize(a.name), normalize(b.name));
+      });
+
+      return list;
+    }
+
+    function renderProducts() {
+      const list = getFilteredProducts();
+      grid.innerHTML = "";
+      empty.style.display = list.length ? "none" : "block";
+
+      list.forEach(p => {
+        const card = document.createElement("article");
+        card.className = "card shop-card";
+        card.tabIndex = 0;
+        card.setAttribute("role", "button");
+        card.setAttribute("aria-label", `${p.name || p.id} öffnen`);
+
+        const img = document.createElement("img");
+        img.className = "shop-img";
+        img.loading = "lazy";
+        img.alt = p.name || p.id;
+        img.src = safeImage(p);
+
+        const body = document.createElement("div");
+        body.className = "shop-body";
+
+        const top = document.createElement("div");
+        top.className = "shop-topline";
+
+        const h = document.createElement("h3");
+        h.style.margin = "0";
+        h.textContent = p.name || p.id;
+
+        const badge = document.createElement("span");
+        badge.className = "shop-badge";
+        // Only show "verfügbar" explicitly when it is available; otherwise show status if present.
+        const st = (p.status || "").toString().trim();
+        badge.textContent = st ? st : "—";
+
+        top.appendChild(h);
+        top.appendChild(badge);
+
+        const desc = document.createElement("p");
+        desc.className = "fineprint";
+        desc.style.margin = "0";
+        // Keep short; long text goes into modal
+        desc.textContent = (p.description || "").toString().trim();
+        const priceLine = document.createElement("p");
+        priceLine.className = "fineprint";
+        priceLine.style.margin = "0";
+        priceLine.textContent = p.price != null ? `Preis: ${formatEUR(p.price)}` : "";
+        body.appendChild(priceLine);
+
+        body.appendChild(top);
+        body.appendChild(desc);
+
+        card.appendChild(img);
+        card.appendChild(body);
+
+        function open() { openProductModal(p); }
+        card.addEventListener("click", open);
+        card.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            open();
+          }
+        });
+
+        grid.appendChild(card);
+      });
+    }
+
+    function renderCart() {
+      cartWrap.innerHTML = "";
+      cartEmpty.style.display = cart.length ? "none" : "block";
+
+      cart.forEach((it, idx) => {
+        const box = document.createElement("div");
+        box.className = "card cart-item";
+
+        const gridRow = document.createElement("div");
+        gridRow.className = "cart-item-grid";
+
+        const thumb = document.createElement("img");
+        thumb.className = "cart-thumb";
+        thumb.alt = it.name || "Produkt";
+        thumb.loading = "lazy";
+        thumb.src = it.image || "/img/webicon.png";
+
+        const right = document.createElement("div");
+
+        const top = document.createElement("div");
+        top.className = "cart-item-top";
+
+        const title = document.createElement("strong");
+        title.textContent = it.name;
+
+        const meta = document.createElement("div");
+        meta.className = "cart-item-meta";
+        meta.appendChild(document.createTextNode(`${it.qty} ${it.unit}`));
+        meta.appendChild(document.createTextNode("•"));
+        meta.appendChild(document.createTextNode(`Variante: ${it.variant}`));
+        if (it.pickupRequired) {
+          meta.appendChild(document.createTextNode("•"));
+          meta.appendChild(document.createTextNode("Abholung erforderlich"));
+        }
+
+        top.appendChild(title);
+        top.appendChild(meta);
+
+        const actions = document.createElement("div");
+        actions.className = "cart-actions";
+
+        const minus = document.createElement("button");
+        minus.className = "btn-mini";
+        minus.type = "button";
+        minus.textContent = "−";
+        minus.addEventListener("click", () => {
+          it.qty = Math.max(1, (parseInt(it.qty, 10) || 1) - 1);
+          saveCartToStorage();
+          renderCart();
+          syncCheckoutState();
+        });
+
+        const plus = document.createElement("button");
+        plus.className = "btn-mini";
+        plus.type = "button";
+        plus.textContent = "+";
+        plus.addEventListener("click", () => {
+          it.qty = Math.min(50, (parseInt(it.qty, 10) || 1) + 1);
+          saveCartToStorage();
+          renderCart();
+          syncCheckoutState();
+        });
+
+        const edit = document.createElement("button");
+        edit.className = "btn-mini";
+        edit.type = "button";
+        edit.textContent = "Ändern";
+        edit.addEventListener("click", () => {
+          // Re-open modal for the original product if present; otherwise allow quick edit
+          const p = products.find(x => x.id === it.id) || null;
+          if (p) {
+            openProductModal(p, { preselectVariant: it.variant, presetQty: it.qty });
+          } else {
+            // minimal quick-edit fallback
+            const newQty = prompt("Menge:", String(it.qty));
+            const parsed = Math.max(1, parseInt(newQty || String(it.qty), 10) || it.qty);
+            it.qty = Math.min(50, parsed);
+            saveCartToStorage();
+            renderCart();
+            syncCheckoutState();
+          }
+        });
+
+        const remove = document.createElement("button");
+        remove.className = "btn-mini";
+        remove.type = "button";
+        remove.textContent = "Entfernen";
+        remove.addEventListener("click", () => {
+          cart.splice(idx, 1);
+          saveCartToStorage();
+          renderCart();
+          syncCheckoutState();
+        });
+
+        actions.appendChild(minus);
+        actions.appendChild(plus);
+        actions.appendChild(edit);
+        actions.appendChild(remove);
+
+        right.appendChild(top);
+        right.appendChild(actions);
+
+        gridRow.appendChild(thumb);
+        gridRow.appendChild(right);
+
+        box.appendChild(gridRow);
+        cartWrap.appendChild(box);
+      });
+
+      syncCartBadge();
+    }
+
+    function syncCheckoutState() {
+      const ok = cart.length > 0;
+      sendBtn.disabled = !ok;
+
+      if (!ok) {
+        sendHint.textContent = "Füge mindestens ein Produkt hinzu, dann kannst du die Anfrage senden.";
+        return;
+      }
+
+      const needsPickup = cart.some(x => x.pickupRequired);
+      sendHint.textContent = needsPickup
+        ? "Hinweis: Mindestens ein Artikel erfordert Abholung (steht in der Auswahl)."
+        : "Du kannst jetzt die Anfrage senden.";
+    }
+
+    function openProductModal(p, opts = {}) {
+      activeProduct = p;
+
+      modalTitle.textContent = p.name || p.id;
+      modalImg.src = safeImage(p);
+      modalImg.alt = p.name || p.id;
+
+      const st = (p.status || "").toString().trim();
+      modalStatus.textContent = st ? `Status: ${st}` : "";
+
+      modalPickup.style.display = p.pickupRequired ? "block" : "none";
+      modalPickup.textContent = p.pickupRequired ? "Abholung erforderlich" : "";
+
+      const longText = (p.longDescription || p.description || "").toString().trim();
+      modalLong.textContent = longText;
+
+      // Variants
+      modalVariant.innerHTML = "";
+      safeVariants(p).forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        modalVariant.appendChild(opt);
+      });
+
+      const preselect = (opts.preselectVariant || "").toString().trim();
+      if (preselect) {
+        const match = Array.from(modalVariant.options).find(o => o.value === preselect);
+        if (match) modalVariant.value = preselect;
+      }
+
+      // Qty
+      const presetQty = parseInt(opts.presetQty || "1", 10);
+      modalQty.value = String(Math.min(50, Math.max(1, isNaN(presetQty) ? 1 : presetQty)));
+
+      const priceTxt = (p.price != null) ? ` · ${formatEUR(p.price)} / ${safeUnit(p)}` : "";
+      modalUnit.textContent = `Einheit: ${safeUnit(p)}${priceTxt}`;
+
+
+      modalBackdrop.classList.add("is-open");
+      document.body.style.overflow = "hidden";
+
+      // focus close for accessibility
+      setTimeout(() => modalClose?.focus(), 0);
+    }
+
+    function closeProductModal() {
+      modalBackdrop.classList.remove("is-open");
+      document.body.style.overflow = "";
+      activeProduct = null;
+    }
+
+   modalClose?.addEventListener("click", closeProductModal);
+
+modalBackdrop?.addEventListener("click", (e) => {
+  if (e.target === modalBackdrop) closeProductModal();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modalBackdrop?.classList.contains("is-open")) closeProductModal();
+});
+
+modalAdd?.addEventListener("click", () => {
+  if (!activeProduct) return;
+
+  const variant = (modalVariant.value || "Standard").toString();
+  const qty = Math.max(1, Math.min(50, parseInt(modalQty.value || "1", 10) || 1));
+
+  // merge by id+variant
+  const existing = cart.find(x => x.id === activeProduct.id && x.variant === variant);
+  if (existing) {
+    existing.qty = Math.min(50, (parseInt(existing.qty, 10) || 0) + qty);
+  } else {
+    cart.push({
+      id: activeProduct.id,
+      name: activeProduct.name || activeProduct.id,
+      image: safeImage(activeProduct),
+      variant,
+      qty,
+      unit: safeUnit(activeProduct),
+      pickupRequired: !!activeProduct.pickupRequired
+    });
+  }
+
+  saveCartToStorage();
+  renderCart();
+  syncCheckoutState();
+  closeProductModal();
+
+  document.getElementById("cart")?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+
+cartClear?.addEventListener("click", () => {
+  if (!cart.length) return;
+  const ok = confirm("Wirklich die gesamte Auswahl leeren?");
+  if (!ok) return;
+  cart = [];
+  saveCartToStorage();
+  renderCart();
+  syncCheckoutState();
+});
+
+
+    
+
+    
+
+function buildMailtoFromForm(fd) {
+  const name = (fd.get("name") || "").toString().trim();
+  const notes = (fd.get("notes") || "").toString().trim();
+
+  const shipping = (fd.get("shipping") || "").toString().trim(); // DHL / Hermes / Nur digital
+  const payment = (fd.get("payment") || "").toString().trim();   // BTC / Wise / PayPal (disabled for digital)
+
+  const street = (fd.get("address") || "").toString().trim();
+  const zip = (fd.get("zip") || "").toString().trim();
+  const town = (fd.get("town") || "").toString().trim();
+  const country = (fd.get("country") || "").toString().trim();
+
+  const isDigital = shipping.toLowerCase() === "nur digital";
+
+  const addressBlock = isDigital
+    ? "— (nur digital)"
+    : [street, `${zip} ${town}`.trim(), country].filter(Boolean).join("\r\n");
+
+  const orderLines = cart.map(it =>
+    `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`
+  );
+
+  const CRLF = "\r\n";
+
+  const body = [
+    "Hallo Frau Lohr",
+    "",
+    "Ich möchte eine Bestellung aufgeben an die",
+    "Adresse:",
+    addressBlock || "—",
+    "",
+    "Bestellung:",
+    orderLines.length ? orderLines.join(CRLF) : "—",
+    "",
+    "Notizen:",
+    notes || "—",
+    "",
+    `Ich möchte bezahlen via: ${isDigital ? "— (nur digital)" : (payment || "—")}.`,
+    `Bitte liefern Sie mit ${shipping || "—"}.`,
+    "",
+    "Vielen Dank!",
+    "",
+    "Mit freundlichen Grüßen,",
+    name || "—"
+  ].join(CRLF);
+
+  const subject = `[webshop] Bestellung — ${cart.length} Position(en)`;
+
+  return { to: CONTACT_EMAIL, subject, body };
+}
+
+
+
+// trigger mail client reliably (same pattern as your working test)
+function openMailto({ to, subject, body }) {
+  const normalizedBody = String(body || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/\n/g, "\r\n"); // final CRLF
+
+  const mailto =
+    `mailto:${encodeURIComponent(to)}` +
+    `?subject=${encodeURIComponent(subject || "")}` +
+    `&body=${encodeURIComponent(normalizedBody)}`;
+
+  const a = document.createElement("a");
+  a.href = mailto;
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+
+
+
+    async function loadBooksFromWorkIndex() {
+  const res = await fetch("/assets/work-index.json", { cache: "no-store" });
+  if (!res.ok) throw new Error("work-index.json missing");
+  const data = await res.json();
+
+  const items = Array.isArray(data.items) ? data.items : [];
+
+  // candidate “book/work” entries
+  const workItems = items
+    .filter(x => x && (x.type === "work" || !x.type)) // tolerate missing type
+    .map(x => ({
+      id: String(x.slug || x.id || "").trim(),
+      slug: String(x.slug || x.id || "").trim(),
+      cover: x.cover || "",
+      metaUrl: x.metaUrl || (x.slug ? `/assets/work/${encodeURIComponent(x.slug)}/meta.json` : ""),
+      contentUrl: x.contentUrl || "",
+      updated: x.updated || "",
+    }))
+    .filter(x => x.id && x.metaUrl);
+
+  // Load meta.json for each
+  const metas = await Promise.all(workItems.map(async (w) => {
+    try {
+      const mRes = await fetch(w.metaUrl, { cache: "no-store" });
+      if (!mRes.ok) return { w, meta: null };
+      const meta = await mRes.json();
+      return { w, meta };
+    } catch {
+      return { w, meta: null };
+    }
+  }));
+
+  // Build products from meta
+  const built = metas
+    .map(({ w, meta }) => {
+      if (!meta) return null;
+
+      const price = toNumber(meta.price);
+      // Heuristic: only sell entries that have a price
+      if (price == null) return null;
+
+      return {
+        id: w.id,
+        name: (meta.title || w.id).toString(),
+        description: (meta.excerpt || "").toString(),
+        longDescription: (meta.excerpt || "").toString(),
+        image: meta.cover || w.cover || "/img/webicon.png",
+
+        // book/shop fields
+        price,                 // number
+        currency: "EUR",
+        unit: "Buch",
+        variants: Array.isArray(meta.variants) ? meta.variants : ["Print", "E-Book"],
+        tags: Array.isArray(meta.tags) ? meta.tags : [],
+
+        // linking (optional use later)
+        metaUrl: w.metaUrl,
+        contentUrl: w.contentUrl,
+
+        // keep compatibility with existing UI
+        status: "",            // unused now
+        pickupRequired: false, // unused now
+      };
+    })
+    .filter(Boolean)
+    // newest first (optional)
+    .sort((a, b) => String(b.updated || "").localeCompare(String(a.updated || "")));
+
+  products = built;
+}
+function populateTagFilter() {
+  // status select is now “Tag”
+  if (!status) return;
+
+  const allTags = new Set();
+  products.forEach(p => (p.tags || []).forEach(t => allTags.add(String(t))));
+
+  const current = status.value || "";
+  status.innerHTML = `<option value="">Alle</option>` +
+    Array.from(allTags).sort((a,b) => a.localeCompare(b)).map(t =>
+      `<option value="${t.replaceAll('"','&quot;')}">${t}</option>`
+    ).join("");
+
+  // restore selection if possible
+  if (current && Array.from(status.options).some(o => o.value === current)) {
+    status.value = current;
+  }
+}
+
+
+
+    // Wire controls
+    [q, status, sort].forEach(el => el.addEventListener("input", renderProducts));
+shippingSel?.addEventListener("change", () => {
+  applyShippingRules();
+  syncCheckoutState();
+});
+
+
+    function setPhysicalFieldsEnabled(enabled) {
+  const fields = [paymentSel, addressEl, zipEl, townEl, countryEl];
+
+  fields.forEach(el => {
+    if (!el) return;
+    el.disabled = !enabled;
+  });
+
+  // toggle required only for address fields (payment stays required unless disabled)
+  [addressEl, zipEl, townEl, countryEl].forEach(el => {
+    if (!el) return;
+    if (enabled) el.setAttribute("required", "");
+    else el.removeAttribute("required");
+  });
+
+  // payment required depends on whether it's enabled
+  if (paymentSel) {
+    if (enabled) paymentSel.setAttribute("required", "");
+    else paymentSel.removeAttribute("required");
+  }
+
+  // optional: clear values when disabling to avoid stale data
+  if (!enabled) {
+    if (paymentSel) paymentSel.value = "";
+    [addressEl, zipEl, townEl, countryEl].forEach(el => { if (el) el.value = ""; });
+  }
+}
+
+function applyShippingRules() {
+  const shipping = (shippingSel?.value || "").toLowerCase().trim();
+  const isDigital = shipping === "nur digital";
+  setPhysicalFieldsEnabled(!isDigital);
+
+  // Helpful hint
+  if (isDigital) {
+    sendHint.textContent = "Nur digital gewählt: Adresse & Bezahlung werden nicht benötigt.";
+  } else {
+    sendHint.textContent = "Bitte Adresse ausfüllen und Bezahlung auswählen.";
+  }
+}
+
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // honeypot
+      const honey = form.querySelector('input[name="company"]');
+      if (honey && honey.value.trim() !== "") return;
+
+      if (!cart.length) return;
+
+      const consent = form.querySelector("#consent");
+      if (consent && !consent.checked) return;
+
+      // basic validity (so we don't fire an API call with empty fields)
+if (!form.reportValidity()) {
+  sendHint.textContent = "Bitte alle Pflichtfelder ausfüllen (z.B. Versandweg und Bezahlung).";
+  return;
+}
+
+      // lock UI while sending
+      sendBtn.disabled = true;
+      sendBtn.textContent = "Sende…";
+
+      try {
+  const fd = new FormData(form);
+
+  // build mailto from current form + cart
+  const mail = buildMailtoFromForm(fd);
+
+  // open user's mail app with prefilled content
+openMailto(mail);
+
+setTimeout(() => {
+  sendHint.textContent = "E-Mail-Entwurf sollte geöffnet sein. Falls nicht: Mail-App/Handler (mailto:) im System/Browser einrichten.";
+  alert("E-Mail-Entwurf wurde geöffnet. Bitte im Mailprogramm noch auf „Senden“ klicken.");
+}, 50);
+
+  // optional: user feedback (mail isn't "sent" yet, only opened)
+  alert("E-Mail-Entwurf wurde geöffnet. Bitte im Mailprogramm noch auf „Senden“ klicken.");
+
+  // clear cart & persist (optional — nur wenn du nach dem Öffnen leeren willst)
+  cart = [];
+  saveCartToStorage();
+  renderCart();
+  syncCheckoutState();
+
+  // clear form
+  form.reset();
+
+} catch (err) {
+  alert(`Öffnen des Mailprogramms fehlgeschlagen: ${err?.message || err}`);
+  syncCheckoutState();
+} finally {
+  sendBtn.textContent = "Anfrage per E-Mail senden";
+  sendBtn.disabled = cart.length === 0;
+}
+
+
+    });
+
+    // init
+    (async function init() {
+  cart = loadCartFromStorage();
+  try {
+    await loadBooksFromWorkIndex();
+    populateTagFilter();
+
+  } catch {
+    products = [];
+  }
+  renderProducts();
+  renderCart();
+  syncCheckoutState();
+  syncCartBadge();
+  applyShippingRules();   // <-- add this line
+})();
+
+  </script>
+</body>
+</html>
