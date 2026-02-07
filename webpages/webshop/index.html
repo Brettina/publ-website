@@ -76,9 +76,7 @@
   flex-direction: column;
 }
 
-.modal-img {
-  flex: 0 0 auto;
-}
+
 
 .modal .modal-body {
   flex: 1 1 auto;
@@ -137,6 +135,14 @@
       gap: 10px;
       margin-top: 10px;
     }
+    .modal-img {
+  width: 100%;
+  height: clamp(140px, 22vh, 240px); /* responsive: small phones -> smaller image */
+  object-fit: contain;               /* show full cover, no cropping */
+  display: block;
+  background: rgba(0,0,0,0.08);      /* optional: looks cleaner with contain */
+}
+
 
     .cart-item {
       display: grid;
@@ -256,7 +262,6 @@
   flex-direction: column;
 }
 
-.modal-img { flex: 0 0 auto; }
 
 .modal .modal-body {
   padding: 14px;
