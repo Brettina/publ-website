@@ -1,0 +1,113 @@
+{
+  "products": [
+    {
+      "id": "bademantel",
+      "page": "webshop",
+      "name": "Bademantel",
+      "description": "Flauschiger Bademantel mit Kreuzmotiv",
+      "image": "/assets/shop/bademantel/bademantel.png",
+      "status": "verfügbar",
+      "variants": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "unit": "Stück",
+      "pickupRequired": false,
+      "decorateJuice": false
+    },
+    {
+      "id": "engl",
+      "page": "webshop",
+      "name": "T-Shirt Kreuzkinger",
+      "description": "Für die Englischsprachigen unter uns.",
+      "image": "/assets/shop/engl/engl.png",
+      "status": "verfügbar",
+      "variants": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "unit": "Stück",
+      "pickupRequired": false,
+      "decorateJuice": false
+    },
+    {
+      "id": "mythologie",
+      "page": "webshop",
+      "name": "T-Shirt Bibliothek",
+      "description": "Nur etwas für Realisten. Kleine Auflage.",
+      "image": "/assets/shop/mythologie/mythologie.png",
+      "status": "verfügbar",
+      "variants": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "unit": "Stück",
+      "pickupRequired": false,
+      "decorateJuice": false
+    },
+    {
+      "id": "partner",
+      "page": "webshop",
+      "name": "T-Shirt im Doppelpack",
+      "description": "Für den rebellischen Austausch. Kleine Auflage.",
+      "image": "/assets/shop/partner/partner.png",
+      "status": "verfügbar",
+      "variants": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "unit": "Stück",
+      "pickupRequired": false,
+      "decorateJuice": false
+    },
+    {
+      "id": "socken",
+      "page": "webshop",
+      "name": "Sommersocken",
+      "description": "für Untentschiedene und Schizophrene.",
+      "image": "/assets/shop/socken/socken.png",
+      "status": "verfügbar",
+      "variants": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "unit": "Stück",
+      "pickupRequired": false,
+      "decorateJuice": false
+    }
+  ],
+  "order": {
+    "pickupHint": "Bestellung = Reservierung zur Abholung. Du wählst Ort + Zeitpunkt, ich bestätige per Mail.",
+    "defaultCenter": {
+      "lat": 49.989,
+      "lng": 9.578
+    },
+    "locations": [
+      {
+        "label": "Lohr Zentrum",
+        "lat": 49.989,
+        "lng": 9.578
+      },
+      {
+        "label": "Niederwürschnitz – Alte Ziegelei (Nach den Steegen 2)",
+        "lat": 50.7357161,
+        "lng": 12.7686627
+      },
+      {
+        "label": "Chemnitz – Stadtpark",
+        "lat": 50.8087278,
+        "lng": 12.9012
+      }
+    ]
+  }
+}

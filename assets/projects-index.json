@@ -1,0 +1,45 @@
+{
+  "generatedAt": "2026-01-28T11:26:46.805Z",
+  "items": [
+    {
+      "type": "project",
+      "slug": "Gesichtslesen",
+      "title": "Gesichtslesen",
+      "updated": "2026-01-25",
+      "excerpt": "",
+      "cover": "/assets/projects/Gesichtslesen/umschlag_ roh.png",
+      "contentUrl": "",
+      "metaUrl": "/assets/projects/Gesichtslesen/meta.json"
+    },
+    {
+      "type": "project",
+      "slug": "saftladen",
+      "title": "Saftladen",
+      "updated": "2026-01-25",
+      "excerpt": "",
+      "cover": "/assets/projects/saftladen/saftladen.png",
+      "contentUrl": "",
+      "metaUrl": "/assets/projects/saftladen/meta.json"
+    },
+    {
+      "type": "project",
+      "slug": "angela",
+      "title": "Buchübersetzung",
+      "updated": "2025-08-25",
+      "excerpt": "",
+      "cover": "/assets/projects/angela/angela flyer+.png",
+      "contentUrl": "",
+      "metaUrl": "/assets/projects/angela/meta.json"
+    },
+    {
+      "type": "project",
+      "slug": "janich",
+      "title": "Demo anlässlich politischer Gefangener",
+      "updated": "2023-01-15",
+      "excerpt": "",
+      "cover": "/assets/projects/janich/janich.png",
+      "contentUrl": "",
+      "metaUrl": "/assets/projects/janich/meta.json"
+    }
+  ]
+}

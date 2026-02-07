@@ -1,0 +1,8 @@
+{
+  "name": "T-Shirt Bibliothek",
+  "description": "Nur etwas für Realisten. Kleine Auflage.",
+  "status": "verfügbar",
+  "variants": ["S", "M", "L", "XL"],
+  "unit": "Stück",
+  "pickupRequired": false
+}
