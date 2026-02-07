@@ -10,7 +10,7 @@
 
   <meta
     name="description"
-    content="Weichware Lohr — Software, Prototypen, Textiles, Analyse und Consulting. Neueste Projekte, Termine (Kalender) und Kontakt."
+    content="Verlag Lohr — Bücher und Artikel verlegen."
   />
   <link rel="stylesheet" href="/assets/styles.css" />
   <meta name="color-scheme" content="light dark" />
@@ -345,8 +345,8 @@
       <div class="hero-text">
         <h2 style="margin-top:0;">Bettina Lohr</h2>
         <p class="lead">
-        Ich arbeite als Agentin, Verlegerin und im Marketing — mit Schwerpunkt auf Sprache, Kultur und Veröffentlichung.
-        Ich übersetze zwischen Deutsch und Englisch, bringe Chinesisch-Kenntnisse mit und habe interkulturelle Erfahrung, die ich für meine Partner einsetze.
+        Ich arbeite als Agent, Verleger und Marketer und bringe Ihr Buch raus!
+        Ich übersetze zwischen Dutsch und Englisch, bringe Chinesisch-Kenntnisse mit und habe interkulturelle Erfahrung, die ich für meine Partner einsetzee.
       </p>
 
       <p class="fineprint" style="margin-bottom:0;">
@@ -359,7 +359,7 @@
           „Face Reading for Successful Relationships“ (Amazon)
         </a> sind meine jüngsten Erfolge.
         <br>
-        Ich bin außerdem Gewinnerin des Jungautorenwettbewerbs 2025 und stolze Inhaberin der Julius-Faucher-Medaille (vergeben durch die Zeitschrift "eigentümlich frei"), siehe
+        Ich bin Gewinnerin des Jungautorenwettbewerbs 2025 und stolze Inhaberin der Julius-Faucher-Medaille (vergeben durch die Zeitschrift "eigentümlich frei"), siehe
        <a href="https://faucherpreis.info/" target="_blank" rel="noopener">
       Faucherpreis
         </a>.
@@ -931,9 +931,9 @@
   const modalBody = document.getElementById("blog-modal-body");
 
   const fallbackItems = [
-    { cover: "/img/concept_leistungen.png", title: "Blog", updated: "", excerpt: "", metaUrl: "", contentUrl: "" },
-    { cover: "/img/concept.png",           title: "Blog", updated: "", excerpt: "", metaUrl: "", contentUrl: "" },
-    { cover: "/img/mythologie.png",        title: "Blog", updated: "", excerpt: "", metaUrl: "", contentUrl: "" },
+    { cover: "/img/concept_leistungen.png", title: "Work", updated: "", excerpt: "", metaUrl: "", contentUrl: "" },
+    { cover: "/img/concept.png",           title: "Work", updated: "", excerpt: "", metaUrl: "", contentUrl: "" },
+    { cover: "/img/mythologie.png",        title: "Work", updated: "", excerpt: "", metaUrl: "", contentUrl: "" },
   ];
 
   let items = [];
@@ -953,16 +953,11 @@
     if (active) active.classList.add("is-active");
   }
 
-  function safeCover(x) {
-    return (x && x.cover) ? String(x.cover) : "/img/concept.png";
-  }
-
-  function safeTitle(x) {
-    return (x && x.title) ? String(x.title) : "Blog";
-  }
-
+  function safeCover(x) { return (x && x.cover) ? String(x.cover) : "/img/concept.png"; }
+  function safeTitle(x) { return (x && x.title) ? String(x.title) : "Work"; }
   function safeExcerpt(x) {
-    return (x && x.excerpt) ? String(x.excerpt) : "";
+    if (!x) return "";
+    return String(x.excerpt || x.description || "");
   }
 
   function render() {
@@ -972,15 +967,14 @@
     const prev = items[mod(index - 1, items.length)];
     const next = items[mod(index + 1, items.length)];
 
-    if (leftImg)  { leftImg.src  = safeCover(prev); leftImg.alt  = "Blogbild"; }
-    if (centerImg){ centerImg.src= safeCover(cur);  centerImg.alt= `Blog: ${safeTitle(cur)}`; }
-    if (rightImg) { rightImg.src = safeCover(next); rightImg.alt = "Blogbild"; }
+    if (leftImg)  { leftImg.src  = safeCover(prev); leftImg.alt  = "Bild"; }
+    if (centerImg){ centerImg.src= safeCover(cur);  centerImg.alt= `Work: ${safeTitle(cur)}`; }
+    if (rightImg) { rightImg.src = safeCover(next); rightImg.alt = "Bild"; }
 
     if (capTitle) capTitle.textContent = safeTitle(cur);
     if (capDate) capDate.textContent = cur.updated ? formatDate(cur.updated) : "";
     if (capExcerpt) capExcerpt.textContent = safeExcerpt(cur);
 
-    // accessibility labels + keyboard focus hint
     leftFig?.setAttribute("aria-label", `Vorheriges Bild: ${safeTitle(prev)}`);
     rightFig?.setAttribute("aria-label", `Nächstes Bild: ${safeTitle(next)}`);
     centerFig?.setAttribute("aria-label", `Artikel öffnen: ${safeTitle(cur)}`);
@@ -991,63 +985,47 @@
   function goPrev() { index = mod(index - 1, items.length); render(); }
   function goNext() { index = mod(index + 1, items.length); render(); }
 
-  // swipe (mobile)
+  // swipe
   let startX = 0, startY = 0, down = false;
   root.addEventListener("pointerdown", (e) => { down = true; startX = e.clientX; startY = e.clientY; });
   root.addEventListener("pointerup", (e) => {
     if (!down) return;
     down = false;
-
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
     if (Math.abs(dy) > Math.abs(dx)) return;
-
     if (dx > 35) goPrev();
     if (dx < -35) goNext();
   });
   root.addEventListener("pointercancel", () => { down = false; });
 
-  // arrows (mouse)
   prevBtn?.addEventListener("click", goPrev);
   nextBtn?.addEventListener("click", goNext);
 
-  // click side = navigate carousel (NOT open)
   leftFig?.addEventListener("click", goPrev);
   rightFig?.addEventListener("click", goNext);
 
-  // keyboard: when focus is within gallery, arrow keys navigate
   document.addEventListener("keydown", (e) => {
     if (dialog?.open) return;
-
     const active = document.activeElement;
     const inGallery = active && root.contains(active);
     if (!inGallery) return;
-
     if (e.key === "ArrowLeft") { e.preventDefault(); goPrev(); }
     if (e.key === "ArrowRight") { e.preventDefault(); goNext(); }
-    if (e.key === "Enter" || e.key === " ") {
-      // Enter/Space on center opens
-if (centerFig && centerFig.contains(active)) {
-        e.preventDefault();
-        openCurrent();
-      }
+    if ((e.key === "Enter" || e.key === " ") && centerFig && centerFig.contains(active)) {
+      e.preventDefault();
+      openCurrent();
     }
   });
 
-  // modal close
   closeBtn?.addEventListener("click", () => dialog?.close());
-dialog?.addEventListener("click", (e) => {
-  if (e.target === dialog) dialog.close();
-});
+  dialog?.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
+
+  centerFig?.addEventListener("click", () => openCurrent());
 
 
-  // open current on click center
-  centerFig?.addEventListener("click", (e) => {
-    // ignore if user clicks and drags etc.
-    openCurrent();
-  });
 
-    async function openCurrent() {
+async function openCurrent() {
   if (!dialog) return;
   if (!items.length) return;
 
@@ -1056,48 +1034,78 @@ dialog?.addEventListener("click", (e) => {
 
   // reset UI fast
   if (modalTitle) modalTitle.textContent = safeTitle(cur);
-  if (modalMeta) modalMeta.textContent = cur.updated ? formatDate(cur.updated) : "";
-  if (modalExcerpt) modalExcerpt.textContent = safeExcerpt(cur) || "";
+  if (modalMeta) modalMeta.textContent = cur.updated ? formatDate(cur.updated) : (cur.published ? formatDate(cur.published) : "");
+  if (modalExcerpt) modalExcerpt.textContent = (cur.excerpt || cur.description || "").toString();
   if (modalTags) modalTags.innerHTML = "";
   if (modalLinks) modalLinks.innerHTML = "";
-  if (modalBody) modalBody.innerHTML = `<p class="fineprint">Lade Artikel…</p>`;
-
-  // open ONCE
-  //if (!dialog.open) dialog.showModal();
+  if (modalBody) modalBody.innerHTML = `<p class="fineprint">Lade…</p>`;
 
   if (!cur.contentUrl) {
-    if (modalBody) modalBody.innerHTML =
-      `<p class="fineprint">Kein contentUrl für diesen Eintrag. Prüfe blog-index.json / slug.</p>`;
+    if (modalBody) modalBody.innerHTML = `<p class="fineprint">Kein contentUrl für diesen Eintrag.</p>`;
     return;
   }
 
-  // meta
+  // Load meta.json (optional) and update UI
+  let meta = null;
   try {
     if (cur.metaUrl) {
-      const mRes = await fetch(cur.metaUrl);
-      if (mRes.ok) {
-        const meta = await mRes.json();
-        if (modalTitle && meta.title) modalTitle.textContent = String(meta.title);
-        const updated = meta.updated || cur.updated || "";
-        if (modalMeta) modalMeta.textContent = updated ? formatDate(updated) : "";
-        const ex = (meta.excerpt || cur.excerpt || "").toString();
-        if (modalExcerpt) modalExcerpt.textContent = ex;
-
-        if (modalTags) {
-          const tags = Array.isArray(meta.tags) ? meta.tags : [];
-          modalTags.innerHTML = tags.map(t => `<span class="chip">${String(t)}</span>`).join("");
-        }
-      }
+      const mRes = await fetch(cur.metaUrl, { cache: "no-store" });
+      if (mRes.ok) meta = await mRes.json();
     }
-  } catch {}
+  } catch {
+    meta = null;
+  }
 
-  // article
-    // article (fetch first; open modal only if it looks valid)
+  // Title
+  if (modalTitle) {
+    const t = (meta?.title || cur.title || cur.slug || "Work").toString();
+    modalTitle.textContent = t;
+  }
+
+  // Date + eigenanteil
+  if (modalMeta) {
+    const d = (meta?.updated || cur.updated || meta?.published || cur.published || "").toString();
+    const eigen = (meta?.eigenanteil || cur.eigenanteil || "").toString().trim();
+    const base = d ? formatDate(d) : "";
+    modalMeta.textContent = eigen ? `${base}${base ? " · " : ""}${eigen}` : base;
+  }
+
+  // Excerpt/Description
+  if (modalExcerpt) {
+    const ex = (meta?.excerpt || cur.excerpt || cur.description || "").toString();
+    modalExcerpt.textContent = ex;
+  }
+
+  // Tags
+  if (modalTags) {
+    const tags = (Array.isArray(meta?.tags) ? meta.tags : cur.tags) || [];
+    modalTags.innerHTML = tags.map(t => `<span class="chip">${String(t)}</span>`).join("");
+  }
+
+  // alsoPublished links
+  if (modalLinks) {
+    const pubs = (Array.isArray(meta?.alsoPublished) ? meta.alsoPublished : cur.alsoPublished) || [];
+    modalLinks.innerHTML = pubs
+      .filter(p => p && p.url)
+      .map(p => `<a href="${String(p.url)}" target="_blank" rel="noopener">${String(p.label || p.url)}</a>`)
+      .join(" ");
+  }
+
+  // Build image gallery HTML (from work-index.json images)
+  const imgs = (Array.isArray(cur.images) ? cur.images : []).filter(Boolean);
+  const galleryHtml = imgs.length
+    ? imgs.map(u => `
+        <figure class="card" style="margin:0 0 12px; padding:10px;">
+          <img src="${u}" alt="" loading="lazy" style="width:100%; height:auto; object-fit:contain;" />
+        </figure>
+      `).join("")
+    : "";
+
+  // Fetch article first; only open modal if it looks valid
   try {
     const aRes = await fetch(cur.contentUrl, { cache: "no-store" });
     if (!aRes.ok) throw new Error("article fetch failed");
 
-    // If the server/router redirects to homepage, don't open
     const finalUrl = new URL(aRes.url, window.location.href);
     if (aRes.redirected && (finalUrl.pathname === "/" || finalUrl.pathname === "/index.html")) {
       throw new Error("redirected to homepage");
@@ -1105,37 +1113,29 @@ dialog?.addEventListener("click", (e) => {
 
     const htmlText = await aRes.text();
 
-    // Heuristic: if it looks like your homepage/layout, treat as wrong content
-    // (adjust the string if your homepage has a stable marker)
-    if (htmlText.includes("Weichware Lohr.") && htmlText.includes("Neueste Aktivitäten")) {
-      throw new Error("looks like homepage content");
-    }
-
     // NOW open
     if (!dialog.open) dialog.showModal();
 
     const ct = (aRes.headers.get("content-type") || "").toLowerCase();
 
-    // If it's markdown/plain text, render as preformatted (robust, no extra libs)
+    // Markdown/plain text
     if (ct.includes("text/markdown") || cur.contentUrl.endsWith(".md") || ct.includes("text/plain")) {
-      if (modalBody) {
-        const esc = (s) => String(s)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;");
-        modalBody.innerHTML = `<pre class="fineprint" style="white-space:pre-wrap; margin:0;">${esc(htmlText)}</pre>`;
-      }
+      const esc = (s) => String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+      if (modalBody) modalBody.innerHTML = galleryHtml + `<pre class="fineprint" style="white-space:pre-wrap; margin:0;">${esc(htmlText)}</pre>`;
       return;
     }
 
-    // HTML: parse and inject body content
+    // HTML
     const doc = new DOMParser().parseFromString(htmlText, "text/html");
     const content = doc.body?.innerHTML?.trim() ? doc.body.innerHTML : htmlText;
 
     if (modalBody) {
-      modalBody.innerHTML = content;
+      modalBody.innerHTML = galleryHtml + content;
 
-      // fix relative URLs
+      // fix relative URLs inside injected article
       const base = new URL(cur.contentUrl, window.location.href);
       const baseDir = new URL("./", base);
 
@@ -1154,39 +1154,41 @@ dialog?.addEventListener("click", (e) => {
       });
     }
   } catch {
-    // Don't open modal at all if we can't load a proper article
     if (dialog?.open) dialog.close();
     return;
   }
-
-
 }
 
-    
 
-  async function loadBlogItems() {
+
+  async function loadWorkItems() {
     try {
-      const res = await fetch("/assets/blog-index.json");
-      if (!res.ok) throw new Error("blog-index.json missing");
+      const res = await fetch("/assets/work-index.json");
+      if (!res.ok) throw new Error("work-index.json missing");
       const data = await res.json();
 
       const list = (data.items || [])
-        .filter(x => x && x.type === "blog")
+        .filter(x => x && x.type === "work")
         .sort((a, b) => String(b.updated || "").localeCompare(String(a.updated || "")))
-.map(x => {
-  const slug = String(x.slug || "").trim();
-
-  return {
-    slug,
-    title: x.title || slug || "Blog",
-    updated: x.updated || "",
-    excerpt: x.excerpt || "",
-    cover: x.cover || "",
-    metaUrl: x.metaUrl || "",
-    contentUrl: x.contentUrl || ""
-  };
-})
-.filter(x => x.cover && x.contentUrl); // MUST have actual file to open
+        .map(x => {
+          const slug = String(x.slug || "").trim();
+          return {
+            slug,
+            title: x.title || slug || "Work",
+            updated: x.updated || "",
+            published: x.published || "",
+            excerpt: x.excerpt || "",
+            description: x.description || "",
+            eigenanteil: x.eigenanteil || "",
+            tags: Array.isArray(x.tags) ? x.tags : [],
+            alsoPublished: Array.isArray(x.alsoPublished) ? x.alsoPublished : [],
+            images: Array.isArray(x.images) ? x.images : [],
+            cover: x.cover || "",
+            metaUrl: x.metaUrl || "",
+            contentUrl: x.contentUrl || ""
+          };
+        })
+        .filter(x => x.contentUrl && x.cover);
 
       items = list.length ? list : fallbackItems;
       index = 0;
@@ -1198,8 +1200,9 @@ dialog?.addEventListener("click", (e) => {
     }
   }
 
-  loadBlogItems();
+  loadWorkItems();
 })();
+
 </script>
 
 

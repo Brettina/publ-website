@@ -1,3 +1,1 @@
-P:
-cd P:\freiberuf\website
 python convert_articles.py
