@@ -295,25 +295,24 @@
 
   <main id="main" class="container">
     <header class="page-hero shop-head">
-      <h1>Webshop</h1>
+      <h1>Buchshop</h1>
       <p class="lead" style="margin:0;">
-        Kleine Serien / Prototypen. Keine Zahlung auf der Website — du stellst hier eine Auswahl zusammen und sendest eine Anfrage per E-Mail.
+        Bücher auswählen. Keine Zahlung auf der Website — du stellst hier eine Auswahl zusammen und sendest eine Anfrage per E-Mail.
       </p>
 
       <div class="note-block" style="margin-top:12px;">
         <p class="fineprint" style="margin:0;">
-          Bestellung = Anfrage/Reservierung. Ich bestätige per Mail. Sonderwünsche (Material/Farbe) einfach in die Notizen.
+          Bestellung = Anfrage/Reservierung. Ich bestätige per Mail. Sonderwünsche einfach in die Notizen.
         </p>
       </div>
     </header>
 
     <section class="section" aria-labelledby="shop">
       <div class="section-head">
-        <h2 id="shop" style="margin:0;">Produkte</h2>
-<p class="fineprint" style="margin:0;">
-  Quelle: <code>/assets/work-index.json</code> + <code>/assets/work/*/meta.json</code>
-</p>
-
+        <h2 id="shop" style="margin:0;">Bücher</h2>
+        <p class="fineprint" style="margin:0;">
+          Quelle: <code>/assets/work-index.json</code> + <code>/assets/work/*/meta.json</code>
+        </p>
       </div>
 
       <div class="shop-controls" style="margin-top:12px;">
@@ -326,15 +325,15 @@
           <label for="status">Tag</label>
           <select id="status">
             <option value="">Alle</option>
-            <option value="verfügbar">verfügbar</option>
           </select>
         </div>
 
         <div class="field">
           <label for="sort">Sortierung</label>
           <select id="sort">
+            <option value="newest">Neueste</option>
             <option value="name">Name (A–Z)</option>
-            <option value="status">Status</option>
+            <option value="price">Preis</option>
           </select>
         </div>
       </div>
@@ -345,7 +344,8 @@
 
           <div id="shop-empty" class="card empty" style="display:none; margin-top:14px;">
             <p class="fineprint" style="margin:0;">
-              Keine Treffer. (Falls alles leer ist: prüfe, ob <code>/assets/products.json</code> auf dem Server existiert und Produkte enthält.)
+              Keine Treffer. (Falls alles leer ist: prüfe, ob <code>/assets/work-index.json</code> existiert und ob
+              <code>/assets/work/*/meta.json</code> ein <code>price</code>-Feld enthält.)
             </p>
           </div>
         </div>
@@ -357,13 +357,13 @@
           </div>
 
           <p class="fineprint" style="margin-top:6px;">
-            Klick auf ein Produkt → Details → Variante/Menge → in Auswahl.
+            Klick auf ein Buch → Details → Variante/Menge → in Auswahl.
           </p>
 
           <div id="cart-items" class="cart-items"></div>
 
           <div id="cart-empty" class="card empty" style="margin-top:12px;">
-            <p class="fineprint" style="margin:0;">Noch nichts ausgewählt. Öffne ein Produkt und füge es hinzu.</p>
+            <p class="fineprint" style="margin:0;">Noch nichts ausgewählt. Öffne ein Buch und füge es hinzu.</p>
           </div>
         </aside>
       </div>
@@ -387,52 +387,49 @@
               <input id="name" name="name" autocomplete="name" required />
             </div>
 
-           <div class="field">
+            <div class="field">
+              <label for="shipping">Versandweg</label>
+              <select id="shipping" name="shipping" required>
+                <option value="">Bitte wählen…</option>
+                <option value="DHL">DHL</option>
+                <option value="Hermes">Hermes</option>
+                <option value="Nur digital">Nur digital</option>
+              </select>
+            </div>
 
             <div class="field">
-  <label for="shipping">Versandweg</label>
-  <select id="shipping" name="shipping" required>
-    <option value="">Bitte wählen…</option>
-    <option value="DHL">DHL</option>
-    <option value="Hermes">Hermes</option>
-    <option value="Nur digital">Nur digital</option>
-  </select>
-</div>
-  <label for="address">Straße + Hausnummer</label>
-  <input id="address" name="address" autocomplete="street-address" required />
-</div>
+              <label for="address">Straße + Hausnummer</label>
+              <input id="address" name="address" autocomplete="street-address" required />
+            </div>
 
-<div class="field">
-  <label for="zip">PLZ</label>
-  <input id="zip" name="zip" autocomplete="postal-code" required />
-</div>
+            <div class="field">
+              <label for="zip">PLZ</label>
+              <input id="zip" name="zip" autocomplete="postal-code" required />
+            </div>
 
-<div class="field">
-  <label for="town">Ort</label>
-  <input id="town" name="town" autocomplete="address-level2" required />
-</div>
+            <div class="field">
+              <label for="town">Ort</label>
+              <input id="town" name="town" autocomplete="address-level2" required />
+            </div>
 
-<div class="field">
-  <label for="country">Land</label>
-  <input id="country" name="country" autocomplete="country-name" required />
-</div>
+            <div class="field">
+              <label for="country">Land</label>
+              <input id="country" name="country" autocomplete="country-name" required />
+            </div>
 
-
-
-<div class="field">
-  <label for="payment">Bezahlung</label>
-  <select id="payment" name="payment" required>
-    <option value="">Bitte wählen…</option>
-    <option value="BTC">BTC</option>
-    <option value="Wise">Wise</option>
-    <option value="PayPal">PayPal</option>
-
-  </select>
-</div>
+            <div class="field">
+              <label for="payment">Bezahlung</label>
+              <select id="payment" name="payment" required>
+                <option value="">Bitte wählen…</option>
+                <option value="BTC">BTC</option>
+                <option value="Wise">Wise</option>
+                <option value="PayPal">PayPal</option>
+              </select>
+            </div>
 
             <div class="field">
               <label for="notes">Notizen</label>
-              <textarea id="notes" name="notes" rows="4" placeholder="Sonderwünsche, Alternativ-Zeiten, Material/Farbe, etc."></textarea>
+              <textarea id="notes" name="notes" rows="4" placeholder="Sonderwünsche, Alternativen, etc."></textarea>
             </div>
 
             <div class="field checkbox">
@@ -487,7 +484,7 @@
   </div>
 
   <footer class="site-footer">
-    <p>© <span id="year"></span> Weichware Lohr</p>
+    <p>© <span id="year"></span> Verlag Lohr</p>
     <ul class="footer-links">
       <li><a href="/regulation/privacy/">Datenschutz</a></li>
       <li><a href="/regulation/cookies/">Cookies</a></li>
@@ -498,7 +495,7 @@
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
 
-    const CONTACT_EMAIL = "anfrage@weichware-lohr.de";
+    const CONTACT_EMAIL = "anfrage@publish-lohr.com";
     const CART_KEY = "weichware_webshop_cart_v1";
 
     const $ = (s) => document.querySelector(s);
@@ -507,7 +504,7 @@
     const empty = $("#shop-empty");
 
     const q = $("#q");
-    const status = $("#status");
+    const status = $("#status"); // tag filter
     const sort = $("#sort");
 
     const cartWrap = $("#cart-items");
@@ -517,12 +514,12 @@
 
     const form = $("#checkout-form");
     const shippingSel = $("#shipping");
-const paymentSel = $("#payment");
+    const paymentSel = $("#payment");
 
-const addressEl = $("#address");
-const zipEl = $("#zip");
-const townEl = $("#town");
-const countryEl = $("#country");
+    const addressEl = $("#address");
+    const zipEl = $("#zip");
+    const townEl = $("#town");
+    const countryEl = $("#country");
 
     const sendBtn = $("#send-btn");
     const sendHint = $("#send-hint");
@@ -540,36 +537,32 @@ const countryEl = $("#country");
     const modalUnit = $("#modal-unit");
     const modalAdd = $("#modal-add");
 
-    
-
     let products = [];
     let cart = []; // {id, name, image, variant, qty, unit, pickupRequired}
-
     let activeProduct = null;
 
     function normalize(s) { return (s || "").toString().toLowerCase().trim(); }
     function compare(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
 
     function safeImage(p) { return p?.image || "/img/webicon.png"; }
-function safeVariants(p) {
-  // allow meta to override
-  if (Array.isArray(p?.variants) && p.variants.length) return p.variants;
-  return ["Print", "E-Book"];
-}
-function safeUnit(p) { return p?.unit || "Buch"; }
+    function safeVariants(p) {
+      if (Array.isArray(p?.variants) && p.variants.length) return p.variants;
+      return ["Print", "E-Book"];
+    }
+    function safeUnit(p) { return p?.unit || "Buch"; }
 
-function toNumber(x) {
-  const n = typeof x === "number" ? x : parseFloat(String(x || "").replace(",", "."));
-  return Number.isFinite(n) ? n : null;
-}
+    function toNumber(x) {
+      const n = typeof x === "number" ? x : parseFloat(String(x || "").replace(",", "."));
+      return Number.isFinite(n) ? n : null;
+    }
 
-function formatEUR(n) {
-  try {
-    return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
-  } catch {
-    return `${n} EUR`;
-  }
-}
+    function formatEUR(n) {
+      try {
+        return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
+      } catch {
+        return `${n} EUR`;
+      }
+    }
 
     function loadCartFromStorage() {
       try {
@@ -583,9 +576,7 @@ function formatEUR(n) {
     }
 
     function saveCartToStorage() {
-      try {
-        localStorage.setItem(CART_KEY, JSON.stringify(cart));
-      } catch {}
+      try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch {}
     }
 
     function cartTotalQty() {
@@ -606,18 +597,28 @@ function formatEUR(n) {
 
       if (qq) {
         list = list.filter(p => {
-          const hay = normalize(p.name) + " " + normalize(p.description) + " " + normalize(p.longDescription) + " " + normalize(p.id);
+          const hay =
+            normalize(p.name) + " " +
+            normalize(p.description) + " " +
+            normalize(p.longDescription) + " " +
+            normalize(p.id) + " " +
+            normalize((p.tags || []).join(" "));
           return hay.includes(qq);
         });
       }
+
       if (st) {
         list = list.filter(p => (p.tags || []).some(t => normalize(t) === st));
       }
 
-
       const mode = sort.value;
       list.sort((a, b) => {
-        if (mode === "status") return compare(normalize(a.status), normalize(b.status)) || compare(normalize(a.name), normalize(b.name));
+        if (mode === "newest") return compare(String(b.updated || ""), String(a.updated || ""));
+        if (mode === "price") {
+          const ap = (a.price == null) ? Number.POSITIVE_INFINITY : a.price;
+          const bp = (b.price == null) ? Number.POSITIVE_INFINITY : b.price;
+          return ap - bp || compare(normalize(a.name), normalize(b.name));
+        }
         return compare(normalize(a.name), normalize(b.name));
       });
 
@@ -654,26 +655,26 @@ function formatEUR(n) {
 
         const badge = document.createElement("span");
         badge.className = "shop-badge";
-        // Only show "verfügbar" explicitly when it is available; otherwise show status if present.
-        const st = (p.status || "").toString().trim();
-        badge.textContent = st ? st : "—";
+        badge.textContent = (p.tags && p.tags.length) ? String(p.tags[0]) : "Buch";
 
         top.appendChild(h);
         top.appendChild(badge);
 
+        body.appendChild(top);
+
         const desc = document.createElement("p");
         desc.className = "fineprint";
         desc.style.margin = "0";
-        // Keep short; long text goes into modal
         desc.textContent = (p.description || "").toString().trim();
-        const priceLine = document.createElement("p");
-        priceLine.className = "fineprint";
-        priceLine.style.margin = "0";
-        priceLine.textContent = p.price != null ? `Preis: ${formatEUR(p.price)}` : "";
-        body.appendChild(priceLine);
-
-        body.appendChild(top);
         body.appendChild(desc);
+
+        if (p.price != null) {
+          const priceLine = document.createElement("p");
+          priceLine.className = "fineprint";
+          priceLine.style.margin = "0";
+          priceLine.textContent = `Preis: ${formatEUR(p.price)}`;
+          body.appendChild(priceLine);
+        }
 
         card.appendChild(img);
         card.appendChild(body);
@@ -681,10 +682,7 @@ function formatEUR(n) {
         function open() { openProductModal(p); }
         card.addEventListener("click", open);
         card.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            open();
-          }
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
         });
 
         grid.appendChild(card);
@@ -704,7 +702,7 @@ function formatEUR(n) {
 
         const thumb = document.createElement("img");
         thumb.className = "cart-thumb";
-        thumb.alt = it.name || "Produkt";
+        thumb.alt = it.name || "Buch";
         thumb.loading = "lazy";
         thumb.src = it.image || "/img/webicon.png";
 
@@ -759,12 +757,10 @@ function formatEUR(n) {
         edit.type = "button";
         edit.textContent = "Ändern";
         edit.addEventListener("click", () => {
-          // Re-open modal for the original product if present; otherwise allow quick edit
           const p = products.find(x => x.id === it.id) || null;
           if (p) {
             openProductModal(p, { preselectVariant: it.variant, presetQty: it.qty });
           } else {
-            // minimal quick-edit fallback
             const newQty = prompt("Menge:", String(it.qty));
             const parsed = Math.max(1, parseInt(newQty || String(it.qty), 10) || it.qty);
             it.qty = Math.min(50, parsed);
@@ -808,7 +804,7 @@ function formatEUR(n) {
       sendBtn.disabled = !ok;
 
       if (!ok) {
-        sendHint.textContent = "Füge mindestens ein Produkt hinzu, dann kannst du die Anfrage senden.";
+        sendHint.textContent = "Füge mindestens ein Buch hinzu, dann kannst du die Anfrage senden.";
         return;
       }
 
@@ -825,8 +821,7 @@ function formatEUR(n) {
       modalImg.src = safeImage(p);
       modalImg.alt = p.name || p.id;
 
-      const st = (p.status || "").toString().trim();
-      modalStatus.textContent = st ? `Status: ${st}` : "";
+      modalStatus.textContent = (p.updated ? `Aktualisiert: ${p.updated}` : "");
 
       modalPickup.style.display = p.pickupRequired ? "block" : "none";
       modalPickup.textContent = p.pickupRequired ? "Abholung erforderlich" : "";
@@ -834,7 +829,6 @@ function formatEUR(n) {
       const longText = (p.longDescription || p.description || "").toString().trim();
       modalLong.textContent = longText;
 
-      // Variants
       modalVariant.innerHTML = "";
       safeVariants(p).forEach(v => {
         const opt = document.createElement("option");
@@ -849,18 +843,14 @@ function formatEUR(n) {
         if (match) modalVariant.value = preselect;
       }
 
-      // Qty
       const presetQty = parseInt(opts.presetQty || "1", 10);
       modalQty.value = String(Math.min(50, Math.max(1, isNaN(presetQty) ? 1 : presetQty)));
 
       const priceTxt = (p.price != null) ? ` · ${formatEUR(p.price)} / ${safeUnit(p)}` : "";
       modalUnit.textContent = `Einheit: ${safeUnit(p)}${priceTxt}`;
 
-
       modalBackdrop.classList.add("is-open");
       document.body.style.overflow = "hidden";
-
-      // focus close for accessibility
       setTimeout(() => modalClose?.focus(), 0);
     }
 
@@ -870,283 +860,250 @@ function formatEUR(n) {
       activeProduct = null;
     }
 
-   modalClose?.addEventListener("click", closeProductModal);
-
-modalBackdrop?.addEventListener("click", (e) => {
-  if (e.target === modalBackdrop) closeProductModal();
-});
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && modalBackdrop?.classList.contains("is-open")) closeProductModal();
-});
-
-modalAdd?.addEventListener("click", () => {
-  if (!activeProduct) return;
-
-  const variant = (modalVariant.value || "Standard").toString();
-  const qty = Math.max(1, Math.min(50, parseInt(modalQty.value || "1", 10) || 1));
-
-  // merge by id+variant
-  const existing = cart.find(x => x.id === activeProduct.id && x.variant === variant);
-  if (existing) {
-    existing.qty = Math.min(50, (parseInt(existing.qty, 10) || 0) + qty);
-  } else {
-    cart.push({
-      id: activeProduct.id,
-      name: activeProduct.name || activeProduct.id,
-      image: safeImage(activeProduct),
-      variant,
-      qty,
-      unit: safeUnit(activeProduct),
-      pickupRequired: !!activeProduct.pickupRequired
+    modalClose?.addEventListener("click", closeProductModal);
+    modalBackdrop?.addEventListener("click", (e) => { if (e.target === modalBackdrop) closeProductModal(); });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modalBackdrop?.classList.contains("is-open")) closeProductModal();
     });
-  }
 
-  saveCartToStorage();
-  renderCart();
-  syncCheckoutState();
-  closeProductModal();
+    modalAdd?.addEventListener("click", () => {
+      if (!activeProduct) return;
 
-  document.getElementById("cart")?.scrollIntoView({ behavior: "smooth", block: "start" });
-});
+      const variant = (modalVariant.value || "Print").toString();
+      const qty = Math.max(1, Math.min(50, parseInt(modalQty.value || "1", 10) || 1));
 
+      const existing = cart.find(x => x.id === activeProduct.id && x.variant === variant);
+      if (existing) {
+        existing.qty = Math.min(50, (parseInt(existing.qty, 10) || 0) + qty);
+      } else {
+        cart.push({
+          id: activeProduct.id,
+          name: activeProduct.name || activeProduct.id,
+          image: safeImage(activeProduct),
+          variant,
+          qty,
+          unit: safeUnit(activeProduct),
+          pickupRequired: !!activeProduct.pickupRequired
+        });
+      }
 
-cartClear?.addEventListener("click", () => {
-  if (!cart.length) return;
-  const ok = confirm("Wirklich die gesamte Auswahl leeren?");
-  if (!ok) return;
-  cart = [];
-  saveCartToStorage();
-  renderCart();
-  syncCheckoutState();
-});
+      saveCartToStorage();
+      renderCart();
+      syncCheckoutState();
+      closeProductModal();
 
+      document.getElementById("cart")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
 
-    
+    cartClear?.addEventListener("click", () => {
+      if (!cart.length) return;
+      const ok = confirm("Wirklich die gesamte Auswahl leeren?");
+      if (!ok) return;
+      cart = [];
+      saveCartToStorage();
+      renderCart();
+      syncCheckoutState();
+    });
 
-    
+    function buildMailtoFromForm(fd) {
+      const name = (fd.get("name") || "").toString().trim();
+      const notes = (fd.get("notes") || "").toString().trim();
 
-function buildMailtoFromForm(fd) {
-  const name = (fd.get("name") || "").toString().trim();
-  const notes = (fd.get("notes") || "").toString().trim();
+      const shipping = (fd.get("shipping") || "").toString().trim();
+      const payment = (fd.get("payment") || "").toString().trim();
 
-  const shipping = (fd.get("shipping") || "").toString().trim(); // DHL / Hermes / Nur digital
-  const payment = (fd.get("payment") || "").toString().trim();   // BTC / Wise / PayPal (disabled for digital)
+      const street = (fd.get("address") || "").toString().trim();
+      const zip = (fd.get("zip") || "").toString().trim();
+      const town = (fd.get("town") || "").toString().trim();
+      const country = (fd.get("country") || "").toString().trim();
 
-  const street = (fd.get("address") || "").toString().trim();
-  const zip = (fd.get("zip") || "").toString().trim();
-  const town = (fd.get("town") || "").toString().trim();
-  const country = (fd.get("country") || "").toString().trim();
+      const isDigital = shipping.toLowerCase() === "nur digital";
 
-  const isDigital = shipping.toLowerCase() === "nur digital";
+      const addressBlock = isDigital
+        ? "— (nur digital)"
+        : [street, `${zip} ${town}`.trim(), country].filter(Boolean).join("\r\n");
 
-  const addressBlock = isDigital
-    ? "— (nur digital)"
-    : [street, `${zip} ${town}`.trim(), country].filter(Boolean).join("\r\n");
+      const orderLines = cart.map(it =>
+        `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`
+      );
 
-  const orderLines = cart.map(it =>
-    `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`
-  );
+      const CRLF = "\r\n";
 
-  const CRLF = "\r\n";
+      const body = [
+        "Hallo Frau Lohr",
+        "",
+        "Adresse:",
+        addressBlock || "—",
+        "",
+        "Bestellung:",
+        orderLines.length ? orderLines.join(CRLF) : "—",
+        "",
+        "Notizen:",
+        notes || "—",
+        "",
+        `Bezahlung: ${isDigital ? "— (nur digital)" : (payment || "—")}.`,
+        `Versandweg: ${shipping || "—"}.`,
+        "",
+        "Vielen Dank!",
+        "",
+        "Mit freundlichen Grüßen,",
+        name || "—"
+      ].join(CRLF);
 
-  const body = [
-    "Hallo Frau Lohr",
-    "",
-    "Ich möchte eine Bestellung aufgeben an die",
-    "Adresse:",
-    addressBlock || "—",
-    "",
-    "Bestellung:",
-    orderLines.length ? orderLines.join(CRLF) : "—",
-    "",
-    "Notizen:",
-    notes || "—",
-    "",
-    `Ich möchte bezahlen via: ${isDigital ? "— (nur digital)" : (payment || "—")}.`,
-    `Bitte liefern Sie mit ${shipping || "—"}.`,
-    "",
-    "Vielen Dank!",
-    "",
-    "Mit freundlichen Grüßen,",
-    name || "—"
-  ].join(CRLF);
+      const subject = `[Buchshop] Bestellung — ${cart.length} Position(en)`;
+      return { to: CONTACT_EMAIL, subject, body };
+    }
 
-  const subject = `[webshop] Bestellung — ${cart.length} Position(en)`;
+    function openMailto({ to, subject, body }) {
+      const normalizedBody = String(body || "")
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        .replace(/\n/g, "\r\n");
 
-  return { to: CONTACT_EMAIL, subject, body };
-}
+      const mailto =
+        `mailto:${encodeURIComponent(to)}` +
+        `?subject=${encodeURIComponent(subject || "")}` +
+        `&body=${encodeURIComponent(normalizedBody)}`;
 
-
-
-// trigger mail client reliably (same pattern as your working test)
-function openMailto({ to, subject, body }) {
-  const normalizedBody = String(body || "")
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
-    .replace(/\n/g, "\r\n"); // final CRLF
-
-  const mailto =
-    `mailto:${encodeURIComponent(to)}` +
-    `?subject=${encodeURIComponent(subject || "")}` +
-    `&body=${encodeURIComponent(normalizedBody)}`;
-
-  const a = document.createElement("a");
-  a.href = mailto;
-  a.style.display = "none";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-}
-
-
-
+      const a = document.createElement("a");
+      a.href = mailto;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
 
     async function loadBooksFromWorkIndex() {
-  const res = await fetch("/assets/work-index.json", { cache: "no-store" });
-  if (!res.ok) throw new Error("work-index.json missing");
-  const data = await res.json();
+      const res = await fetch("/assets/work-index.json", { cache: "no-store" });
+      if (!res.ok) throw new Error("work-index.json missing");
+      const data = await res.json();
 
-  const items = Array.isArray(data.items) ? data.items : [];
+      const items = Array.isArray(data.items) ? data.items : [];
 
-  // candidate “book/work” entries
-  const workItems = items
-    .filter(x => x && (x.type === "work" || !x.type)) // tolerate missing type
-    .map(x => ({
-      id: String(x.slug || x.id || "").trim(),
-      slug: String(x.slug || x.id || "").trim(),
-      cover: x.cover || "",
-      metaUrl: x.metaUrl || (x.slug ? `/assets/work/${encodeURIComponent(x.slug)}/meta.json` : ""),
-      contentUrl: x.contentUrl || "",
-      updated: x.updated || "",
-    }))
-    .filter(x => x.id && x.metaUrl);
+      const workItems = items
+        .filter(x => x && (x.type === "work" || !x.type))
+        .map(x => ({
+          id: String(x.slug || x.id || "").trim(),
+          slug: String(x.slug || x.id || "").trim(),
+          cover: x.cover || "",
+          metaUrl: x.metaUrl || (x.slug ? `/assets/work/${encodeURIComponent(x.slug)}/meta.json` : ""),
+          contentUrl: x.contentUrl || "",
+          updated: x.updated || "",
+        }))
+        .filter(x => x.id && x.metaUrl);
 
-  // Load meta.json for each
-  const metas = await Promise.all(workItems.map(async (w) => {
-    try {
-      const mRes = await fetch(w.metaUrl, { cache: "no-store" });
-      if (!mRes.ok) return { w, meta: null };
-      const meta = await mRes.json();
-      return { w, meta };
-    } catch {
-      return { w, meta: null };
+      const metas = await Promise.all(workItems.map(async (w) => {
+        try {
+          const mRes = await fetch(w.metaUrl, { cache: "no-store" });
+          if (!mRes.ok) return { w, meta: null };
+          const meta = await mRes.json();
+          return { w, meta };
+        } catch {
+          return { w, meta: null };
+        }
+      }));
+
+      const built = metas
+        .map(({ w, meta }) => {
+          if (!meta) return null;
+
+          const price = toNumber(meta.price);
+          if (price == null) return null;
+
+          const title = (meta.title || w.id).toString();
+          const excerpt = (meta.excerpt || meta.description || "").toString();
+
+          return {
+            id: w.id,
+            slug: w.slug,
+
+            name: title,
+            description: excerpt,
+            longDescription: excerpt,
+
+            image: meta.cover || w.cover || "/img/webicon.png",
+
+            price,
+            currency: "EUR",
+
+            unit: (meta.unit || "Buch").toString(),
+            variants: (Array.isArray(meta.variants) && meta.variants.length) ? meta.variants : ["Print", "E-Book"],
+            tags: Array.isArray(meta.tags) ? meta.tags : [],
+
+            metaUrl: w.metaUrl,
+            contentUrl: w.contentUrl,
+
+            updated: (meta.updated || w.updated || meta.published || "").toString(),
+
+            status: "",
+            pickupRequired: false,
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => String(b.updated || "").localeCompare(String(a.updated || "")));
+
+      products = built;
     }
-  }));
 
-  // Build products from meta
-  const built = metas
-    .map(({ w, meta }) => {
-      if (!meta) return null;
+    function populateTagFilter() {
+      if (!status) return;
 
-      const price = toNumber(meta.price);
-      // Heuristic: only sell entries that have a price
-      if (price == null) return null;
+      const allTags = new Set();
+      products.forEach(p => (p.tags || []).forEach(t => allTags.add(String(t))));
 
-      return {
-        id: w.id,
-        name: (meta.title || w.id).toString(),
-        description: (meta.excerpt || "").toString(),
-        longDescription: (meta.excerpt || "").toString(),
-        image: meta.cover || w.cover || "/img/webicon.png",
+      const current = status.value || "";
+      status.innerHTML =
+        `<option value="">Alle</option>` +
+        Array.from(allTags)
+          .sort((a, b) => a.localeCompare(b))
+          .map(t => `<option value="${t.replaceAll('"', "&quot;")}">${t}</option>`)
+          .join("");
 
-        // book/shop fields
-        price,                 // number
-        currency: "EUR",
-        unit: "Buch",
-        variants: Array.isArray(meta.variants) ? meta.variants : ["Print", "E-Book"],
-        tags: Array.isArray(meta.tags) ? meta.tags : [],
-
-        // linking (optional use later)
-        metaUrl: w.metaUrl,
-        contentUrl: w.contentUrl,
-
-        // keep compatibility with existing UI
-        status: "",            // unused now
-        pickupRequired: false, // unused now
-      };
-    })
-    .filter(Boolean)
-    // newest first (optional)
-    .sort((a, b) => String(b.updated || "").localeCompare(String(a.updated || "")));
-
-  products = built;
-}
-function populateTagFilter() {
-  // status select is now “Tag”
-  if (!status) return;
-
-  const allTags = new Set();
-  products.forEach(p => (p.tags || []).forEach(t => allTags.add(String(t))));
-
-  const current = status.value || "";
-  status.innerHTML = `<option value="">Alle</option>` +
-    Array.from(allTags).sort((a,b) => a.localeCompare(b)).map(t =>
-      `<option value="${t.replaceAll('"','&quot;')}">${t}</option>`
-    ).join("");
-
-  // restore selection if possible
-  if (current && Array.from(status.options).some(o => o.value === current)) {
-    status.value = current;
-  }
-}
-
-
+      if (current && Array.from(status.options).some(o => o.value === current)) status.value = current;
+    }
 
     // Wire controls
     [q, status, sort].forEach(el => el.addEventListener("input", renderProducts));
-shippingSel?.addEventListener("change", () => {
-  applyShippingRules();
-  syncCheckoutState();
-});
 
+    shippingSel?.addEventListener("change", () => {
+      applyShippingRules();
+      syncCheckoutState();
+    });
 
     function setPhysicalFieldsEnabled(enabled) {
-  const fields = [paymentSel, addressEl, zipEl, townEl, countryEl];
+      const fields = [paymentSel, addressEl, zipEl, townEl, countryEl];
+      fields.forEach(el => { if (el) el.disabled = !enabled; });
 
-  fields.forEach(el => {
-    if (!el) return;
-    el.disabled = !enabled;
-  });
+      [addressEl, zipEl, townEl, countryEl].forEach(el => {
+        if (!el) return;
+        if (enabled) el.setAttribute("required", "");
+        else el.removeAttribute("required");
+      });
 
-  // toggle required only for address fields (payment stays required unless disabled)
-  [addressEl, zipEl, townEl, countryEl].forEach(el => {
-    if (!el) return;
-    if (enabled) el.setAttribute("required", "");
-    else el.removeAttribute("required");
-  });
+      if (paymentSel) {
+        if (enabled) paymentSel.setAttribute("required", "");
+        else paymentSel.removeAttribute("required");
+      }
 
-  // payment required depends on whether it's enabled
-  if (paymentSel) {
-    if (enabled) paymentSel.setAttribute("required", "");
-    else paymentSel.removeAttribute("required");
-  }
+      if (!enabled) {
+        if (paymentSel) paymentSel.value = "";
+        [addressEl, zipEl, townEl, countryEl].forEach(el => { if (el) el.value = ""; });
+      }
+    }
 
-  // optional: clear values when disabling to avoid stale data
-  if (!enabled) {
-    if (paymentSel) paymentSel.value = "";
-    [addressEl, zipEl, townEl, countryEl].forEach(el => { if (el) el.value = ""; });
-  }
-}
+    function applyShippingRules() {
+      const shipping = (shippingSel?.value || "").toLowerCase().trim();
+      const isDigital = shipping === "nur digital";
+      setPhysicalFieldsEnabled(!isDigital);
 
-function applyShippingRules() {
-  const shipping = (shippingSel?.value || "").toLowerCase().trim();
-  const isDigital = shipping === "nur digital";
-  setPhysicalFieldsEnabled(!isDigital);
-
-  // Helpful hint
-  if (isDigital) {
-    sendHint.textContent = "Nur digital gewählt: Adresse & Bezahlung werden nicht benötigt.";
-  } else {
-    sendHint.textContent = "Bitte Adresse ausfüllen und Bezahlung auswählen.";
-  }
-}
-
+      sendHint.textContent = isDigital
+        ? "Nur digital gewählt: Adresse & Bezahlung werden nicht benötigt."
+        : "Bitte Adresse ausfüllen und Bezahlung auswählen.";
+    }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      // honeypot
       const honey = form.querySelector('input[name="company"]');
       if (honey && honey.value.trim() !== "") return;
 
@@ -1155,70 +1112,56 @@ function applyShippingRules() {
       const consent = form.querySelector("#consent");
       if (consent && !consent.checked) return;
 
-      // basic validity (so we don't fire an API call with empty fields)
-if (!form.reportValidity()) {
-  sendHint.textContent = "Bitte alle Pflichtfelder ausfüllen (z.B. Versandweg und Bezahlung).";
-  return;
-}
+      if (!form.reportValidity()) {
+        sendHint.textContent = "Bitte alle Pflichtfelder ausfüllen.";
+        return;
+      }
 
-      // lock UI while sending
       sendBtn.disabled = true;
-      sendBtn.textContent = "Sende…";
+      sendBtn.textContent = "Öffne E-Mail…";
 
       try {
-  const fd = new FormData(form);
+        const fd = new FormData(form);
+        const mail = buildMailtoFromForm(fd);
+        openMailto(mail);
 
-  // build mailto from current form + cart
-  const mail = buildMailtoFromForm(fd);
+        setTimeout(() => {
+          sendHint.textContent = "E-Mail-Entwurf sollte geöffnet sein. Falls nicht: Mail-App/Handler (mailto:) im System/Browser einrichten.";
+        }, 50);
 
-  // open user's mail app with prefilled content
-openMailto(mail);
+        // clear cart & persist
+        cart = [];
+        saveCartToStorage();
+        renderCart();
+        syncCheckoutState();
 
-setTimeout(() => {
-  sendHint.textContent = "E-Mail-Entwurf sollte geöffnet sein. Falls nicht: Mail-App/Handler (mailto:) im System/Browser einrichten.";
-  alert("E-Mail-Entwurf wurde geöffnet. Bitte im Mailprogramm noch auf „Senden“ klicken.");
-}, 50);
-
-  // optional: user feedback (mail isn't "sent" yet, only opened)
-  alert("E-Mail-Entwurf wurde geöffnet. Bitte im Mailprogramm noch auf „Senden“ klicken.");
-
-  // clear cart & persist (optional — nur wenn du nach dem Öffnen leeren willst)
-  cart = [];
-  saveCartToStorage();
-  renderCart();
-  syncCheckoutState();
-
-  // clear form
-  form.reset();
-
-} catch (err) {
-  alert(`Öffnen des Mailprogramms fehlgeschlagen: ${err?.message || err}`);
-  syncCheckoutState();
-} finally {
-  sendBtn.textContent = "Anfrage per E-Mail senden";
-  sendBtn.disabled = cart.length === 0;
-}
-
-
+        form.reset();
+        applyShippingRules();
+      } catch (err) {
+        alert(`Öffnen des Mailprogramms fehlgeschlagen: ${err?.message || err}`);
+        syncCheckoutState();
+      } finally {
+        sendBtn.textContent = "Anfrage per E-Mail senden";
+        sendBtn.disabled = cart.length === 0;
+      }
     });
 
     // init
     (async function init() {
-  cart = loadCartFromStorage();
-  try {
-    await loadBooksFromWorkIndex();
-    populateTagFilter();
+      cart = loadCartFromStorage();
+      try {
+        await loadBooksFromWorkIndex();
+        populateTagFilter();
+      } catch {
+        products = [];
+      }
 
-  } catch {
-    products = [];
-  }
-  renderProducts();
-  renderCart();
-  syncCheckoutState();
-  syncCartBadge();
-  applyShippingRules();   // <-- add this line
-})();
-
+      renderProducts();
+      renderCart();
+      syncCheckoutState();
+      syncCartBadge();
+      applyShippingRules();
+    })();
   </script>
 </body>
 </html>
