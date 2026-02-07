@@ -19,6 +19,11 @@
       gap: 10px;
       margin-bottom: 14px;
     }
+.modal-price{
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
 
     .shop-controls {
       display: grid;
@@ -452,40 +457,42 @@
   <!-- Product modal -->
   <div class="modal-backdrop" id="product-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <article class="card modal">
-      <img id="modal-img" class="modal-img" alt="" />
-<div class="modal-body">
-  <div class="modal-top">
-    <h3 id="modal-title" style="margin:0;"></h3>
-    <button type="button" class="btn-mini" id="modal-close" aria-label="Schließen">✕</button>
-  </div>
-
-  <div class="fineprint" id="modal-status"></div>
-  <div class="fineprint" id="modal-price"></div>
-  <div class="fineprint" id="modal-availability"></div>
-  <div class="fineprint" id="modal-tags"></div>
-  <div class="fineprint" id="modal-eigenanteil"></div>
-  <div class="fineprint" id="modal-links"></div>
-
-  <p id="modal-long" style="margin:0;"></p>
-
-  <div class="shop-row">
-    <div class="field">
-      <label for="modal-variant">Variante</label>
-      <select id="modal-variant"></select>
+  <img id="modal-img" class="modal-img" alt="" />
+  <div class="modal-body">
+    <div class="modal-top">
+      <h3 id="modal-title" style="margin:0;"></h3>
+      <button type="button" class="btn-mini" id="modal-close" aria-label="Schließen">✕</button>
     </div>
-    <div class="field">
-      <label for="modal-qty">Menge</label>
-      <input id="modal-qty" type="number" min="1" max="50" value="1" />
+
+    <div class="fineprint" id="modal-status"></div>
+
+    <!-- BIG PRICE -->
+    <div id="modal-price" class="modal-price"></div>
+
+    <div class="fineprint" id="modal-tags"></div>
+    <div class="fineprint" id="modal-links"></div>
+
+    <!-- KLAPPENTEXT -->
+    <p id="modal-klappentext" style="margin:0;"></p>
+
+    <div class="shop-row">
+      <div class="field">
+        <label for="modal-variant">Variante</label>
+        <select id="modal-variant"></select>
+      </div>
+      <div class="field">
+        <label for="modal-qty">Menge</label>
+        <input id="modal-qty" type="number" min="1" max="50" value="1" />
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <span class="fineprint" id="modal-unit"></span>
+      <button type="button" class="button" id="modal-add">In Auswahl</button>
     </div>
   </div>
+</article>
 
-  <div class="modal-actions">
-    <span class="fineprint" id="modal-unit"></span>
-    <button type="button" class="button" id="modal-add">In Auswahl</button>
-  </div>
-</div>
-
-    </article>
   </div>
 
   <footer class="site-footer">
@@ -531,21 +538,21 @@
 
     // Modal elements
     // Modal elements
-    const modalBackdrop = $("#product-modal");
-    const modalClose = $("#modal-close");
-    const modalImg = $("#modal-img");
-    const modalTitle = $("#modal-title");
-    const modalStatus = $("#modal-status");
-    const modalPrice = $("#modal-price");
-    const modalAvailability = $("#modal-availability");
-    const modalTags = $("#modal-tags");
-    const modalEigen = $("#modal-eigenanteil");
-    const modalLinks = $("#modal-links");
-    const modalLong = $("#modal-long");
-    const modalVariant = $("#modal-variant");
-    const modalQty = $("#modal-qty");
-    const modalUnit = $("#modal-unit");
-    const modalAdd = $("#modal-add");
+const modalBackdrop = $("#product-modal");
+const modalClose = $("#modal-close");
+const modalImg = $("#modal-img");
+const modalTitle = $("#modal-title");
+const modalStatus = $("#modal-status");
+const modalPrice = $("#modal-price");
+const modalTags = $("#modal-tags");
+const modalLinks = $("#modal-links");
+const modalKlappentext = $("#modal-klappentext");
+const modalVariant = $("#modal-variant");
+const modalQty = $("#modal-qty");
+const modalUnit = $("#modal-unit");
+const modalAdd = $("#modal-add");
+
+
 
 
     let products = [];
@@ -653,6 +660,8 @@
         img.loading = "lazy";
         img.alt = p.name || p.id;
         img.src = safeImage(p);
+        img.addEventListener("error", () => { img.src = "/img/webicon.png"; });
+
 
         const body = document.createElement("div");
         body.className = "shop-body";
@@ -666,7 +675,8 @@
 
         const badge = document.createElement("span");
         badge.className = "shop-badge";
-        badge.textContent = p.status || "Buch";
+        badge.textContent = (p.tags && p.tags.length) ? String(p.tags[0]) : "Buch";
+
 
         top.appendChild(h);
         top.appendChild(badge);
@@ -825,7 +835,7 @@
         : "Du kannst jetzt die Anfrage senden.";
     }
 
-    function openProductModal(p, opts = {}) {
+function openProductModal(p, opts = {}) {
   activeProduct = p;
 
   const meta = p._meta || {};
@@ -834,18 +844,12 @@
   modalImg.src = safeImage(p);
   modalImg.alt = p.name || p.id;
 
-  // status line
+  // status line (keep updated only)
   modalStatus.textContent = p.updated ? `Aktualisiert: ${p.updated}` : "";
 
-  // price line
+  // BIG price (no availability here)
   if (modalPrice) {
     modalPrice.textContent = (p.price != null) ? `Preis: ${formatEUR(p.price)}` : "";
-  }
-
-  // availability from meta (your structure: published.available)
-  if (modalAvailability) {
-    const avail = (meta?.published?.available ?? meta?.available ?? "").toString();
-    modalAvailability.textContent = avail ? `Verfügbarkeit: ${avail}` : "";
   }
 
   // tags
@@ -854,24 +858,24 @@
     modalTags.textContent = tags.length ? `Tags: ${tags.join(", ")}` : "";
   }
 
-  // eigenanteil (seen in your screenshot)
-  if (modalEigen) {
-    const eigen = (meta?.eigenanteil || "").toString().trim();
-    modalEigen.textContent = eigen ? `Eigenanteil: ${eigen}` : "";
-  }
-
   // links: alsoPublished [{label,url}]
   if (modalLinks) {
     const pubs = Array.isArray(meta?.alsoPublished) ? meta.alsoPublished : [];
-    modalLinks.innerHTML = pubs
+    const html = pubs
       .filter(x => x && x.url)
       .map(x => `<a href="${x.url}" target="_blank" rel="noopener">${x.label || x.url}</a>`)
       .join(" · ");
+    modalLinks.innerHTML = html;
   }
 
-  // long text
-  const longText = (meta?.excerpt || meta?.description || p.longDescription || p.description || "").toString().trim();
-  modalLong.textContent = longText;
+  // KLAPPENTEXT (preferred), fallback to excerpt/description
+  const klappentext =
+    (meta?.klappentext || "").toString().trim() ||
+    (meta?.excerpt || "").toString().trim() ||
+    (meta?.description || "").toString().trim() ||
+    (p.longDescription || p.description || "").toString().trim();
+
+  if (modalKlappentext) modalKlappentext.textContent = klappentext;
 
   // variants
   modalVariant.innerHTML = "";
@@ -1072,6 +1076,7 @@ async function loadBooksFromWorkIndex() {
   const res = await fetch("/assets/work-index.json", { cache: "no-store" });
   if (!res.ok) throw new Error("work-index.json missing");
   const data = await res.json();
+  console.log("work-index.json keys:", Object.keys(data || {}), data);
 
   // accept common shapes
   const items =
