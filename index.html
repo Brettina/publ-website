@@ -670,7 +670,7 @@
   </main>
 
   <footer class="site-footer">
-    <p>© <span id="year"></span> Weichware Lohr</p>
+    <p>© <span id="year"></span> Verlag Lohr</p>
     <ul class="footer-links">
       <li><a href="/regulation/privacy/">Datenschutz</a></li>
       <li><a href="/regulation/cookies/">Cookies</a></li>
@@ -847,12 +847,12 @@
     document.getElementById("year").textContent = new Date().getFullYear();
 
     (function () {
-      const TO = ["anfrage", "weichware-lohr.de"].join("@");
+      const TO = ["anfrage", "publish-lohr.de"].join("@");
 
       const emailLink = document.querySelector("[data-email-link]");
       if (emailLink) {
         emailLink.href = "mailto:" + TO;
-        emailLink.textContent = "anfrage[[at]]weichware-lohr.de";
+        emailLink.textContent = "anfrage[[at]]publish-lohr.de";
       }
 
       const form = document.querySelector("[data-contact-form]");
