@@ -44,7 +44,10 @@
 .blog-modal-body a {
   text-decoration: underline;
 }
-
+/* nested details slightly lighter */
+.service-body .service-item {
+  background: rgba(0,0,0,0.015);
+}
 
     .saftladen-title {
       margin: 14px 0 0;
@@ -442,39 +445,49 @@ Ich arbeite als Verlegerin, übersetze zwischen Deutsch und Englisch, verfüge �
 
 <!-- AUSKLAPPBAR: 15% Rabatt auf Ihre Meinung (direkt unter "Neues") -->
 <section class="section" aria-labelledby="rabatt-meinung-title">
- <div class="services" style="margin-top:12px;">
+<div class="service-body">
+  <div class="services" style="margin-top:10px; gap:10px;">
+
+    <!-- 15% -->
     <details class="service-item">
       <summary class="service-summary">
         <div>
-          <strong>Rabattaktionen</strong>
-          <p class="fineprint">Bewertungsprogramme mit Preisnachlass.</p>
+          <strong>15% Rabatt auf Ihre Meinung</strong>
+          <p class="fineprint">Einzelkauf → Bewertung → 15% Rückerstattung.</p>
         </div>
         <span class="service-chevron" aria-hidden="true">⌄</span>
       </summary>
-
       <div class="service-body">
-        <div class="fineprint" style="margin-top:0;">
-
-          <p><strong>15% Rabatt auf Ihre Meinung</strong></p>
-          <ul>
-            <li>Buch bei uns oder Amazon kaufen</li>
-            <li>Öffentliche Bewertung schreiben</li>
-            <li>Bewertung + Rechnung per E-Mail senden</li>
-            <li>15 % des Kaufpreises zurück</li>
-          </ul>
-
-          <p style="margin-top:14px;"><strong>50% Rabatt für dauerhafte Bewertungen</strong></p>
-          <ul>
-            <li>Name + Adresse per formlose Anfrage senden</li>
-            <li>Bestätigungs-Mail bestätigen</li>
-            <li>Neue Werke vor Verkaufsstart 50 % reduziert erhalten</li>
-            <li>Frühzeitige Online-Bewertung möglich</li>
-          </ul>
-
-        </div>
+        <ul class="fineprint" style="margin-top:0;">
+          <li>Buch bei uns oder Amazon kaufen</li>
+          <li>Öffentliche Bewertung schreiben</li>
+          <li>Bewertung + Rechnung per E-Mail senden</li>
+          <li>15 % des Kaufpreises zurück</li>
+        </ul>
       </div>
     </details>
+
+    <!-- 50% -->
+    <details class="service-item">
+      <summary class="service-summary">
+        <div>
+          <strong>50% Rabatt für dauerhafte Bewertungen</strong>
+          <p class="fineprint">Langfristiges Bewertungsprogramm.</p>
+        </div>
+        <span class="service-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <div class="service-body">
+        <ul class="fineprint" style="margin-top:0;">
+          <li>Name + Adresse per formlose Anfrage senden</li>
+          <li>Bestätigungs-Mail bestätigen</li>
+          <li>Neue Werke vor Verkaufsstart 50 % reduziert erhalten</li>
+          <li>Frühzeitige Online-Bewertung möglich</li>
+        </ul>
+      </div>
+    </details>
+
   </div>
+</div>
 </section>
 
     <!-- LEISTUNGEN (accordion) -->
