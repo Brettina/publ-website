@@ -27,11 +27,18 @@
 
       "note": "IGern lege ich auch Ihr Buch mit aus."
     }  ,
-     {
-      "date": "2026-11-07",
-      "title": "Messe Seitenwechsel",
+         {
+      "date": "2026-20-03",
+      "title": "Leipziger Buchmesse",
       "tags": ["publishing", "fair"],
-      "where": "Halle",
+      "where": "Leipzig",
+            "projects":["reznik", "angela"]
+    }  ,
+     {
+      "date": "2026-10-31",
+      "title": "Berliner Buchmesse",
+      "tags": ["publishing", "fair"],
+      "where": "Berlin",
             "projects":["reznik", "angela"],
 
       "note": "Gern lege ich auch Ihr Buch mit aus."
