@@ -28,11 +28,12 @@
       "note": "IGern lege ich auch Ihr Buch mit aus."
     }  ,
          {
-      "date": "2026-20-03",
+      "date": "2026-03-20",
       "title": "Leipziger Buchmesse",
       "tags": ["publishing", "fair"],
       "where": "Leipzig",
-            "projects":["reznik", "angela"]
+            "projects":["reznik", "angela"],
+             "note": "Ich bin am Freitag da und freue mich euch kennenzulernen."
     }  ,
      {
       "date": "2026-10-31",
