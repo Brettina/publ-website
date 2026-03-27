@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <script src="ar.js" defer></script>
+    <style>
+      body { margin: 0; overflow: hidden; }
+
+      .mindar-ui-overlay,
+      .mindar-ui-scanning,
+      .mindar-ui-loading {
+        display: none !important;
+      }
+
+      #scan-btn {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999;
+        padding: 16px 32px;
+        font-size: 20px;
+        background: rgba(255,255,255,0.85);
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="scan-btn">Scan</button>
+
+    <a-scene
+      id="ar-scene"
+  mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; warmupTolerance: 5; missTolerance: 10; filterMinCF: 0.01; filterBeta: 100;"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false">
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <!-- one anchor per page, injected by ar.js -->
+      <a-entity id="ar-root"></a-entity>
+
+    </a-scene>
+  </body>
+</html>
