@@ -159,9 +159,14 @@ p{ margin: 0 0 10px; color: var(--muted); }
   background: color-mix(in srgb, var(--accent) 16%, var(--panel));
 }
 .button-secondary{
-  border-color: var(--border);
+  border-color: rgba(255,255,255,.28);
   background: color-mix(in srgb, var(--panel) 92%, transparent);
   color: var(--text);
+}
+@media (prefers-color-scheme: light) {
+  .button-secondary{
+    border-color: rgba(17,24,39,.28);
+  }
 }
 
 .grid{

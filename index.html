@@ -195,11 +195,17 @@
 
 .blog-arrow {
   appearance: none;
-  border: 1px solid currentColor;
-  background: transparent;
+  border: 1px solid rgba(255,255,255,.35);
+  background: color-mix(in srgb, var(--panel) 85%, transparent);
+  color: var(--text);
   border-radius: 999px;
   padding: 8px 12px;
   cursor: pointer;
+}
+@media (prefers-color-scheme: light) {
+  .blog-arrow {
+    border-color: rgba(17,24,39,.28);
+  }
 }
 
 .blog-arrow:focus {
@@ -976,10 +982,10 @@
     if (!res.ok) throw new Error("calendar-index.json missing");
     const data = await res.json();
     events = Array.isArray(data.items) ? data.items : [];
-    hint.textContent = events.length ? "Markierte Tage haben Termine." : "Noch keine Termine.";
+    hint.textContent = events.length ? "Markierte Tage haben Termine." : "Keine Termine eingetragen.";
   } catch {
     events = [];
-    hint.textContent = "Kalender konnte nicht geladen werden (calendar-index.json fehlt).";
+    hint.textContent = "Keine Termine eingetragen.";
   }
 
   const byDate = new Map();
@@ -1103,7 +1109,7 @@
       const emailLink = document.querySelector("[data-email-link]");
       if (emailLink) {
         emailLink.href = "mailto:" + TO;
-        emailLink.textContent = "anfrage[[at]]publish-lohr.de";
+        emailLink.textContent = "anfrage[[at]]publish-lohr.com";
       }
 
       const form = document.querySelector("[data-contact-form]");
@@ -1226,8 +1232,12 @@
     if (active) active.classList.add("is-active");
   }
 
-  function safeCover(x) { return (x && x.cover) ? String(x.cover) : "/img/concept.png"; }
-  function safeTitle(x) { return (x && x.title) ? String(x.title) : "Work"; }
+  function safeCover(x) {
+    if (!x || !x.cover) return "/img/concept.png";
+    const raw = String(x.cover);
+    if (raw.startsWith("http://") || raw.startsWith("https://") || raw.startsWith("data:")) return raw;
+    return raw.split("/").map((seg, i) => i === 0 ? seg : encodeURIComponent(seg)).join("/");
+  }  function safeTitle(x) { return (x && x.title) ? String(x.title) : "Work"; }
   function safeExcerpt(x) {
     if (!x) return "";
     return String(x.excerpt || x.description || "");
