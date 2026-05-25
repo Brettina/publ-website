@@ -38,10 +38,10 @@
       "excerpt": "Angela Jung schreibt von ihren Erlebnissen mit Jesus.",
       "description": "",
       "images": [
-        "/assets/work/lichstrahl/angela flyer+.png",
+        "/assets/work/lichstrahl/angela_flyer+.png",
         "/assets/work/lichstrahl/babou.jpg"
       ],
-      "cover": "/assets/work/lichstrahl/angela flyer+.png",
+      "cover": "/assets/work/lichstrahl/angela_flyer+.png",
       "contentUrl": "/assets/work/lichstrahl/article.html",
       "metaUrl": "/assets/work/lichstrahl/meta.json"
     },
@@ -63,9 +63,9 @@
       "excerpt": "Das Buch richtet sich an alle phenomenologisch Interessierten.",
       "description": "",
       "images": [
-        "/assets/work/reznik/umschlag_print halb.png"
+        "/assets/work/reznik/flyer.png"
       ],
-      "cover": "/assets/work/reznik/umschlag_print halb.png",
+      "cover": "/assets/work/reznik/flyer.png",
       "contentUrl": "/assets/work/reznik/article.html",
       "metaUrl": "/assets/work/reznik/meta.json"
     },
@@ -86,9 +86,9 @@
       "excerpt": "Das Buch richtet sich an alle phenomenologisch Interessierten.",
       "description": "",
       "images": [
-        "/assets/work/reznik_nurmorph/umschlag_v3_vorn.jpg"
+        "/assets/work/reznik_nurmorph/flyer.jpg"
       ],
-      "cover": "/assets/work/reznik_nurmorph/umschlag_v3_vorn.jpg",
+      "cover": "/assets/work/reznik_nurmorph/flyer.jpg",
       "contentUrl": "/assets/work/reznik_nurmorph/article.html",
       "metaUrl": "/assets/work/reznik_nurmorph/meta.json"
     }
