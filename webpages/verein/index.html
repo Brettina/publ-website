@@ -309,12 +309,11 @@ function renderGallery(day, container) {
     wrap.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px";
     container.appendChild(wrap);
 
-    // jpg und png getrennt, damit Grid-Slots nicht kollidieren
     const srcs = [];
     for (let i = 1; i <= 20; i++) {
-        srcs.push(news/${day} (${i}).jpg);
-        srcs.push(news/${day} (${i}).jpeg);
-        srcs.push(news/${day} (${i}).png);
+        srcs.push(`news/${day} (${i}).jpg`);
+        srcs.push(`news/${day} (${i}).jpeg`);
+        srcs.push(`news/${day} (${i}).png`);
     }
 
     srcs.forEach(src => {
@@ -323,7 +322,6 @@ function renderGallery(day, container) {
         img.style.cssText = "width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;display:none";
         img.onload = () => {
             img.style.display = "block";
-            // Leere Grid-Lücken entfernen
             wrap.style.gridTemplateColumns = "repeat(auto-fill,minmax(120px,1fr))";
         };
         img.onerror = () => img.remove();
