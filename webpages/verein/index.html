@@ -304,15 +304,29 @@ window.calNav = function(dir) {
     renderCalendar(year, month);
 };
 
-function renderGallery(photos, container) {
-    if (!photos || !photos.length) return;
+function renderGallery(day, container) {
     const wrap = document.createElement("div");
     wrap.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px";
     container.appendChild(wrap);
-    photos.forEach(src => {
+
+    // jpg und png getrennt, damit Grid-Slots nicht kollidieren
+    const srcs = [];
+    for (let i = 1; i <= 20; i++) {
+        srcs.push(news/${day} (${i}).jpg);
+        srcs.push(news/${day} (${i}).jpeg);
+        srcs.push(news/${day} (${i}).png);
+    }
+
+    srcs.forEach(src => {
         const img = document.createElement("img");
         img.src = src;
-        img.style.cssText = "width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer";
+        img.style.cssText = "width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;display:none";
+        img.onload = () => {
+            img.style.display = "block";
+            // Leere Grid-Lücken entfernen
+            wrap.style.gridTemplateColumns = "repeat(auto-fill,minmax(120px,1fr))";
+        };
+        img.onerror = () => img.remove();
         img.onclick = () => openLightbox(src);
         wrap.appendChild(img);
     });
@@ -822,11 +836,7 @@ window.addEventListener("DOMContentLoaded", () => { loadCalendar(); loadNews(); 
 
             </p>
              </p>
-   <h4>Widerspruchsrecht gem. Art. 21 DSGVO</h4>
-   <p>Sofern wir deine personenbezogenen Daten auf Grundlage von berechtigten Interessen verarbeiten (gemäß Art. 6 Abs. 1 lit. f DSGVO), hast du das Recht, jederzeit gegen diese Verarbeitung Widerspruch einzulegen. Möchtest du von deinem Widerspruchsrecht Gebrauch machen, genügt eine formlose Mitteilung per E-Mail an uns (die Kontaktdaten findest du oben). Nach deinem Widerspruch werden wir deine Daten nicht mehr weiterverarbeiten, es sei denn, wir können zwingende schutzwürdige Gründe für die Verarbeitung nachweisen, die deine Interessen, Rechte und Freiheiten überwiegen. 
-    Wir richten uns damit nach der gesetzlichen Vorlage:  
-     <i>Betroffene Personen können aus besonderen Gründen jederzeit Widerspruch gegen die Verarbeitung ihrer Daten einlegen, wenn diese auf Art. 6 Abs. 1 e) oder f) DSGVO (öffentliches Interesse/berechtigtes Interesse) beruht. Dies umfasst auch das Profiling. Der Verantwortliche muss die Verarbeitung dann beenden, es sei denn, er kann zwingende schutzwürdige Gründe nachweisen, die die Interessen der betroffenen Person überwiegen, oder die Verarbeitung dient der Rechtsdurchsetzung. </i>
-    <p>
+   
 
         </div>
 
@@ -902,6 +912,12 @@ window.addEventListener("DOMContentLoaded", () => { loadCalendar(); loadNews(); 
         (Sachsen: <a href="https://www.saechsdsb.de">saechsdsb.de</a>).
       </p>
     </div>
+    <div class="card">
+      <h3>Widerspruchsrecht gem. Art. 21 DSGVO</h3>
+      <p class="small">
+        Sofern wir deine personenbezogenen Daten auf Grundlage von berechtigten Interessen verarbeiten (gemäß Art. 6 Abs. 1 lit. f DSGVO), hast du das Recht, jederzeit gegen diese Verarbeitung Widerspruch einzulegen. Dazu reicht eine formlose Mitteilung per E-Mail an uns. Nach deinem Widerspruch werden wir deine Daten nicht mehr weiterverarbeiten, es sei denn, wir können zwingende Gründe dafür nachweisen. 
+      </p>
+    </div>
   </div>
 </section>
 
@@ -916,4 +932,3 @@ window.addEventListener("DOMContentLoaded", () => { loadCalendar(); loadNews(); 
 </footer>
 
 </body>
-</html>
