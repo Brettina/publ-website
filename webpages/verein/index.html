@@ -395,7 +395,7 @@ async function loadNews() {
             <p style="margin:0 0 8px">${item.description || ""}</p>
             <p class="small">
                 ${item.location ? `📍 ${item.location} · ` : ""}
-                Projekt: <a href="/webpages/projects/?open=${item.project}">${item.project}</a>
+                Projekt: ${item.project}
                 ${item.responsible?.name ? ` · verantwortlich: ${item.responsible.name}` : ""}
             </p>
         `;
