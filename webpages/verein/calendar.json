@@ -1,0 +1,35 @@
+{
+  "timezone": "Europe/Berlin",
+  "items": [
+    {
+      "title": "Saftladen zu Pfingsten",
+      "day": "25.05.2026",
+      "time": "14:00-17:00",
+      "description": "frischen Saft pressen und verteilen",
+      "type": "projekt",
+      "project": "Saftladen",
+      "location": "Jahnsdorf",
+      "responsible": { "name": "Maximilian Gaboury", "email": "kontakt@freisassen.org" }
+    },
+    {
+      "title": "Saftladen zu Ostern",
+      "day": "22.04.2026",
+      "time": "14:00-17:00",
+      "description": "Wir hatten unsere Premiere auf dem Geburtstag von Freunden und haben mit unserem Saftladen Getränke gemixt und gepresst – nachdem wir über Monate den Wagen konzipiert und mit >>unserem<< Tischler dann zusammengeschraubt hatten.",
+      "type": "projekt",
+      "project": "Saftladen",
+      "location": "Jahnsdorf",
+      "responsible": { "name": "Bettina Lohr", "email": "kontakt@freisassen.org" }
+    },
+    {
+      "title": "Broschüre zum Geburtstag",
+      "day": "03.04.2025",
+      "time": "13:00",
+      "description": "Wir wünschen alles Gute und zeigen Dir in einer kleinen Broschüre was für eine tolle Person du bist - eine Seite je Lebensjahr.",
+      "type": "veroeffentlichung",
+      "project": "veroeffentlichung",
+      "location": "Jahnsdorf",
+      "responsible": { "name": "Bettina Lohr", "email": "kontakt@freisassen.org" }
+    }
+  ]
+}

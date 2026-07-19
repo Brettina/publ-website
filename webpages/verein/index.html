@@ -1,264 +1,932 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>[Vereinsname] e.V.</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/jpeg" href="pics/favicon.png">
+<meta property="og:image" content="pics/saftladen_vorn.jpg">
+<title>Freisassen e.V. i.G.</title>
+
 <style>
+
+*{
+    box-sizing:border-box;
+}
+
 body{
     margin:0;
-    font-family:Arial, Helvetica, sans-serif;
-    background:#f5f5f5;
-    color:#222;
-    line-height:1.6;
+    font-family:Inter, Arial, sans-serif;
+    background:#f4f4f4;
+    color:#1f1f1f;
+    line-height:1.7;
 }
+
 header{
-    background:#111;
+    background:
+        linear-gradient(
+            rgba(0,0,0,0.65),
+            rgba(0,0,0,0.75)
+        ),
+        url('pics/saftladen_ausschenken.jpg');
+    background-size:cover;
+    background-position:center;
     color:white;
-    padding:60px 20px;
+        padding: 110px 24px 80px;
     text-align:center;
 }
+
 header h1{
     margin:0;
-    font-size:3rem;
+    margin-top:-60px;
+    font-size:4rem;
+    letter-spacing:-2px;
 }
-header p{
-    max-width:800px;
-    margin:20px auto 0;
-    opacity:0.9;
+
+header p {
+    max-width: 760px;
+    margin: 150px auto 0;
+    font-size: 1.2rem;
+    opacity: 0.95;
 }
+
 main{
-    max-width:1000px;
+    max-width:1100px;
     margin:auto;
-    padding:40px 20px;
+    padding:40px 20px 80px;
 }
+
 section{
     background:white;
-    margin-bottom:24px;
-    padding:28px;
-    border-radius:12px;
-    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+    margin-bottom:28px;
+    padding:36px;
+    border-radius:18px;
+    box-shadow:
+        0 6px 24px rgba(0,0,0,0.06);
 }
+
 h2{
     margin-top:0;
+    font-size:2rem;
+    margin-bottom:20px;
 }
+
 .grid{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    grid-template-columns:
+        repeat(auto-fit,minmax(260px,1fr));
     gap:20px;
+    margin-top:24px;
 }
+
 .card{
     background:#fafafa;
-    border:1px solid #e5e5e5;
-    border-radius:10px;
-    padding:18px;
+    border:1px solid #ececec;
+    border-radius:14px;
+    padding:22px;
+    transition:0.2s ease;
 }
-.cta{
-    background:#222;
+
+.card:hover{
+    transform:translateY(-3px);
+}
+
+.card h3{
+    margin-top:0;
+}
+
+#calendar{
+    background:#0b1020;
     color:white;
-    padding:18px;
-    border-radius:10px;
+    border-radius:18px;
+    padding:24px;
+    margin-top:24px;
 }
+
+.cal-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:10px;
+    margin-top:20px;
+}
+
+.cal-day{
+    border:1px solid rgba(255,255,255,0.18);
+    border-radius:12px;
+    min-height:70px;
+    padding:10px;
+    cursor:pointer;
+    transition:0.15s;
+}
+
+.cal-day:hover{
+    background:rgba(255,255,255,0.06);
+}
+
+.cal-day.has-event{
+    border:2px solid #5ea0ff;
+}
+
+.cal-num{
+    font-weight:700;
+    font-size:0.95rem;
+}
+
+#eventbox{
+    background:#111827;
+    color:white;
+    border-color:#222;
+}
+
+.highlight{
+    background:#111;
+    color:white;
+    padding:28px;
+    border-radius:14px;
+    margin:28px 0;
+}
+
+ul{
+    padding-left:22px;
+}
+
 .small{
-    font-size:0.92rem;
+    font-size:0.93rem;
     color:#555;
 }
+
+a{
+    color:#0d63d6;
+    text-decoration:none;
+}
+
+a:hover{
+    text-decoration:underline;
+}
+
 footer{
     background:#111;
-    color:#ddd;
+    color:#d7d7d7;
     padding:40px 20px;
+    text-align:center;
+    font-size:0.95rem;
 }
-a{
-    color:#0b63ce;
+
+.badge{
+    display:inline-block;
+    background:#ececec;
+    color:#333;
+    padding:6px 12px;
+    border-radius:999px;
+    margin:6px;
+    font-size:0.9rem;
 }
-code{
-    background:#eee;
-    padding:2px 5px;
+
+.hero-buttons{
+    margin-top:30px;
 }
+
+.hero-buttons a{
+    display:inline-block;
+    padding:14px 22px;
+    border-radius:10px;
+    margin:8px;
+    font-weight:600;
+}
+
+.btn-primary{
+    background:white;
+    color:black;
+}
+
+.btn-secondary{
+    background:rgba(255,255,255,0.12);
+    color:white;
+    border:1px solid rgba(255,255,255,0.25);
+}
+
+@media(max-width:700px){
+    .cal-grid{
+        gap:4px;
+    }
+    .cal-day{
+        min-height:44px;
+        padding:6px;
+    }
+}
+
+html{
+    overflow-x:hidden;
+}
+
 </style>
+<script>
+    async function loadCalendar() {
+    const raw = await fetch("calendar.json?v=" + Date.now()).then(r => r.json());
+    window.calendarEvents = {};
+    raw.items.forEach(item => {
+        window.calendarEvents[item.day] = item;
+    });
+    renderCalendar(new Date().getFullYear(), new Date().getMonth());
+}
+
+function renderCalendar(year, month) {
+    const WEEKDAYS = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+    const MONTHS = ['Januar','Februar','März','April','Mai','Juni',
+                    'Juli','August','September','Oktober','November','Dezember'];
+    const events = window.calendarEvents;
+    const now = new Date();
+    const cal = document.getElementById("calendar");
+
+    const first = new Date(year, month, 1);
+    let startDow = first.getDay();
+    startDow = startDow === 0 ? 6 : startDow - 1;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const prevDays = new Date(year, month, 0).getDate();
+
+    let html = `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-weight:700">${MONTHS[month]} ${year}</div>
+            <div style="display:flex;gap:6px">
+                <button onclick="calNav(-1)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:8px;padding:4px 10px;cursor:pointer">←</button>
+                <button onclick="calNav(0)"  style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:8px;padding:4px 10px;cursor:pointer">Heute</button>
+                <button onclick="calNav(1)"  style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:8px;padding:4px 10px;cursor:pointer">→</button>
+            </div>
+        </div>
+        <div class="small" style="color:#aaa;margin-bottom:10px">Markierte Tage haben Termine.</div>
+        <div class="cal-grid">
+    `;
+
+    WEEKDAYS.forEach(d => {
+        html += `<div style="text-align:center;font-size:0.8rem;color:#aaa;padding:4px 0">${d}</div>`;
+    });
+
+    for (let i = 0; i < startDow; i++) {
+        html += `<div class="cal-day" style="opacity:0.25"><div class="cal-num">${prevDays - startDow + 1 + i}</div></div>`;
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dd = String(d).padStart(2, "0");
+        const mm = String(month + 1).padStart(2, "0");
+        const key = `${dd}.${mm}.${year}`;
+        const has = !!events[key];
+        const isToday = d === now.getDate() && month === now.getMonth() && year === now.getFullYear();
+        html += `
+            <div class="cal-day ${has ? "has-event" : ""}" style="
+                ${isToday ? "position:relative;" : ""}
+                ${has ? "background-image:url('pics/favicon.png');background-size:contain;background-position:center;background-repeat:no-repeat;background-color:#0d1a2e;border:2px solid #5ea0ff;" : ""}
+            " onclick="showCalEvent('${key}')">
+                <div class="cal-num" style="${has ? "background:rgba(0,0,0,0.45);display:inline-block;padding:1px 5px;border-radius:6px;" : ""}">${d}</div>
+                ${isToday ? `<span style="position:absolute;top:6px;right:8px;font-size:0.65rem;color:#5ea0ff">heute</span>` : ""}
+            </div>
+        `;
+    }
+
+    const total = startDow + daysInMonth;
+    const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+    for (let i = 1; i <= remaining; i++) {
+        html += `<div class="cal-day" style="opacity:0.25"><div class="cal-num">${i}</div></div>`;
+    }
+
+    html += `</div>`;
+    cal.innerHTML = html;
+    cal.dataset.year = year;
+    cal.dataset.month = month;
+}
+
+window.calNav = function(dir) {
+    const cal = document.getElementById("calendar");
+    let year = parseInt(cal.dataset.year);
+    let month = parseInt(cal.dataset.month);
+    const now = new Date();
+    if (dir === 0) { year = now.getFullYear(); month = now.getMonth(); }
+    else { month += dir; if (month < 0) { month = 11; year--; } if (month > 11) { month = 0; year++; } }
+    document.getElementById("eventbox").style.display = "none";
+    renderCalendar(year, month);
+};
+
+function renderGallery(day, container) {
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px";
+    container.appendChild(wrap);
+
+    // jpg und png getrennt, damit Grid-Slots nicht kollidieren
+    const srcs = [];
+    for (let i = 1; i <= 20; i++) {
+        srcs.push(`news/${day} (${i}).jpg`);
+        srcs.push(`news/${day} (${i}).jpeg`);
+        srcs.push(`news/${day} (${i}).png`);
+    }
+
+    srcs.forEach(src => {
+        const img = document.createElement("img");
+        img.src = src;
+        img.style.cssText = "width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;display:none";
+        img.onload = () => {
+            img.style.display = "block";
+            // Leere Grid-Lücken entfernen
+            wrap.style.gridTemplateColumns = "repeat(auto-fill,minmax(120px,1fr))";
+        };
+        img.onerror = () => img.remove();
+        img.onclick = () => openLightbox(src);
+        wrap.appendChild(img);
+    });
+}
+
+window.showCalEvent = function(key) {
+    const events = window.calendarEvents;
+    const box = document.getElementById("eventbox");
+    box.style.display = "block";
+    if (!events[key]) {
+        box.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <strong>${key}</strong>
+                <button onclick="document.getElementById('eventbox').style.display='none'"
+                    style="background:none;border:none;color:#aaa;cursor:pointer;font-size:1.1rem">✕</button>
+            </div>
+            <p class="small">Keine Termine.</p>`;
+        return;
+    }
+    const item = events[key];
+    box.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <h3 style="margin:0"><a href="/webpages/projects/?open=${item.project}">${item.title}</a></h3>
+            <button onclick="document.getElementById('eventbox').style.display='none'"
+                style="background:none;border:none;color:#aaa;cursor:pointer;font-size:1.1rem;margin-left:12px">✕</button>
+        </div>
+        <p>${item.day} · ${item.time}</p>
+        <p>${item.description || ""}</p>
+        <p class="small">
+            ${item.location ? `📍 ${item.location} · ` : ""}
+            Die Veranstaltung gehört zum Projekt <a href="/webpages/projects/?open=${item.project}">${item.project}</a>
+            und wird verantwortet von ${item.responsible?.name || "–"},
+            zu erreichen über <a href="mailto:${item.responsible?.email}">${item.responsible?.email || "–"}</a>.
+        </p>
+        <div id="eventbox-gallery"></div>
+    `;
+    renderGallery(key, document.getElementById("eventbox-gallery"));
+};
+
+async function loadNews() {
+    const raw = await fetch("calendar.json?v=" + Date.now()).then(r => r.json());
+    const today = new Date();
+    const past = raw.items
+        .map(item => {
+            const [d, m, y] = item.day.split(".");
+            return { ...item, date: new Date(y, m - 1, d) };
+        })
+        .filter(item => item.date <= today)
+        .sort((a, b) => b.date - a.date);
+
+    const gallery = document.getElementById("news-gallery");
+    if (!past.length) {
+        gallery.innerHTML = `<p class="small">Noch keine Neuigkeiten.</p>`;
+        return;
+    }
+
+    const latestDate = past[0].day;
+    const latestEvents = past.filter(e => e.day === latestDate);
+    gallery.innerHTML = `<p class="small" style="margin-bottom:16px"> </p>`;
+
+    for (const item of latestEvents) {
+        const block = document.createElement("div");
+        block.className = "card";
+        block.style.marginBottom = "16px";
+        block.innerHTML = `
+            <strong>${item.title}</strong>
+            <p class="small" style="margin:4px 0 8px">${item.description}</p>
+        `;
+        renderGallery(item.day, block);
+        gallery.appendChild(block);
+    }
+}
+
+window.openLightbox = function(src) {
+    const lb = document.createElement("div");
+    lb.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:1000;display:flex;align-items:center;justify-content:center;cursor:pointer";
+    lb.innerHTML = `<img src="${src}" style="max-width:90vw;max-height:90vh;border-radius:12px;object-fit:contain">`;
+    lb.onclick = () => lb.remove();
+    document.body.appendChild(lb);
+};
+
+window.addEventListener("DOMContentLoaded", () => { loadCalendar(); loadNews(); });
+</script>
+
 </head>
+
 <body>
 
 <header>
-    <h1>[Vereinsname] e.V.</h1>
+
+    <h1>Freisassen e.V. i.G.</h1>
+
     <p>
-        Freiwillige, Bastler und Christen, die gemeinsam gemeinnützige Ideen möglich machen wollen.
-        Praktisch, unkompliziert und gemeinschaftlich.
+        Freiwillige, Bastler, Christen, Entwickler,
+        Kreative und Praktiker,
+        die gemeinsam gemeinnützige Ideen
+        möglich machen wollen.
     </p>
+
+    <div class="hero-buttons">
+        <a class="btn-primary" href="#mitmachen">
+            Mitmachen
+        </a>
+
+        <a class="btn-secondary" href="#spenden">
+            Unterstützen
+        </a>
+    </div>
+
 </header>
 
 <main>
 
 <section>
+
     <h2>Wer wir sind</h2>
-    <p>
-        Wir sind Menschen mit Ideen, Projekten und Tatkraft. Unser Verein bringt freiwilliges Engagement,
-        handwerkliche und technische Projekte, Bildungsarbeit sowie soziale Unterstützung zusammen.
-    </p>
 
     <p>
-        Wir fördern gemeinnützige Aktivitäten in den Bereichen Bildung, Forschung, Zusammenarbeit,
-        Völkerverständigung, Veröffentlichungen, soziale Hilfe und ehrenamtliches Engagement.
+        Freisassen e.V. i.G. ist ein gemeinnütziger Verein
+        mit Sitz in Jahnsdorf.
+        Wir verbinden ehrenamtliches Engagement,
+        technische Projekte,
+        Bildungsarbeit,
+        kreative Experimente
+        und soziale Unterstützung.
     </p>
+<p>
+    Der Name „Freisassen“ verweist historisch auf Menschen,
+    die unabhängig zwischen den klassischen Ständen lebten:
+    weder Leibeigene noch Adel,
+    sondern freie Ansässige mit eigener Verantwortung,
+    praktischen Fähigkeiten
+    und gemeinschaftlicher Organisation.
+    Als Freisassen bezeichnete man im Mittelalter und der frühen Neuzeit persönlich freie Bauern. Ihr Landgut, der sogenannte Freisass, war im Gegensatz zu den abhängigen Leibeigenen von den meisten Abgaben und Frondiensten befreit. Freisassen konnten über sich selbst bestimmen und ihren Wohnsitz frei wählen. Ihr Grundbesitz unterstand weder der Leibeigenschaft noch den strengen Pflichten gegenüber den Grundherren.
+    Kurz gesagt: Niemandes Untertan, aber auch niemandes Schutzbefohlener
+</p>
+    <p>
+        Unser Ziel ist es,
+        Menschen zusammenzubringen,
+        die Dinge nicht nur diskutieren,
+        sondern bauen,
+        organisieren
+        und tatsächlich umsetzen wollen.
+    </p>
+
+    <div>
+
+        <span class="badge">Gemeinnützig</span>
+        <span class="badge">Bildung</span>
+                <span class="badge">Kultur</span>
+                <span class="badge">Handwerk</span>
+        <span class="badge">Zusammenarbeit</span>
+
+    </div>
 
     <div class="grid">
+
         <div class="card">
+
             <h3>Gemeinschaft</h3>
-            <p>Menschen mit unterschiedlichen Fähigkeiten arbeiten gemeinsam an sinnvollen Projekten.</p>
+
+            <p>
+                Menschen mit unterschiedlichen Fähigkeiten
+                arbeiten gemeinsam
+                an sinnvollen Projekten.
+            </p>
+
         </div>
 
         <div class="card">
+
             <h3>Bildung & Projekte</h3>
-            <p>Workshops, Veröffentlichungen, Veranstaltungen und praktische Experimente.</p>
+
+            <p>
+                Workshops,
+                Veröffentlichungen,
+                Veranstaltungen
+                und praktische Experimente.
+            </p>
+
         </div>
 
         <div class="card">
+
             <h3>Gemeinnützigkeit</h3>
-            <p>Keine private Gewinnverteilung. Vereinsmittel werden ausschließlich satzungsgemäß verwendet.</p>
+
+            <p>
+                Vereinsmittel werden ausschließlich
+                satzungsgemäß verwendet.
+            </p>
+
         </div>
+
     </div>
+
 </section>
 
 <section>
+
     <h2>Was wir wollen</h2>
 
     <p>
-        Viele gute Ideen scheitern nicht an Motivation, sondern an Bürokratie.
-        Genau dort wollen wir helfen.
+        Viele gute Ideen scheitern nicht an Motivation,
+        sondern an Bürokratie,
+        fehlender Infrastruktur, 
+        nicht vorhandenem Netzwerk
+        oder organisatorischen Hürden.
     </p>
 
-    <div class="cta">
-        <strong>Du hast eine Idee?</strong><br>
-        Statt direkt selbst ein Unternehmen oder eine komplizierte Struktur aufzubauen,
-        kannst du deine Idee zunächst gemeinsam mit uns ausprobieren.
-        Wir helfen bei Organisation, Infrastruktur, Zusammenarbeit und Umsetzung.
+    <div class="highlight">
+
+        <h3>Du hast eine Idee?</h3>
+
+        <p>
+            Statt sofort selbst ein Unternehmen,
+            einen Shop
+            oder eine komplizierte Struktur aufzubauen,
+            kannst du dein Projekt zunächst
+            gemeinsam mit uns ausprobieren.
+        </p>
+
+        <p>
+            Wir helfen bei Organisation,
+            Infrastruktur,
+            Zusammenarbeit, Netzwerk
+            und praktischer Umsetzung.
+        </p>
+
     </div>
 
     <ul>
-        <li>Menschen zusammenbringen</li>
-        <li>Gemeinnützige Projekte ermöglichen</li>
-        <li>Technische und kreative Ideen testen</li>
-        <li>Bildungsangebote schaffen</li>
-        <li>Hilfsprojekte im In- und Ausland unterstützen</li>
-        <li>Kooperationen mit anderen Organisationen fördern</li>
+        <li>Ideen niedrigschwellig testen</li>
+        <li>Menschen mit Fähigkeiten vernetzen</li>
+        <li>gemeinsam Werkzeuge und Ressourcen nutzen</li>
+        <li>gemeinnützige Projekte beschleunigen</li>
+        <li>Bürokratie für Einzelpersonen reduzieren</li>
+        <li>Bildungsangebote und Veranstaltungen organisieren</li>
     </ul>
+
+</section>
+<section id="neuigkeiten">
+    <h2>Neuigkeiten</h2>
+    <div id="news-gallery" style="margin-top:16px"></div>
 </section>
 
-<section>
+<section id="mitmachen">
+
     <h2>Mitmachen</h2>
 
     <p>
-        Egal ob Technik, Medien, Bildung, Handwerk, Organisation, Musik, Design oder soziale Arbeit:
-        Wenn du sinnvoll mithelfen möchtest, bist du willkommen.
+        Egal ob Technik,
+        Medien,
+        Bildung,
+        Musik,
+        Handwerk,
+        Organisation,
+        Design
+        oder soziale Arbeit:
+        Wenn du sinnvoll mithelfen möchtest,
+        bist du willkommen, auch ohne Mitgliedstatus.
+    </p>
+        <p>
+    Wer dauerhaft dabei sein und Dinge unter dem Vereinsdach
+    umsetzen will, kann Mitglied werden.
+    Das kostet aktuell nichts und ermöglicht:
+    </p>
+    <ul>
+<li>Projekte und Experimente realisieren, ohne dafür eigene Strukturen aufbauen zu müssen</li>
+<li>Materialkosten und Aufwände gemeinschaftlich tragen</li>
+<li>Tätigkeiten werden gesehen und gewürdigt, unabhängig von der eigenen Situation</li>
+    <li>Kompetenzen anderer Mitglieder mitnutzen</li>
+    <li>Mitsprache bei der Ausrichtung des Vereins und der Priorisierung der Projekte</li>
+</ul>
+<div id="calendar"></div>
+
+<div id="eventbox" class="card" style="display:none; margin-top:20px;">
+</div>
+    <div class="card">
+
+    <h3>Kontakt</h3>
+
+    <p>
+        Du möchtest mitmachen,
+        eine Idee vorstellen
+        oder einfach mal vorbeischauen?
     </p>
 
     <p>
-        Kontakt: <br>
-        E-Mail: <a href="mailto:kontakt@verein.de">kontakt@verein.de</a><br>
-        Discord / Matrix / Telegram: [optional ergänzen]
+        📧 E-Mail:<br>
+        <a href="mailto:kontakt@freisassen.org">
+            kontakt@freisassen.org
+        </a>
     </p>
+
+    <p>
+        💬 Telefon / WhatsApp:<br>
+        <a href="https://wa.me/4915758068547">
+            +49 1575 8068 547
+        </a>
+    </p>
+
+    <p class="small">
+        Antwort normalerweise innerhalb weniger Tage.
+    </p>
+
+</div>
+
+    <div class="grid">
+
+        <div class="card">
+
+            <h3>Projekte und Experimente</h3>
+
+            <p>
+                Eigene Ideen starten
+                oder bei laufenden Projekten mitmachen.
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h3>Workshops und Vorträge</h3>
+
+            <p>
+                Wissen teilen,
+                lernen
+                und entwickeln.
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h3>Kooperationen und Spenden für Dritte</h3>
+
+            <p>
+                Zusammenarbeit mit Vereinen,
+                Initiativen
+                und gemeinnützigen Organisationen.
+            </p>
+
+        </div>   
+
+        <div class="card">
+
+            <h3>Einzelne Veranstaltungen</h3>
+
+            <p>
+                Mithelfen, dabei sein, Erfahrungen sammeln und vor Ort betreuen.
+            </p>
+
+        </div>
+ 
+        
+        <div class="card">
+
+            <h3>Veröffentlichungen</h3>
+
+            <p>
+                Eigene Erkenntnisse in die Welt bringen, egal ob per Podcast oder schwarz auf weiß und auf Papier.
+            </p>
+
+        </div>
+
+    </div>
+
 </section>
 
-<section>
+
+<section id="spenden">
+
     <h2>Spenden</h2>
 
     <p>
-        Der Verein finanziert sich durch freiwillige Unterstützung und Spenden.
+        Der Verein finanziert sich
+        durch freiwillige Unterstützung,
+        Mitgliedsbeiträge
+        und Spenden.
     </p>
 
     <div class="grid">
+
         <div class="card">
+
             <h3>Banküberweisung</h3>
+
             <p>
-                Kontoinhaber: [Vereinsname e.V.]<br>
-                IBAN: [DE00 0000 0000 0000 0000 00]<br>
-                BIC: [BANKDEFFXXX]
+                <strong>Freisassen e.V.</strong><br>
+                IBAN (und Bic) folgen in Kürze<br>
             </p>
+
         </div>
 
         <div class="card">
-            <h3>SumUp</h3>
-            <p>
-                Hier später SumUp-Link oder QR-Code einfügen.<br><br>
-                Beispiel:<br>
-                <code>https://pay.sumup.com/...</code>
-            </p>
+
+            <h3>Paypal</h3>
+
+    <p>
+        <a href="https://paypal.me/freisassen?country.x=DE&locale.x=de_DE">
+            Jetzt per PayPal spenden
+        </a>
+    </p>
+
         </div>
+
     </div>
 
     <p class="small">
-        Spenden werden ausschließlich für die satzungsgemäßen Zwecke des Vereins verwendet.
-        Spendenquittungen können nach Anerkennung der Gemeinnützigkeit ausgestellt werden.
+        Spenden werden ausschließlich
+        für die satzungsgemäßen Zwecke
+        des Vereins verwendet.
     </p>
+
 </section>
 
 <section>
-    <h2>Rechtliches</h2>
 
-    <h3>Gemeinnützigkeit</h3>
-    <p class="small">
-        Der Verein verfolgt ausschließlich und unmittelbar gemeinnützige Zwecke im Sinne der §§ 51 ff. AO.
-        Mittel des Vereins dürfen nur für satzungsgemäße Zwecke verwendet werden.
-        Mitglieder erhalten keine Gewinnanteile oder sonstige unverhältnismäßige Zuwendungen.
-    </p>
+    <h2>Impressum & Rechtliches</h2>
 
-    <h3>Haftungsausschluss</h3>
-    <p class="small">
-        Inhalte dieser Website dienen allgemeinen Informationszwecken.
-        Trotz sorgfältiger Prüfung übernehmen wir keine Gewähr für Vollständigkeit,
-        Aktualität oder externe Inhalte verlinkter Seiten.
-    </p>
+    <div class="grid">
 
-    <h3>Datenschutz</h3>
-    <p class="small">
-        Beim Besuch dieser Website können technisch notwendige Server-Logdaten verarbeitet werden.
-        Weitere Datenschutzhinweise bitte in einer separaten Datenschutzerklärung ergänzen,
-        insbesondere falls Analyse-Tools, Kontaktformulare oder externe Dienste verwendet werden.
-   </p>
+        <div class="card">
+
+            <h3>Impressum</h3>
+
+            <p class="small">
+
+                Freisassen e.V. i.G.<br>
+                Sitz des Vereins: 09387 Jahnsdorf<br>
+                Thalheimer Str. 14<br>
+                Deutschland
+
+                <br><br>
+
+                Vertreten durch den Vorstand
+                gemäß § 26 BGB:
+
+                <br><br>
+
+                Maximilian Gaboury (1. Vorsitzender)<br>
+                Bettina Lohr (stellv. Vorsitzende)
+
+                <br><br>
+
+                📧 E-Mail:
+                kontakt@freisassen.org
+
+                <br><br>
+                💬 Telefon / WhatsApp:
+                <a href="tel:+4915758068547">+49 1575 8068547</a>
+                <br><br>
+
+                Vereinsregister:
+                in Eintragung<br>
+
+                Registergericht:
+                Amtsgericht Chemnitz
+
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h3>Gemeinnützigkeit</h3>
+
+            <p class="small">
+
+                Der Verein verfolgt ausschließlich
+                und unmittelbar gemeinnützige Zwecke
+                im Sinne der §§ 51 ff. AO.
+
+                <br><br>
+
+                Mittel des Vereins dürfen nur
+                für satzungsgemäße Zwecke
+                verwendet werden.
+
+                <br><br>
+
+                Es erfolgt keine private Gewinnverteilung.
+
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h3>Hinweise</h3>
+
+            <p class="small">
+
+                Inhalte dieser Website dienen
+                allgemeinen Informationszwecken.
+
+                <br><br>
+
+                Für externe Inhalte verlinkter Seiten
+                wird keine Haftung übernommen.
+
+                <br><br>
+
+                Beim Besuch der Website
+                können technisch notwendige
+                Server-Logdaten verarbeitet werden.
+
+            </p>
+             </p>
    <h4>Widerspruchsrecht gem. Art. 21 DSGVO</h4>
    <p>Sofern wir deine personenbezogenen Daten auf Grundlage von berechtigten Interessen verarbeiten (gemäß Art. 6 Abs. 1 lit. f DSGVO), hast du das Recht, jederzeit gegen diese Verarbeitung Widerspruch einzulegen. Möchtest du von deinem Widerspruchsrecht Gebrauch machen, genügt eine formlose Mitteilung per E-Mail an uns (die Kontaktdaten findest du oben). Nach deinem Widerspruch werden wir deine Daten nicht mehr weiterverarbeiten, es sei denn, wir können zwingende schutzwürdige Gründe für die Verarbeitung nachweisen, die deine Interessen, Rechte und Freiheiten überwiegen. 
     Wir richten uns damit nach der gesetzlichen Vorlage:  
      <i>Betroffene Personen können aus besonderen Gründen jederzeit Widerspruch gegen die Verarbeitung ihrer Daten einlegen, wenn diese auf Art. 6 Abs. 1 e) oder f) DSGVO (öffentliches Interesse/berechtigtes Interesse) beruht. Dies umfasst auch das Profiling. Der Verantwortliche muss die Verarbeitung dann beenden, es sei denn, er kann zwingende schutzwürdige Gründe nachweisen, die die Interessen der betroffenen Person überwiegen, oder die Verarbeitung dient der Rechtsdurchsetzung. </i>
-    </p>
+    <p>
 
-    <h3>Impressum</h3>
+        </div>
 
-    <p class="small">
-        Angaben gemäß § 5 TMG:
-    </p>
+    </div>
 
-    <p class="small">
-        [Vereinsname] e.V.<br>
-        [Straße Hausnummer]<br>
-        [PLZ Ort]<br>
-        Deutschland
-    </p>
+</section>
 
-    <p class="small">
-        Vertreten durch den Vorstand:<br>
-        [Vorname Nachname]
-    </p>
+</main>
+<section id="datenschutz">
+  <h2>Datenschutzerklärung</h2>
 
-    <p class="small">
-        Kontakt:<br>
-        E-Mail: kontakt@verein.de<br>
-        Telefon: [+49 ...]
-    </p>
+  <div class="grid">
+    <div class="card">
+      <h3>Verantwortlicher</h3>
+      <p class="small">
+        Freisassen e.V. i. G.<br>
+        Thalheimer Str. 14, 09387 Jahnsdorf<br>
+                        Maximilian Gaboury (1. Vorsitzender)<br>
+                Bettina Lohr (stellv. Vorsitzende)<br>
 
-    <p class="small">
-        Vereinsregister: [VR Nummer]<br>
-        Registergericht: [Amtsgericht]
-    </p>
+        E-Mail: kontakt@freisassen.org<br>
+        Telefon: +49 1575 8068547
+      </p>
+    </div>
 
-    <p class="small">
-        Steuernummer: [falls vorhanden ergänzen]
-    </p>
+    <div class="card">
+      <h3>Server-Logdaten</h3>
+      <p class="small">
+        Beim Aufruf dieser Website speichert der
+        Hosting-Anbieter automatisch technische
+        Zugriffsdaten (IP-Adresse, Uhrzeit,
+        aufgerufene Seite, Browser-Typ).<br><br>
+        Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO
+        (berechtigtes Interesse an Betrieb und
+        Sicherheit).<br><br>
+        Speicherdauer: in der Regel 7–14 Tage,
+        dann automatische Löschung.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Keine Cookies / Tracking</h3>
+      <p class="small">
+        Diese Website verwendet keine Cookies,
+        kein Tracking und keine Analyse-Tools.
+        Es werden keine personenbezogenen Daten
+        an Dritte weitergegeben.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Kontaktaufnahme</h3>
+      <p class="small">
+        Wenn du uns per E-Mail oder Telefon
+        kontaktierst, werden deine Angaben zur
+        Bearbeitung der Anfrage gespeichert.<br><br>
+        Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO.<br><br>
+        Speicherdauer: bis zur abschließenden
+        Bearbeitung, danach Löschung sofern keine
+        gesetzliche Aufbewahrungspflicht besteht.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Deine Rechte</h3>
+      <p class="small">
+        Du hast das Recht auf Auskunft, Berichtigung,
+        Löschung, Einschränkung der Verarbeitung
+        sowie Datenübertragbarkeit
+        (Art. 15–20 DSGVO).<br><br>
+        Beschwerden kannst du beim zuständigen
+        Landesbeauftragten für Datenschutz einreichen
+        (Sachsen: <a href="https://www.saechsdsb.de">saechsdsb.de</a>).
+      </p>
+    </div>
+  </div>
 </section>
 
 </main>
 
 <footer>
-    © [Jahr] [Vereinsname] e.V. — Gemeinnützig, selbstlos und ehrenamtlich organisiert.
+
+    © 2026 Freisassen e.V. i. G.
+    — Gemeinnützig, selbstlos
+    und ehrenamtlich organisiert.
+
 </footer>
 
 </body>
