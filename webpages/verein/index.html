@@ -383,7 +383,7 @@ async function loadNews() {
 
     const latestDate = past[0].day;
     const latestEvents = past.filter(e => e.day === latestDate);
-    gallery.innerHTML = `<p class="small" style="margin-bottom:16px"> </p>`;
+    gallery.innerHTML = "";
 
     for (const item of latestEvents) {
         const block = document.createElement("div");
@@ -391,7 +391,13 @@ async function loadNews() {
         block.style.marginBottom = "16px";
         block.innerHTML = `
             <strong>${item.title}</strong>
-            <p class="small" style="margin:4px 0 8px">${item.description}</p>
+            <p class="small" style="margin:4px 0 8px">${item.day} · ${item.time}</p>
+            <p style="margin:0 0 8px">${item.description || ""}</p>
+            <p class="small">
+                ${item.location ? `📍 ${item.location} · ` : ""}
+                Projekt: <a href="/webpages/projects/?open=${item.project}">${item.project}</a>
+                ${item.responsible?.name ? ` · verantwortlich: ${item.responsible.name}` : ""}
+            </p>
         `;
         renderGallery(item.day, block);
         gallery.appendChild(block);
