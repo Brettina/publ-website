@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Blog — Weichware Lohr</title>
+  <title>Blog — publish-Lohr</title>
+  <script src="/assets/site.js" defer></script>
 
   <meta name="description" content="Blog — Artikel zum Aufklappen. Neueste zuerst." />
   <link rel="stylesheet" href="/assets/styles.css" />
@@ -130,20 +131,7 @@
 <body class="page-blog">
   <a class="skip-link" href="#main">Zum Inhalt springen</a>
 
-  <!-- same nav as index -->
-  <header class="site-header">
-    <nav class="nav" aria-label="Hauptnavigation">
-      <a class="brand" href="/">Bettina Lohr, M Sc.</a>
-      <ul class="nav-list">
-        <li><a href="/webpages/about/">Über mich</a></li>
-        <li><a href="/webpages/projects/">Projekte</a></li>
-        <li><a href="/webpages/leistungen/">Leistungen</a></li>
-        <li><a href="/webpages/webshop/">Webshop</a></li>
-        <li><a href="/webpages/blog/" aria-current="page">Blog</a></li>
-        <li><a href="/regulation/imprint/">Impressum</a></li>
-      </ul>
-    </nav>
-  </header>
+  <div id="header-slot"></div>
 
   <main id="main" class="container">
     <header class="page-hero blog-head">
@@ -180,18 +168,9 @@
     </section>
   </main>
 
-  <footer class="site-footer">
-    <p>© <span id="year"></span> Weichware Lohr</p>
-    <ul class="footer-links">
-      <li><a href="/regulation/privacy/">Datenschutz</a></li>
-      <li><a href="/regulation/cookies/">Cookies</a></li>
-      <li><a href="/regulation/imprint/">Impressum</a></li>
-    </ul>
-  </footer>
+  <div id="footer-slot"></div>
 
   <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
-
     const postsEl = document.getElementById("posts");
     const emptyEl = document.getElementById("empty");
     const qEl = document.getElementById("q");

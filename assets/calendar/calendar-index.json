@@ -5,62 +5,63 @@
       "title": "EF-Konferenz",
       "tags": ["politics", "activism", "libertarian"],
       "where": "Usedom",
-      "projects":"medaille",
-      "note": "Preisverleihungsalarm!"
+      "projects": ["julius-faucher-medaille"],
+      "note": "Preisverleihungsalarm!",
+      "photos": []
     },
-    
-     {
+    {
       "date": "2026-03-01",
       "title": "Wohlfühlmesse Gelsenkirchen",
       "tags": ["publishing", "fair"],
       "where": "Gelsenkirchen",
-            "projects":["reznik", "angela"],
-
-      "note": "Gern lege ich auch Ihr Buch mit aus."
-    } ,
-         {
+      "projects": ["reznik-debater", "reznik-relationships", "jung-lichstrahl"],
+      "note": "Gern lege ich auch Ihr Buch mit aus.",
+      "photos": []
+    },
+    {
       "date": "2026-03-20",
       "title": "Leipziger Buchmesse",
       "tags": ["publishing", "fair"],
       "where": "Leipzig",
-            "projects":["reznik", "angela"],
-             "note": "Ich bin am Freitag da und freue mich euch kennenzulernen."
-    }  ,
-         {
+      "projects": ["reznik-debater", "reznik-relationships", "jung-lichstrahl"],
+      "note": "Ich bin am Freitag da und freue mich euch kennenzulernen.",
+      "photos": []
+    },
+    {
       "date": "2026-09-05",
       "title": "Vorarlberger Buchmesse in Österreich",
       "tags": ["publishing", "fair"],
       "where": "Dornbirn Österreich",
-            "projects":["reznik", "angela"],
-
-      "note": "Frisch mit dabei: der 'Zweifler' von Dr. Peter S. Reznik, sowie Angela Jungs 'Lichstrahl'."
-    }  ,
-         {
+      "projects": ["reznik-debater", "reznik-relationships", "jung-lichstrahl"],
+      "note": "Frisch mit dabei: der 'Zweifler' von Dr. Peter S. Reznik, sowie Angela Jungs 'Lichstrahl'.",
+      "photos": []
+    },
+    {
       "date": "2026-09-26",
       "title": "Werdauer Lebensfreude Messe",
       "tags": ["publishing", "fair"],
       "where": "Werdau",
-            "projects":["reznik", "angela"],
-
-      "note": "Gern lege ich auch Ihr Buch mit aus."
-    }  ,
-     {
+      "projects": ["reznik-debater", "reznik-relationships", "jung-lichstrahl"],
+      "note": "Gern lege ich auch Ihr Buch mit aus.",
+      "photos": []
+    },
+    {
       "date": "2026-10-04",
       "title": "Esoteriktag Gelsenkirchen",
       "tags": ["publishing", "fair"],
       "where": "Gelsenkirchen",
-            "projects":["reznik", "angela"],
-
-      "note": "Gern lege ich auch Ihr Buch mit aus."
-    }  ,
-     {
+      "projects": ["reznik-debater", "reznik-relationships", "jung-lichstrahl"],
+      "note": "Gern lege ich auch Ihr Buch mit aus.",
+      "photos": []
+    },
+    {
       "date": "2026-10-31",
       "title": "Berliner Buchmesse",
       "tags": ["publishing", "fair"],
       "where": "Berlin",
-            "projects":["reznik", "angela"],
-
-      "note": "Gern lege ich auch Ihr Buch mit aus."
-    }  
+      "projects": ["reznik-debater", "reznik-relationships", "jung-lichstrahl"],
+      "note": "Gern lege ich auch Ihr Buch mit aus.",
+      "photos": []
+    }
   ]
 }

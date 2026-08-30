@@ -790,6 +790,15 @@ async function initSharedLayout() {
 
   // year in footer
   document.querySelectorAll("[data-year]").forEach(el => el.textContent = new Date().getFullYear());
+
+  // mark the current page in the shared nav
+  const path = window.location.pathname;
+  document.querySelectorAll("#header-slot [data-nav]").forEach(a => {
+    const href = a.getAttribute("href") || "";
+    const isCurrent = href === "/" ? path === "/" : path.startsWith(href);
+    if (isCurrent) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
 }
 
 // Call these alongside your existing mailto/email-obfuscation init

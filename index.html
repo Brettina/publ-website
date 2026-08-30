@@ -226,6 +226,10 @@
   background: rgba(0,0,0,0.55);
 }
 
+#cal-lightbox::backdrop {
+  background: rgba(0,0,0,0.75);
+}
+
 .blog-modal-head {
   display:flex;
   justify-content: space-between;
@@ -323,6 +327,8 @@
 
 <body class="page-home">
   <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <div id="header-slot"></div>
 
   <main id="main" class="container">
     <!-- NEW TOP IMAGE + HEADING -->
@@ -668,6 +674,13 @@
       </div>
     </section>
 
+    <dialog id="cal-lightbox" style="border:none; padding:0; background:transparent; max-width:92vw; max-height:92vh;">
+      <div style="position:relative;">
+        <button type="button" id="cal-lightbox-close" class="button button-secondary" aria-label="Schließen" style="position:absolute; top:8px; right:8px;">✕</button>
+        <img id="cal-lightbox-img" src="" alt="" style="display:block; max-width:92vw; max-height:92vh; border-radius:12px;" />
+      </div>
+    </dialog>
+
         <!-- FAQ -->
 <section class="section" aria-labelledby="faq-title">
   <h2 id="faq-title">Häufige Fragen</h2>
@@ -939,14 +952,7 @@
     </section>
   </main>
 
-  <footer class="site-footer">
-    <p>© <span id="year"></span> publish-Lohr</p>
-    <ul class="footer-links">
-      <li><a href="/regulation/privacy/">Datenschutz</a></li>
-      <li><a href="/regulation/cookies/">Cookies</a></li>
-      <li><a href="/regulation/imprint/">Impressum</a></li>
-    </ul>
-  </footer>
+  <div id="footer-slot"></div>
 
   <script src="/assets/site.js" defer></script>
 
@@ -966,6 +972,20 @@
   const btnNext = document.getElementById("cal-next");
   const btnToday = document.getElementById("cal-today");
   const btnClose = document.getElementById("cal-panel-close");
+
+  const lightbox = document.getElementById("cal-lightbox");
+  const lightboxImg = document.getElementById("cal-lightbox-img");
+  const lightboxClose = document.getElementById("cal-lightbox-close");
+
+  function openLightbox(src, alt) {
+    if (!lightbox || !lightboxImg || !src) return;
+    lightboxImg.src = src;
+    lightboxImg.alt = alt || "";
+    if (!lightbox.open) lightbox.showModal();
+  }
+
+  lightboxClose?.addEventListener("click", () => lightbox?.close());
+  lightbox?.addEventListener("click", (e) => { if (e.target === lightbox) lightbox.close(); });
 
   function ymd(d) {
     const y = d.getFullYear();
@@ -991,6 +1011,7 @@
 
   let events = [];
   let cursor = new Date();
+  let workTitles = {};
 
   try {
     const res = await fetch("/assets/calendar/calendar-index.json", { cache: "no-store" });
@@ -1002,6 +1023,16 @@
     events = [];
     hint.textContent = "Keine Termine eingetragen.";
   }
+
+  try {
+    const wRes = await fetch("/assets/work-index.json", { cache: "no-store" });
+    if (wRes.ok) {
+      const wData = await wRes.json();
+      (wData.items || []).forEach(x => {
+        if (x && x.slug) workTitles[x.slug] = x.title || x.slug;
+      });
+    }
+  } catch {}
 
   const byDate = new Map();
   for (const e of events) {
@@ -1022,15 +1053,27 @@
     }
 
     const html = list.map(ev => {
-      const projects = Array.isArray(ev.projects) ? ev.projects : [];
+      const projects = [].concat(ev.projects || []).filter(Boolean);
       const projectLinks = projects.map(id => {
         const href = `/assets/work/${encodeURIComponent(id)}/article.html`;
-        return `<a href="${href}">${escapeHtml(id)}</a>`;
+        const label = workTitles[id] || id;
+        return `<a href="${href}">${escapeHtml(label)}</a>`;
       }).join(", ");
 
 
       const where = ev.where ? `<div class="fineprint">Ort: ${escapeHtml(ev.where)}</div>` : "";
       const note = ev.note ? `<div class="fineprint">${escapeHtml(ev.note)}</div>` : "";
+
+      const photos = Array.isArray(ev.photos) ? ev.photos.filter(Boolean) : [];
+      const photosHtml = photos.length
+        ? `<div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;">
+            ${photos.map((src, i) => `
+              <img src="${escapeHtml(src)}" alt="Foto ${i + 1}: ${escapeHtml(ev.title || "")}"
+                loading="lazy" data-lightbox-src="${escapeHtml(src)}"
+                style="width:72px; height:72px; object-fit:cover; border-radius:8px; cursor:pointer; border:1px solid currentColor;" />
+            `).join("")}
+          </div>`
+        : "";
 
       return `
         <div class="card" style="padding:12px; margin-bottom:10px;">
@@ -1038,12 +1081,17 @@
           ${where}
           ${note}
           ${projectLinks ? `<div class="fineprint" style="margin-top:6px;">Projekt: ${projectLinks}</div>` : ""}
+          ${photosHtml}
         </div>
       `;
     }).join("");
 
     panelBody.innerHTML = html;
     panel.style.display = "block";
+
+    panelBody.querySelectorAll("[data-lightbox-src]").forEach(img => {
+      img.addEventListener("click", () => openLightbox(img.getAttribute("data-lightbox-src"), img.alt));
+    });
   }
 
   function renderMonth() {
@@ -1111,14 +1159,23 @@
   btnClose?.addEventListener("click", () => { panel.style.display = "none"; });
 
   renderMonth();
+
+  window.publishLohrCalendar = {
+    goToDate(dateStr) {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return;
+      cursor = new Date(d.getFullYear(), d.getMonth(), 1);
+      renderMonth();
+      openPanel(dateStr);
+      document.getElementById("calendar-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 })();
   </script>
 
   <!-- Removed the entire project carousel script block -->
 
   <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
-
     (function () {
       const TO = ["anfrage", "publish-lohr.de"].join("@");
 
@@ -1159,7 +1216,7 @@
           .replace(/\n/g, "\r\n");
 
         const mailto =
-          `mailto:${encodeURIComponent(to)}` +
+          `mailto:${to}` +
           `?subject=${encodeURIComponent(subject || "")}` +
           `&body=${encodeURIComponent(normalizedBody)}`;
 
@@ -1313,14 +1370,14 @@
     if (e.key === "ArrowRight") { e.preventDefault(); goNext(); }
     if ((e.key === "Enter" || e.key === " ") && centerFig && centerFig.contains(active)) {
       e.preventDefault();
-      openCurrent();
+      openCurrentOrEvent();
     }
   });
 
   closeBtn?.addEventListener("click", () => dialog?.close());
   dialog?.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
 
-  centerFig?.addEventListener("click", () => openCurrent());
+  centerFig?.addEventListener("click", () => openCurrentOrEvent());
 
 
 
@@ -1460,13 +1517,69 @@ async function openCurrent() {
 
 
 
+  function todayYmd() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  async function loadMostRecentPastEvent() {
+    try {
+      const res = await fetch("/assets/calendar/calendar-index.json", { cache: "no-store" });
+      if (!res.ok) throw new Error("calendar-index.json missing");
+      const data = await res.json();
+      const todayStr = todayYmd();
+
+      const past = (Array.isArray(data.items) ? data.items : [])
+        .filter(e => e && e.date && String(e.date) <= todayStr)
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+      if (!past.length) return null;
+
+      const ev = past[0];
+      const photos = Array.isArray(ev.photos) ? ev.photos.filter(Boolean) : [];
+
+      return {
+        type: "event",
+        dateStr: ev.date,
+        title: ev.title || "Termin",
+        updated: ev.date,
+        excerpt: ev.note || ev.where || "",
+        cover: photos[0] || "/img/webicon.png"
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  function goToCalendarEvent(dateStr) {
+    if (window.publishLohrCalendar && typeof window.publishLohrCalendar.goToDate === "function") {
+      window.publishLohrCalendar.goToDate(dateStr);
+    } else {
+      document.getElementById("calendar-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function openCurrentOrEvent() {
+    const cur = items[index];
+    if (cur && cur.type === "event") {
+      goToCalendarEvent(cur.dateStr);
+      return;
+    }
+    openCurrent();
+  }
+
   async function loadWorkItems() {
+    let list = [];
+
     try {
       const res = await fetch("/assets/work-index.json", { cache: "no-store" });
       if (!res.ok) throw new Error("work-index.json missing");
       const data = await res.json();
 
-      const list = (data.items || [])
+      list = (data.items || [])
         .filter(x => x && x.type === "work")
         .sort((a, b) => String(b.updated || "").localeCompare(String(a.updated || "")))
         .map(x => {
@@ -1487,16 +1600,19 @@ async function openCurrent() {
             contentUrl: x.contentUrl || ""
           };
         })
-        .filter(x => x.contentUrl && x.cover);
-
-      items = list.length ? list : fallbackItems;
-      index = 0;
-      render();
+        .filter(x => x.contentUrl && x.cover)
+        .slice(0, 3);
     } catch {
-      items = fallbackItems;
-      index = 0;
-      render();
+      list = [];
     }
+
+    const eventItem = await loadMostRecentPastEvent();
+
+    items = list.length ? list.slice() : fallbackItems.slice();
+    if (eventItem) items.push(eventItem);
+
+    index = 0;
+    render();
   }
 
   loadWorkItems();

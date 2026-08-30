@@ -369,9 +369,11 @@
 
   <header class="site-header">
     <nav class="nav" aria-label="Hauptnavigation">
-      <a class="brand" href="/">publish-Lohr, Verfügbare Bücher</a>
+      <a class="brand" href="/">publish-Lohr</a>
       <ul class="nav-list">
-        <li><a href="/" aria-label="Shop verlassen">← Zur Startseite</a></li>
+        <li><a href="/">Startseite</a></li>
+        <li><a href="/webpages/blog/">Blog</a></li>
+        <li><a href="/webpages/webshop/" aria-current="page">Webshop</a></li>
         <li>
           <a href="#cart" class="cart-link" aria-label="Zum Warenkorb">
             <span aria-hidden="true">🛒</span>
@@ -1208,7 +1210,7 @@ function openProductModal(p, opts = {}) {
         .replace(/\n/g, "\r\n");
 
       const mailto =
-        `mailto:${encodeURIComponent(to)}` +
+        `mailto:${to}` +
         `?subject=${encodeURIComponent(subject || "")}` +
         `&body=${encodeURIComponent(normalizedBody)}`;
 
