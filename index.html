@@ -449,7 +449,7 @@
   </li>
   <li>„Den Zweifler in uns zähmen“ (momentan nur über den Verlag erhältlich)</li>
 </ul>
-          <br><br>
+          <br>
             Die Verlegerin Bettina Lohr ist IT-Beraterin, Gewinnerin des Jungautorenwettbewerbs 2025
   und Trägerin der
   <a href="https://faucherpreis.info/" target="_blank" rel="noopener">Julius-Faucher-Medaille</a>,
@@ -1279,6 +1279,7 @@
     centerFig?.setAttribute("aria-label", `Artikel öffnen: ${safeTitle(cur)}`);
 
     setDots();
+    root.classList.add("is-ready");
   }
 
   function goPrev() { index = mod(index - 1, items.length); render(); }
