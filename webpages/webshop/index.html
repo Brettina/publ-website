@@ -61,9 +61,58 @@
     .shop-img {
       width: 100%;
       height: 220px;
+      position: relative;
+      overflow: hidden;
+    }
+    .shop-img .gallery-img {
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       display: block;
     }
+
+    .gallery-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      font-size: 1.2rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2;
+    }
+    .gallery-nav:hover { background: rgba(0,0,0,0.65); }
+    .gallery-prev { left: 8px; }
+    .gallery-next { right: 8px; }
+
+    .gallery-dots {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      z-index: 2;
+    }
+    .gallery-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(0,0,0,0.25);
+      padding: 0;
+      cursor: pointer;
+    }
+    .gallery-dot.is-active { background: #fff; }
 
     .shop-body {
       padding: 14px;
@@ -138,9 +187,15 @@
     .modal-img {
   width: 100%;
   height: clamp(180px, 22vh, 280px); /* responsive: small phones -> smaller image */
+  position: relative;
+  overflow: hidden;
+  background: rgba(0,0,0,0.08);      /* optional: looks cleaner with contain */
+}
+.modal-img .gallery-img {
+  width: 100%;
+  height: 100%;
   object-fit: contain;               /* show full cover, no cropping */
   display: block;
-  background: rgba(0,0,0,0.08);      /* optional: looks cleaner with contain */
 }
 
 
@@ -343,7 +398,7 @@
 
     <section class="section" aria-labelledby="shop">
       <div class="section-head">
-        <h2 id="shop" style="margin:0;">Bücher</h2>
+        <h2 id="shop" style="margin:0;">Bücher &amp; Merch</h2>
 
       </div>
 
@@ -413,7 +468,7 @@
   <!-- Product modal -->
 <div class="modal-backdrop" id="product-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <article class="card modal">
-    <img id="modal-img" class="modal-img" alt="" />
+    <div id="modal-img" class="modal-img"></div>
         <div class="modal-body">
           <div class="modal-top">
             <h3 id="modal-title" style="margin:0;"></h3>
@@ -615,6 +670,74 @@
     function compare(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
 
     function safeImage(p) { return p?.image || "/img/webicon.png"; }
+    function safeImages(p) {
+      return (Array.isArray(p?.images) && p.images.length) ? p.images : [safeImage(p)];
+    }
+
+    function buildGallery(images, altText) {
+      const imgs = (images && images.length) ? images : ["/img/webicon.png"];
+      let idx = 0;
+
+      const wrap = document.createElement("div");
+      wrap.className = "gallery";
+
+      const img = document.createElement("img");
+      img.className = "gallery-img";
+      img.loading = "lazy";
+      img.alt = altText || "";
+      img.src = imgs[0];
+      img.addEventListener("error", () => { img.src = "/img/webicon.png"; });
+      wrap.appendChild(img);
+
+      if (imgs.length > 1) {
+        function show(i) {
+          idx = (i + imgs.length) % imgs.length;
+          img.src = imgs[idx];
+          Array.from(dots.children).forEach((d, di) => d.classList.toggle("is-active", di === idx));
+        }
+
+        const prev = document.createElement("button");
+        prev.type = "button";
+        prev.className = "gallery-nav gallery-prev";
+        prev.setAttribute("aria-label", "Vorheriges Bild");
+        prev.textContent = "‹";
+        prev.addEventListener("click", (e) => { e.stopPropagation(); show(idx - 1); });
+
+        const next = document.createElement("button");
+        next.type = "button";
+        next.className = "gallery-nav gallery-next";
+        next.setAttribute("aria-label", "Nächstes Bild");
+        next.textContent = "›";
+        next.addEventListener("click", (e) => { e.stopPropagation(); show(idx + 1); });
+
+        const dots = document.createElement("div");
+        dots.className = "gallery-dots";
+        imgs.forEach((_, i) => {
+          const d = document.createElement("button");
+          d.type = "button";
+          d.className = "gallery-dot" + (i === 0 ? " is-active" : "");
+          d.setAttribute("aria-label", `Bild ${i + 1}`);
+          d.addEventListener("click", (e) => { e.stopPropagation(); show(i); });
+          dots.appendChild(d);
+        });
+
+        let touchX = null;
+        wrap.addEventListener("touchstart", (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+        wrap.addEventListener("touchend", (e) => {
+          if (touchX == null) return;
+          const dx = e.changedTouches[0].clientX - touchX;
+          if (Math.abs(dx) > 30) show(idx + (dx < 0 ? 1 : -1));
+          touchX = null;
+        });
+
+        wrap.appendChild(prev);
+        wrap.appendChild(next);
+        wrap.appendChild(dots);
+      }
+
+      return wrap;
+    }
+
     function safeVariants(p) {
       if (Array.isArray(p?.variants)) return p.variants; // even if empty
       return ["Print", "E-Book"];
@@ -708,12 +831,8 @@
         card.setAttribute("role", "button");
         card.setAttribute("aria-label", `${p.name || p.id} öffnen`);
 
-        const img = document.createElement("img");
-        img.className = "shop-img";
-        img.loading = "lazy";
-        img.alt = p.name || p.id;
-        img.src = safeImage(p);
-        img.addEventListener("error", () => { img.src = "/img/webicon.png"; });
+        const img = buildGallery(safeImages(p), p.name || p.id);
+        img.classList.add("shop-img");
 
 
         const body = document.createElement("div");
@@ -912,8 +1031,8 @@ function openProductModal(p, opts = {}) {
   const meta = p._meta || {};
 
   modalTitle.textContent = p.name || p.id;
-  modalImg.src = safeImage(p);
-  modalImg.alt = p.name || p.id;
+  modalImg.innerHTML = "";
+  modalImg.appendChild(buildGallery(safeImages(p), p.name || p.id));
 
   // status line
   modalStatus.textContent = p.updated ? `Aktualisiert: ${p.updated}` : "";
@@ -1369,7 +1488,38 @@ return {
   // newest first
   built.sort((a, b) => String(b.updated || "").localeCompare(String(a.updated || "")));
 
-  products = built;
+  return built;
+}
+
+async function loadMerchProducts() {
+  const res = await fetch("/assets/products.json", { cache: "no-store" });
+  if (!res.ok) throw new Error("products.json missing");
+  const data = await res.json();
+
+  const items = Array.isArray(data?.products) ? data.products : [];
+
+  return items
+    .filter(p => p && (p.page || "") === "webshop")
+    .map(p => ({
+      id: p.id,
+      name: p.name || p.id,
+      description: p.description || "",
+      longDescription: p.description || "",
+
+      image: p.image || "",
+      images: Array.isArray(p.images) ? p.images : (p.image ? [p.image] : []),
+
+      price: null,
+      currency: "EUR",
+
+      unit: p.unit || "Stück",
+      variants: Array.isArray(p.variants) ? p.variants : ["Standard"],
+      tags: ["Merch"],
+
+      updated: "",
+      status: p.status || "verfügbar",
+      pickupRequired: Boolean(p.pickupRequired)
+    }));
 }
 
 
@@ -1397,12 +1547,14 @@ return {
     // init
     (async function init() {
       cart = loadCartFromStorage();
-      try {
-        await loadBooksFromWorkIndex();
-        populateTagFilter();
-      } catch {
-        products = [];
-      }
+
+      const [books, merch] = await Promise.all([
+        loadBooksFromWorkIndex().catch(() => []),
+        loadMerchProducts().catch(() => [])
+      ]);
+
+      products = [...merch, ...books];
+      populateTagFilter();
 
       renderProducts();
       renderCart();

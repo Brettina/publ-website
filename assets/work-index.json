@@ -24,7 +24,7 @@
     },
     {
       "type": "work",
-      "slug": "lichstrahl",
+      "slug": "jung-lichstrahl",
       "title": "Ein Lichtstrahl seiner Liebe - von Angela Jung",
       "published": "2025-02-18",
       "updated": "2025-02-18",
@@ -38,16 +38,38 @@
       "excerpt": "Angela Jung schreibt von ihren Erlebnissen mit Jesus.",
       "description": "",
       "images": [
-        "/assets/work/lichstrahl/angela_flyer+.png",
-        "/assets/work/lichstrahl/babou.jpg"
+        "/assets/work/jung-lichstrahl/angela_flyer+.png",
+        "/assets/work/jung-lichstrahl/babou.jpg"
       ],
-      "cover": "/assets/work/lichstrahl/angela_flyer+.png",
-      "contentUrl": "/assets/work/lichstrahl/article.html",
-      "metaUrl": "/assets/work/lichstrahl/meta.json"
+      "cover": "/assets/work/jung-lichstrahl/angela_flyer+.png",
+      "contentUrl": "/assets/work/jung-lichstrahl/article.html",
+      "metaUrl": "/assets/work/jung-lichstrahl/meta.json"
     },
     {
       "type": "work",
-      "slug": "reznik",
+      "slug": "reznik-debater",
+      "title": "Morphologische Geheimnisse in unseren Gesichtern - von Peter S. Reznik",
+      "published": "2026-09-04",
+      "updated": "2026-08-30",
+      "eigenanteil": "Übersetzung ins Deutsche, Buchsatz, Verlegung und Marketing",
+      "tags": [
+        "therapy",
+        "guide",
+        "publishing",
+        "translation"
+      ],
+      "excerpt": "Das Buch richtet sich an Jugendliche und junge Teenager.",
+      "description": "",
+      "images": [
+        "/assets/work/reznik-debater/flyer.jpg"
+      ],
+      "cover": "/assets/work/reznik-debater/flyer.jpg",
+      "contentUrl": "/assets/work/reznik-debater/article.html",
+      "metaUrl": "/assets/work/reznik-debater/meta.json"
+    },
+    {
+      "type": "work",
+      "slug": "reznik-relationships",
       "title": "Morphologische Geheimnisse von erfolgreichen Beziehungen - von Peter S. Reznik",
       "published": "2026-02-14",
       "updated": "2026-01-19",
@@ -63,34 +85,11 @@
       "excerpt": "Das Buch richtet sich an alle phenomenologisch Interessierten.",
       "description": "",
       "images": [
-        "/assets/work/reznik/flyer.png"
+        "/assets/work/reznik-relationships/flyer.png"
       ],
-      "cover": "/assets/work/reznik/flyer.png",
-      "contentUrl": "/assets/work/reznik/article.html",
-      "metaUrl": "/assets/work/reznik/meta.json"
-    },
-    {
-      "type": "work",
-      "slug": "reznik_nurmorph",
-      "title": "Morphologische Geheimnisse in unseren Gesichtern - von Peter S. Reznik",
-      "published": "2026-02-14",
-      "updated": "2026-02-12",
-      "eigenanteil": "Übersetzung ins Deutsche, Buchsatz, Verlegung und Marketing",
-      "tags": [
-        "facereading",
-        "guide",
-        "publishing",
-        "ebook",
-        "translation"
-      ],
-      "excerpt": "Das Buch richtet sich an alle phenomenologisch Interessierten.",
-      "description": "",
-      "images": [
-        "/assets/work/reznik_nurmorph/flyer.jpg"
-      ],
-      "cover": "/assets/work/reznik_nurmorph/flyer.jpg",
-      "contentUrl": "/assets/work/reznik_nurmorph/article.html",
-      "metaUrl": "/assets/work/reznik_nurmorph/meta.json"
+      "cover": "/assets/work/reznik-relationships/flyer.png",
+      "contentUrl": "/assets/work/reznik-relationships/article.html",
+      "metaUrl": "/assets/work/reznik-relationships/meta.json"
     }
   ]
 }

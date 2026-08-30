@@ -35,15 +35,13 @@ async function listSubdirs(dir) {
   return entries.filter(e => e.isDirectory()).map(e => e.name);
 }
 
-async function pickFirstImage(folderPath) {
+async function listImages(folderPath) {
   const entries = await fs.readdir(folderPath, { withFileTypes: true });
-  const files = entries
+  return entries
     .filter(e => e.isFile())
     .map(e => e.name)
-    .filter(name => !IGNORE_RE.test(name));
-
-  const img = files.find(f => IMG_RE.test(f));
-  return img || "";
+    .filter(name => !IGNORE_RE.test(name) && IMG_RE.test(name))
+    .sort((a, b) => a.localeCompare(b));
 }
 
 function toWebImageUrl(slug, filename) {
@@ -57,7 +55,7 @@ async function main() {
   for (const slug of slugs) {
     const folder = path.join(SHOP_DIR, slug);
     const meta = await readJsonIfExists(path.join(folder, "meta.json"));
-    const cover = await pickFirstImage(folder);
+    const images = await listImages(folder);
 
     const name = meta?.name || meta?.title || slug;
     const description = meta?.description || meta?.desc || "";
@@ -65,12 +63,15 @@ async function main() {
     const variants = Array.isArray(meta?.variants) ? meta.variants : ["Standard"];
     const unit = meta?.unit || "Stück";
 
+    const imageUrls = images.map(f => toWebImageUrl(slug, f));
+
     products.push({
       id: slug,
       page: "webshop",
       name,
       description,
-      image: cover ? toWebImageUrl(slug, cover) : "",
+      image: imageUrls[0] || "",
+      images: imageUrls,
       status,
       variants,
       unit,

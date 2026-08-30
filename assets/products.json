@@ -6,40 +6,9 @@
       "name": "Bademantel",
       "description": "Flauschiger Bademantel mit Kreuzmotiv",
       "image": "/assets/shop/bademantel/bademantel.png",
-      "status": "verfügbar",
-      "variants": [
-        "S",
-        "M",
-        "L",
-        "XL"
+      "images": [
+        "/assets/shop/bademantel/bademantel.png"
       ],
-      "unit": "Stück",
-      "pickupRequired": false,
-      "decorateJuice": false
-    },
-    {
-      "id": "engl",
-      "page": "webshop",
-      "name": "T-Shirt Kreuzkinger",
-      "description": "Für die Englischsprachigen unter uns.",
-      "image": "/assets/shop/engl/engl.png",
-      "status": "verfügbar",
-      "variants": [
-        "S",
-        "M",
-        "L",
-        "XL"
-      ],
-      "unit": "Stück",
-      "pickupRequired": false,
-      "decorateJuice": false
-    },
-    {
-      "id": "mythologie",
-      "page": "webshop",
-      "name": "T-Shirt Bibliothek",
-      "description": "Nur etwas für Realisten. Kleine Auflage.",
-      "image": "/assets/shop/mythologie/mythologie.png",
       "status": "verfügbar",
       "variants": [
         "S",
@@ -56,7 +25,11 @@
       "page": "webshop",
       "name": "T-Shirt im Doppelpack",
       "description": "Für den rebellischen Austausch. Kleine Auflage.",
-      "image": "/assets/shop/partner/partner.png",
+      "image": "/assets/shop/partner/engl.png",
+      "images": [
+        "/assets/shop/partner/engl.png",
+        "/assets/shop/partner/partner.png"
+      ],
       "status": "verfügbar",
       "variants": [
         "S",
@@ -73,7 +46,16 @@
       "page": "webshop",
       "name": "Sommersocken",
       "description": "für Untentschiedene und Schizophrene.",
-      "image": "/assets/shop/socken/socken.png",
+      "image": "/assets/shop/socken/odin black.png",
+      "images": [
+        "/assets/shop/socken/odin black.png",
+        "/assets/shop/socken/odin black2.png",
+        "/assets/shop/socken/odin wird euch holen blau.png",
+        "/assets/shop/socken/odin wird euch holen blau2.png",
+        "/assets/shop/socken/socken.png",
+        "/assets/shop/socken/two guys cyan.png",
+        "/assets/shop/socken/two guys white.png"
+      ],
       "status": "verfügbar",
       "variants": [
         "S",
