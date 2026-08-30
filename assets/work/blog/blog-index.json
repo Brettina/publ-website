@@ -1,66 +1,6 @@
 {
-  "generatedAt": "2026-08-30T14:41:42.792Z",
+  "generatedAt": "2026-08-30T14:54:53.320Z",
   "items": [
-    {
-      "slug": "termin-2026-10-31-berliner-buchmesse",
-      "title": "Berliner Buchmesse",
-      "date": "2026-10-31",
-      "excerpt": "Gern lege ich auch Ihr Buch mit aus.",
-      "tags": [
-        "publishing",
-        "fair"
-      ],
-      "cover": "",
-      "contentUrl": "/assets/work/blog/termin-2026-10-31-berliner-buchmesse/article.html",
-      "sourceUrl": "",
-      "sourceCategory": "calendar",
-      "calendarDate": "2026-10-31"
-    },
-    {
-      "slug": "termin-2026-10-04-esoteriktag-gelsenkirchen",
-      "title": "Esoteriktag Gelsenkirchen",
-      "date": "2026-10-04",
-      "excerpt": "Gern lege ich auch Ihr Buch mit aus.",
-      "tags": [
-        "publishing",
-        "fair"
-      ],
-      "cover": "",
-      "contentUrl": "/assets/work/blog/termin-2026-10-04-esoteriktag-gelsenkirchen/article.html",
-      "sourceUrl": "",
-      "sourceCategory": "calendar",
-      "calendarDate": "2026-10-04"
-    },
-    {
-      "slug": "termin-2026-09-26-werdauer-lebensfreude-messe",
-      "title": "Werdauer Lebensfreude Messe",
-      "date": "2026-09-26",
-      "excerpt": "Gern lege ich auch Ihr Buch mit aus.",
-      "tags": [
-        "publishing",
-        "fair"
-      ],
-      "cover": "",
-      "contentUrl": "/assets/work/blog/termin-2026-09-26-werdauer-lebensfreude-messe/article.html",
-      "sourceUrl": "",
-      "sourceCategory": "calendar",
-      "calendarDate": "2026-09-26"
-    },
-    {
-      "slug": "termin-2026-09-05-vorarlberger-buchmesse-in-osterreich",
-      "title": "Vorarlberger Buchmesse in Österreich",
-      "date": "2026-09-05",
-      "excerpt": "Frisch mit dabei: der 'Zweifler' von Dr. Peter S. Reznik, sowie Angela Jungs 'Lichtstrahl'.",
-      "tags": [
-        "publishing",
-        "fair"
-      ],
-      "cover": "",
-      "contentUrl": "/assets/work/blog/termin-2026-09-05-vorarlberger-buchmesse-in-osterreich/article.html",
-      "sourceUrl": "",
-      "sourceCategory": "calendar",
-      "calendarDate": "2026-09-05"
-    },
     {
       "slug": "reznik-debater",
       "title": "Den Zweifler in uns zähmen - von Peter S. Reznik",

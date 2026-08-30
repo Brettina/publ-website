@@ -8,7 +8,7 @@
   <meta name="description" content="Buchshop. Anfrage per E-Mail." />
   <link rel="stylesheet" href="/assets/styles.css" />
   <link rel="icon" href="/img/webicon.png" type="image/png" />
-  <link rel="apple-touch-icon" href="/img/header_library.png" />
+  <link rel="apple-touch-icon" href="/img/webicon.png" />
   <meta name="color-scheme" content="light dark" />
 
   <style>
@@ -1497,7 +1497,7 @@ return {
 }
 
 async function loadMerchProducts() {
-  const res = await fetch("/assets/products.json", { cache: "no-store" });
+  const res = await fetch("/assets/shop/products.json", { cache: "no-store" });
   if (!res.ok) throw new Error("products.json missing");
   const data = await res.json();
 

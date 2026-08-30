@@ -54,7 +54,7 @@ sollte, und wunderst dich, warum sich nichts synct).
 
 | Datei | Herkunft | Generator |
 |---|---|---|
-| `assets/products.json` | **generiert** | `assets/tools/generate-products.mjs` (liest `assets/shop/<slug>/meta.json` + alle Bilder im Ordner) |
+| `assets/shop/products.json` | **von Hand gepflegt** | keiner, absichtlich (siehe "Shop-Daten vereinfacht" unten) |
 | `assets/work-index.json` | **generiert** | `convert_articles.py` (scannt `assets/work/<category>/<slug>/`, außer `blog/` — siehe unten) |
 | `assets/work/blog/blog-index.json` + jeder `assets/work/blog/<slug>/` | **generiert, aber write-once pro Slug** | `assets/tools/generate-blog-feed.mjs` — siehe eigener Abschnitt |
 | `assets/calendar/calendar-index.json` | **von Hand gepflegt** | keiner, absichtlich. Das ist die einzige Kalenderdatei; der Kalender auf der Startseite, die "Neues"-Galerie und der Blog-Feed-Generator lesen genau diesen Pfad. |
@@ -80,17 +80,18 @@ waren, wurden nach `assets/work/articles/<slug>/` migriert (siehe unten).
 
 ### Webshop: Merch in den Buchshop integriert statt neue "Hipster"-Seite gebaut
 
-`assets/products.json` (Bademantel, Socken, T-Shirt) wurde von **keiner**
-existierenden Seite angezeigt. Der Code dafür (`pages.json` + `site.js`
-`renderStore()`) ist auf eine "hipster"-Seite ausgelegt
-(`productsFromPages: ["hipster"]`), aber `/webpages/hipster/` existiert nicht
-als echte Route. Gleichzeitig hatten die Produkte in `products.json` das Feld
-`"page": "webshop"` — ein Mismatch, der dafür sorgte, dass selbst wenn man
-`renderStore` irgendwo aufrufen würde, nichts passt.
+`assets/products.json` (Bademantel, Socken, T-Shirt — Pfad seither geändert,
+siehe "Shop-Daten vereinfacht" unten) wurde von **keiner** existierenden
+Seite angezeigt. Der Code dafür (`pages.json` + `site.js` `renderStore()`)
+ist auf eine "hipster"-Seite ausgelegt (`productsFromPages: ["hipster"]`),
+aber `/webpages/hipster/` existiert nicht als echte Route. Gleichzeitig
+hatten die Produkte das Feld `"page": "webshop"` — ein Mismatch, der dafür
+sorgte, dass selbst wenn man `renderStore` irgendwo aufrufen würde, nichts
+passt.
 
 Entscheidung (mit dem Nutzer abgestimmt): Merch-Produkte in die bestehende
 Buchshop-Seite (`webpages/webshop/index.html`) integrieren, statt die fehlende
-Hipster-Seite zu bauen. Der Buchshop lädt jetzt zusätzlich `products.json`
+Hipster-Seite zu bauen. Der Buchshop lädt zusätzlich die Shop-Produkte
 (`loadMerchProducts()`) und mischt Merch und Bücher in dieselbe
 durchsuchbare/sortierbare Liste.
 
@@ -101,31 +102,49 @@ Code** — keine Seite im Repo hat `data-page="hipster"` (oder überhaupt ein
 
 ### Mehrere Bilder pro Produkt: Slider statt nur erstes Bild
 
-`generate-products.mjs` wählte früher nur das alphabetisch erste Bild pro
-Ordner (`pickFirstImage`). Das war der Hauptgrund, warum z. B. bei den Socken
-nur ein Foto sichtbar war, obwohl 7 Fotos im Ordner lagen. Jetzt sammelt
-`listImages()` alle Bilder und schreibt sie sortiert in ein `images[]`-Array
-(zusätzlich zu `image` = erstes Bild, für Rückwärtskompatibilität mit
-`site.js`, das nur `p.image` kennt).
-
 Für die Anzeige gibt es eine kleine handgeschriebene Galerie-Komponente
 (`buildGallery()` in `webpages/webshop/index.html`) — Pfeile, Punkte,
 Touch-Swipe. Bewusst **keine externe Library**, um den Rest der Seite (kein
-Build-Step, keine npm-Abhängigkeiten im Browser) konsistent zu halten.
+Build-Step, keine npm-Abhängigkeiten im Browser) konsistent zu halten. Sie
+rendert aus dem `images[]`-Array jedes Produkts (Fallback: `image`, falls
+`images` fehlt).
 
-### Preise: `meta.json` → `generate-products.mjs` → `products.json` → Webshop
+### Shop-Daten vereinfacht: ein handgepflegtes `assets/shop/products.json` statt Generator + Meta-Dateien pro Produkt
 
-Preise werden in `assets/shop/<slug>/meta.json` als `"price": <Zahl>` gepflegt,
-vom Generator nach `products.json` übernommen und im Webshop automatisch
-angezeigt — die bestehende Preis-Rendering-Logik (für Bücher mit
-Print/E-Book-Preisen gebaut) funktioniert für einfache Merch-Preise ohne
-Änderung, weil `getUnitPriceForVariant()` ohnehin auf `p.price` zurückfällt,
-wenn keine Variante "e-book"/"digital" heißt.
+Ursprünglich (frühere Version dieser Session): jedes Produkt hatte einen
+eigenen Ordner `assets/shop/<slug>/meta.json`, und
+`assets/tools/generate-products.mjs` scannte alle Produktordner, sammelte
+Bilder automatisch (`listImages()`) und schrieb das Ergebnis nach
+`assets/products.json` (Site-Root), welches Webshop und `site.js` lasen.
+
+Der Nutzer hat das vereinfacht: die einzelnen `meta.json`-Dateien sind
+gelöscht, stattdessen gibt es genau eine Datei,
+**`assets/shop/products.json`**, von Hand gepflegt, bereits in der finalen
+Form (inklusive `images[]`-Array und `price`, direkt vom Nutzer eingetragen
+statt automatisch erkannt). `generate-products.mjs` wurde gelöscht — es
+hatte keine Aufgabe mehr (kein Meta-Ordner mehr zum Scannen, keine
+Bild-Auto-Erkennung mehr nötig, weil der Nutzer `images[]` jetzt selbst
+pflegt).
+
+Angepasst wurden die beiden Stellen, die die alte Root-Datei fetchten:
+`webpages/webshop/index.html` (`loadMerchProducts()`) und `assets/site.js`
+(`getProductsContent()`, für den archivierten `renderStore()`-Pfad) — beide
+zeigen jetzt auf `/assets/shop/products.json`. Die Datenform selbst
+(`id`, `page`, `name`, `description`, `image`, `images[]`, `status`,
+`variants`, `unit`, `price`, `pickupRequired`, `decorateJuice`, plus der
+`order`-Block mit Abholorten) ist unverändert — nur der Ort und die
+Pflege-Methode haben sich geändert.
+
+**Falle für später:** Bilder werden jetzt NICHT mehr automatisch aus dem
+Ordner erkannt. Ein neues Foto in `assets/shop/<slug>/` taucht erst im Shop
+auf, wenn sein Pfad manuell ins `images[]`-Array in
+`assets/shop/products.json` eingetragen wird.
 
 ### Kalender-Fotos: Datums-Ordner + manuelles `photos`-Array statt Auto-Scan
 
-Für Event-Fotos wurde **kein** neuer Generator gebaut, der Ordner scannt
-(wie es `generate-products.mjs` für Shop-Bilder tut). Stattdessen: Ordner
+Für Event-Fotos wurde **kein** Generator gebaut, der Ordner scannt (auch
+`assets/shop/products.json` funktioniert inzwischen so — Bilder werden von
+Hand eingetragen, nicht automatisch erkannt). Stattdessen: Ordner
 `img/kalender/<datum>/` angelegt und ein `"photos": []`-Array pro Event in
 `assets/calendar/calendar-index.json`. Sobald Fotos in einen Datums-Ordner
 gelegt werden, müssen ihre Pfade **von Hand** ins `photos`-Array der
@@ -216,18 +235,22 @@ Wichtige Designentscheidungen dabei:
   Eintrag ihn von Position 0 verdrängt — es gibt nichts, was das separat
   tracken müsste.
 - **Sortiert wird nach "hinzugefügt", nicht nach "zuletzt bearbeitet".**
-  Erster Versuch: Work-Items sortierten nach `updated`, Kalender-Events
-  (zukünftige) nach dem Datum des Generator-Laufs statt nach ihrem echten
-  Datum — mit der Begründung, ein Event im Oktober solle nicht vor News vom
-  August landen, wenn man im August generiert. Der Nutzer hat das
-  korrigiert: "neueste zuerst" heißt das tatsächliche Hinzufüge-/Event-Datum,
-  nicht ein Bearbeitungs-Zeitstempel. Jetzt: Work-Items sortieren nach
-  `published` (Erstveröffentlichung/Hinzufügen), nicht nach `updated` (sonst
-  würde das Korrigieren eines Tippfehlers in einem alten Post ihn an die
-  Spitze des Feeds befördern). Kalender-Events sortieren strikt nach ihrem
-  echten Datum, ohne Sonderbehandlung für die Zukunft — ein Event im
-  Oktober ist zurecht "neuer" als ein Post vom August, sobald es das
-  nächste anstehende Ereignis ist.
+  Erster Versuch: Work-Items sortierten nach `updated`. Der Nutzer hat das
+  korrigiert: "neueste zuerst" heißt das tatsächliche Hinzufüge-Datum, nicht
+  ein Bearbeitungs-Zeitstempel. Jetzt sortieren Work-Items nach `published`
+  (Erstveröffentlichung/Hinzufügen), nicht nach `updated` — sonst würde das
+  Korrigieren eines Tippfehlers in einem alten Post ihn an die Spitze des
+  Feeds befördern.
+- **Nur vergangene Kalender-Events bekommen einen Blog-Post.** Erster
+  Versuch: auch zukünftige Events wurden als "Ankündigung" aufgenommen
+  (Zukunftsform, sortiert nach Generator-Lauf-Datum). Der Nutzer hat das
+  korrigiert: ein Event, das noch nicht stattgefunden hat, gibt es nichts zu
+  berichten und nichts zu recherchieren — es gehört nicht in den Blog.
+  `buildFromCalendar()` überspringt jetzt jedes Event mit `date > heute`
+  komplett (`if (String(ev.date) > todayStr) continue;`). Bereits
+  generierte Posts für inzwischen wieder in der Zukunft liegende Events
+  werden beim nächsten Lauf automatisch von `clearStalePosts` entfernt, weil
+  sie nicht mehr in der Quellmenge auftauchen.
 - **`assets/work/blog/` wird von `convert_articles.py` explizit
   ausgeschlossen.** Ohne diesen Ausschluss (Bug, der in dieser Session
   live auftrat und gefixt wurde) würde `convert_articles.py` beim nächsten
@@ -552,5 +575,7 @@ veralteten `work-index.json`:
 ```
 python convert_articles.py                     # assets/work-index.json aus assets/work/<kategorie>/* neu bauen
 node assets/tools/generate-blog-feed.mjs        # assets/work/blog/* + blog-index.json neu bauen (write-once pro Slug)
-node assets/tools/generate-products.mjs         # products.json aus assets/shop/* neu bauen
 ```
+
+Shop-Produkte (`assets/shop/products.json`) sind kein Generator-Ziel mehr —
+die Datei direkt bearbeiten (siehe "Shop-Daten vereinfacht").

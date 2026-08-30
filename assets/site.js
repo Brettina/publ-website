@@ -8,7 +8,7 @@ let PRODUCTS_CACHE = null;
 
 async function getProductsContent() {
   if (PRODUCTS_CACHE) return PRODUCTS_CACHE;
-  const res = await fetch("/assets/products.json", { cache: "no-cache" });
+  const res = await fetch("/assets/shop/products.json", { cache: "no-cache" });
   if (!res.ok) throw new Error("Could not load products.json");
   PRODUCTS_CACHE = await res.json();
   return PRODUCTS_CACHE;

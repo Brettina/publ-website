@@ -4,7 +4,7 @@
       "id": "bademantel",
       "page": "webshop",
       "name": "Bademantel",
-      "description": "Flauschiger Bademantel mit Kreuzmotiv",
+      "description": "Flauschiger Bademantel mit verschiedenen Motiven",
       "image": "/assets/shop/bademantel/bademantel.png",
       "images": [
         "/assets/shop/bademantel/bademantel.png"
@@ -17,7 +17,7 @@
         "XL"
       ],
       "unit": "Stück",
-      "price": 10,
+      "price": 15,
       "pickupRequired": false,
       "decorateJuice": false
     },
@@ -39,14 +39,14 @@
         "XL"
       ],
       "unit": "Stück",
-      "price": 10,
+      "price": 25,
       "pickupRequired": false,
       "decorateJuice": false
     },
     {
       "id": "socken",
       "page": "webshop",
-      "name": "Sommersocken",
+      "name": "kurze und lange Socken",
       "description": "für Untentschiedene und Schizophrene.",
       "image": "/assets/shop/socken/odin black.png",
       "images": [

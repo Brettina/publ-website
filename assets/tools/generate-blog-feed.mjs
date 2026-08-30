@@ -195,18 +195,17 @@ async function buildFromCalendar(todayStr) {
   for (const ev of events) {
     if (!ev || !ev.date) continue;
 
+    // Only events that have actually happened get a blog post — there's
+    // nothing to report on (and nothing to research) for something that
+    // hasn't taken place yet.
+    if (String(ev.date) > todayStr) continue;
+
     const slug = `termin-${ev.date}-${slugify(ev.title)}`;
-    const isPast = String(ev.date) <= todayStr;
     const title = ev.title || "Termin";
 
-    const intro = isPast
-      ? `Wir waren am ${ev.date}${ev.where ? ` in ${ev.where}` : ""} bei „${title}“.`
-      : `Wir sind am ${ev.date}${ev.where ? ` in ${ev.where}` : ""} bei „${title}“ dabei.`;
+    const intro = `Wir waren am ${ev.date}${ev.where ? ` in ${ev.where}` : ""} bei „${title}“.`;
 
-    // Sort strictly by the real event date — "newest" means the event
-    // furthest along the actual calendar timeline, not "when this text was
-    // generated". A September fair legitimately outranks an August post
-    // once it's the next thing coming up.
+    // Sort strictly by the real event date.
     const sortDate = ev.date;
     const photos = Array.isArray(ev.photos) ? ev.photos.filter(Boolean) : [];
 

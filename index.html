@@ -331,16 +331,56 @@
   <div id="header-slot"></div>
 
   <main id="main" class="container">
-    <!-- NEW TOP IMAGE + HEADING -->
+    <!-- TOP HEADING -->
 <section class="saftladen-top" aria-label="Bettina Lohr, M. Sc.">
-  <img
-    class="saftladen-image"
-    src="/img/header_library.png" alt="Bettina Lohr M.Sc."
-    loading="eager"
-    decoding="async"
-  />
   <h1 class="saftladen-title">publish-Lohr</h1>
 </section>
+
+    <!-- BLOG-GALERIE (Bilder + Pfeile + Popup) -->
+<section class="section" aria-labelledby="blog-gallery-title">
+  <div class="section-head">
+    <h2 id="blog-gallery-title" style="margin:0;">Neues</h2>
+    <p class="fineprint" style="margin:0;">Ein paar visuelle Eindrücke aus dem Blog. Klick auf das mittlere Bild → Artikel.</p>
+  </div>
+
+  <div class="blog-gallery" data-blog-gallery>
+    <div class="blog-stage" aria-label="Galerie: Blogbilder">
+      <figure class="card blog-card is-side" data-slot="left" tabindex="0" role="button" aria-label="Vorheriges Blogbild anzeigen">
+        <img src="/img/concept_leistungen.png" alt="Blogbild" loading="lazy" />
+      </figure>
+
+      <figure class="card blog-card is-center" data-slot="center" tabindex="0" role="button" aria-label="Blogartikel öffnen">
+        <img src="/img/concept.png" alt="Blogbild" loading="lazy" />
+        <figcaption class="blog-caption">
+          <strong data-blog-title>Blog</strong>
+          <span class="fineprint" data-blog-date></span>
+          <span class="fineprint" data-blog-excerpt></span>
+        </figcaption>
+      </figure>
+
+      <figure class="card blog-card is-side" data-slot="right" tabindex="0" role="button" aria-label="Nächstes Blogbild anzeigen">
+        <img src="/img/mythologie.png" alt="Blogbild" loading="lazy" />
+      </figure>
+    </div>
+
+    <div class="blog-controls" aria-label="Galerie-Steuerung">
+      <button class="blog-arrow" type="button" data-blog-prev aria-label="Vorheriges Blogbild">←</button>
+
+      <div class="blog-dots" aria-hidden="true">
+        <span class="blog-dot is-active" data-dot="0"></span>
+        <span class="blog-dot" data-dot="1"></span>
+        <span class="blog-dot" data-dot="2"></span>
+      </div>
+
+      <button class="blog-arrow" type="button" data-blog-next aria-label="Nächstes Blogbild">→</button>
+    </div>
+
+    <p class="fineprint" style="margin-top:10px;">
+      Desktop: Pfeile oder Tastatur (←/→). Mobil: Wischen.
+    </p>
+  </div>
+</section>
+
 <section class="card" style="margin:12px 0 0; padding:14px;">
   <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
     <div>
@@ -417,51 +457,6 @@
       </div>
     </section>
 
-    <!-- BLOG-GALERIE (nur Bilder, keine Links) -->
-<!-- BLOG-GALERIE (Bilder + Pfeile + Popup) -->
-<section class="section" aria-labelledby="blog-gallery-title">
-  <div class="section-head">
-    <h2 id="blog-gallery-title" style="margin:0;">Neues</h2>
-    <p class="fineprint" style="margin:0;">Ein paar visuelle Eindrücke aus dem Blog. Klick auf das mittlere Bild → Artikel.</p>
-  </div>
-
-  <div class="blog-gallery" data-blog-gallery>
-    <div class="blog-stage" aria-label="Galerie: Blogbilder">
-      <figure class="card blog-card is-side" data-slot="left" tabindex="0" role="button" aria-label="Vorheriges Blogbild anzeigen">
-        <img src="/img/concept_leistungen.png" alt="Blogbild" loading="lazy" />
-      </figure>
-
-      <figure class="card blog-card is-center" data-slot="center" tabindex="0" role="button" aria-label="Blogartikel öffnen">
-        <img src="/img/concept.png" alt="Blogbild" loading="lazy" />
-        <figcaption class="blog-caption">
-          <strong data-blog-title>Blog</strong>
-          <span class="fineprint" data-blog-date></span>
-          <span class="fineprint" data-blog-excerpt></span>
-        </figcaption>
-      </figure>
-
-      <figure class="card blog-card is-side" data-slot="right" tabindex="0" role="button" aria-label="Nächstes Blogbild anzeigen">
-        <img src="/img/mythologie.png" alt="Blogbild" loading="lazy" />
-      </figure>
-    </div>
-
-    <div class="blog-controls" aria-label="Galerie-Steuerung">
-      <button class="blog-arrow" type="button" data-blog-prev aria-label="Vorheriges Blogbild">←</button>
-
-      <div class="blog-dots" aria-hidden="true">
-        <span class="blog-dot is-active" data-dot="0"></span>
-        <span class="blog-dot" data-dot="1"></span>
-        <span class="blog-dot" data-dot="2"></span>
-      </div>
-
-      <button class="blog-arrow" type="button" data-blog-next aria-label="Nächstes Blogbild">→</button>
-    </div>
-
-    <p class="fineprint" style="margin-top:10px;">
-      Desktop: Pfeile oder Tastatur (←/→). Mobil: Wischen.
-    </p>
-  </div>
-</section>
 <dialog class="blog-modal" id="blog-modal" aria-label="Blogartikel">
   <div class="blog-modal-head">
     <div>
