@@ -899,9 +899,8 @@
       </p>
 
       <form class="form" data-contact-form>
-        <div class="field" style="position:absolute; left:-9999px;" aria-hidden="true">
-          <label for="company-home-contact">Company</label>
-          <input id="company-home-contact" name="company" autocomplete="off" tabindex="-1" />
+        <div style="display:none;" aria-hidden="true">
+          <input id="hp-home-contact" name="hp_feld" autocomplete="off" tabindex="-1" />
         </div>
 
         <div class="field">
@@ -1012,6 +1011,7 @@
   let events = [];
   let cursor = new Date();
   let workTitles = {};
+  let workItemsBySlug = {};
 
   try {
     const res = await fetch("/assets/calendar/calendar-index.json", { cache: "no-store" });
@@ -1029,7 +1029,10 @@
     if (wRes.ok) {
       const wData = await wRes.json();
       (wData.items || []).forEach(x => {
-        if (x && x.slug) workTitles[x.slug] = x.title || x.slug;
+        if (x && x.slug) {
+          workTitles[x.slug] = x.title || x.slug;
+          workItemsBySlug[x.slug] = x;
+        }
       });
     }
   } catch {}
@@ -1055,9 +1058,10 @@
     const html = list.map(ev => {
       const projects = [].concat(ev.projects || []).filter(Boolean);
       const projectLinks = projects.map(id => {
-        const href = `/assets/work/${encodeURIComponent(id)}/article.html`;
+        const item = workItemsBySlug[id];
+        const href = item?.contentUrl || `/assets/work/${encodeURIComponent(id)}/article.html`;
         const label = workTitles[id] || id;
-        return `<a href="${href}">${escapeHtml(label)}</a>`;
+        return `<a href="${href}" data-work-modal="${escapeHtml(id)}">${escapeHtml(label)}</a>`;
       }).join(", ");
 
 
@@ -1091,6 +1095,18 @@
 
     panelBody.querySelectorAll("[data-lightbox-src]").forEach(img => {
       img.addEventListener("click", () => openLightbox(img.getAttribute("data-lightbox-src"), img.alt));
+    });
+
+    panelBody.querySelectorAll("[data-work-modal]").forEach(a => {
+      a.addEventListener("click", (e) => {
+        const item = workItemsBySlug[a.getAttribute("data-work-modal")];
+        if (item && typeof window.openWorkModal === "function") {
+          e.preventDefault();
+          window.openWorkModal(item);
+        }
+        // else: no modal available or item missing — fall through to the
+        // normal link navigation as a safe fallback.
+      });
     });
   }
 
@@ -1231,7 +1247,7 @@
       form.addEventListener("submit", (e) => {
         e.preventDefault();
 
-        const honey = form.querySelector('input[name="company"]');
+        const honey = form.querySelector('input[name="hp_feld"]');
         if (honey && honey.value.trim() !== "") return;
 
         if (!form.reportValidity()) {
@@ -1382,10 +1398,17 @@
 
 
 async function openCurrent() {
-  if (!dialog) return;
   if (!items.length) return;
+  await openWorkModal(items[index]);
+}
 
-  const cur = items[index];
+// Opens the same article modal the "Neues" gallery uses, for any work-index
+// item shape ({title, updated/published, excerpt, tags, alsoPublished,
+// images, contentUrl, metaUrl}). Exposed on window so other independent
+// <script> blocks (e.g. the calendar) can open real articles in-page instead
+// of navigating to the bare, unstyled article.html.
+async function openWorkModal(cur) {
+  if (!dialog) return;
   if (!cur) return;
 
   // reset UI fast
@@ -1515,7 +1538,7 @@ async function openCurrent() {
   }
 }
 
-
+window.openWorkModal = openWorkModal;
 
   function todayYmd() {
     const d = new Date();

@@ -1,4 +1,3 @@
-node .\assets\tools\generate-activities.mjs
-node .\assets\tools\generate-products.mjs
-node .\assets\tools\generate-indexes.mjs
 python convert_articles.py
+node .\assets\tools\generate-blog-feed.mjs
+node .\assets\tools\generate-products.mjs

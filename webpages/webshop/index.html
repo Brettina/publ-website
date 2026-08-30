@@ -526,9 +526,8 @@
       </div>
 
       <form id="checkout-modal-form" class="form">
-        <div class="field" style="position:absolute; left:-9999px;" aria-hidden="true">
-          <label for="company-webshop-modal">Company</label>
-          <input id="company-webshop-modal" name="company" autocomplete="off" tabindex="-1" />
+        <div style="display:none;" aria-hidden="true">
+          <input id="hp-webshop-checkout" name="hp_feld" autocomplete="off" tabindex="-1" />
         </div>
 
         <div class="field">
@@ -1311,7 +1310,7 @@ coShipping?.addEventListener("change", applyCheckoutShippingRules);
 checkoutForm?.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  const honey = checkoutForm.querySelector('input[name="company"]');
+  const honey = checkoutForm.querySelector('input[name="hp_feld"]');
   if (honey && honey.value.trim() !== "") return;
 
   if (!cart.length) return;
@@ -1358,8 +1357,9 @@ function encodeFilenameInUrl(url) {
   return url.replace(/[^/]+$/g, (fn) => encodeURIComponent(fn));
 }
 
-async function resolveWorkImage({ slug, meta, indexCover }) {
-  const base = `/assets/work/${encodeURIComponent(slug)}/`;
+async function resolveWorkImage({ slug, category, meta, indexCover }) {
+  const catSegment = category ? `${encodeURIComponent(category)}/` : "";
+  const base = `/assets/work/${catSegment}${encodeURIComponent(slug)}/`;
 
   // 1) explicit meta cover/image if you add it later
   const metaImg = (meta?.cover || meta?.image || "").toString().trim();
@@ -1404,12 +1404,15 @@ async function loadBooksFromWorkIndex() {
     .filter(x => x && (x.slug || x.id))
     .map(x => {
       const slug = String(x.slug || x.id || "").trim();
+      const category = String(x.category || "").trim();
+      const catSegment = category ? `${encodeURIComponent(category)}/` : "";
       return {
         id: slug,
         slug,
+        category,
         updated: String(x.updated || x.published || "").trim(),
         cover: x.cover || x.image || "",
-        metaUrl: x.metaUrl || `/assets/work/${encodeURIComponent(slug)}/meta.json`,
+        metaUrl: x.metaUrl || `/assets/work/${catSegment}${encodeURIComponent(slug)}/meta.json`,
         contentUrl: x.contentUrl || x.articleUrl || ""
       };
     })
@@ -1448,7 +1451,7 @@ const priceMin = Math.min(
 );
 const displayPrice = Number.isFinite(priceMin) ? priceMin : null;
 
-const image = await resolveWorkImage({ slug: w.slug, meta, indexCover: w.cover });
+const image = await resolveWorkImage({ slug: w.slug, category: w.category, meta, indexCover: w.cover });
 
 const title = String(meta.title || w.id);
 const excerpt = String(meta.excerpt || meta.description || "");

@@ -2,11 +2,149 @@
   "items": [
     {
       "type": "work",
+      "category": "articles",
+      "slug": "400000",
+      "title": "400.000",
+      "published": "2023-03-30",
+      "updated": "2023-03-30",
+      "eigenanteil": "",
+      "tags": [
+        "politics",
+        "article"
+      ],
+      "excerpt": "Ein kritischer Kommentar zum gescheiterten Berliner Klima-Volksentscheid und zur Reaktion der Grünen auf die Niederlage.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/articles/400000/article.html",
+      "metaUrl": "/assets/work/articles/400000/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "articles",
+      "slug": "ef-konferenz-2026",
+      "title": "Samstag Vormittag der EF-Konferenz",
+      "published": "2026-01-19",
+      "updated": "2026-01-19",
+      "eigenanteil": "",
+      "tags": [
+        "politics",
+        "libertarian",
+        "article"
+      ],
+      "excerpt": "Eindrücke vom Samstagvormittag der EF-Konferenz: Vorträge über Wahrheit, Medienmacht und die libertäre Bewegung.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/articles/ef-konferenz-2026/article.html",
+      "metaUrl": "/assets/work/articles/ef-konferenz-2026/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "articles",
+      "slug": "ef-konferenz-2026-nachtrag",
+      "title": "Wir gewinnen die Julius-Faucher-Medaille – und mischen die libertäre Landschaft auf",
+      "published": "2026-01-19",
+      "updated": "2026-01-19",
+      "eigenanteil": "",
+      "tags": [
+        "politics",
+        "libertarian",
+        "article"
+      ],
+      "excerpt": "Rückblick auf die EF-Konferenz und die Verleihung der Julius-Faucher-Medaille für den Boomer-Artikel.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/articles/ef-konferenz-2026-nachtrag/article.html",
+      "metaUrl": "/assets/work/articles/ef-konferenz-2026-nachtrag/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "articles",
+      "slug": "lebensraum",
+      "title": "Neuer Lebensraum im Osten",
+      "published": "2023-02-18",
+      "updated": "2023-02-18",
+      "eigenanteil": "",
+      "tags": [
+        "politics",
+        "article"
+      ],
+      "excerpt": "Ein kritischer Kommentar zur Haltung der Bundesregierung im Ukraine-Krieg und zu deutschen Waffenlieferungen.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/articles/lebensraum/article.html",
+      "metaUrl": "/assets/work/articles/lebensraum/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
+      "slug": "400000",
+      "title": "400.000",
+      "published": "2023-03-30",
+      "updated": "2023-03-30",
+      "eigenanteil": "",
+      "tags": [
+        "politics",
+        "article"
+      ],
+      "excerpt": "Ein kritischer Kommentar zum gescheiterten Berliner Klima-Volksentscheid und zur Reaktion der Grünen auf die Niederlage.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/400000/article.html",
+      "metaUrl": "/assets/work/blog/400000/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
+      "slug": "ef-konferenz-2026",
+      "title": "Samstag Vormittag der EF-Konferenz",
+      "published": "2026-01-19",
+      "updated": "2026-01-19",
+      "eigenanteil": "",
+      "tags": [
+        "politics",
+        "libertarian",
+        "article"
+      ],
+      "excerpt": "Eindrücke vom Samstagvormittag der EF-Konferenz: Vorträge über Wahrheit, Medienmacht und die libertäre Bewegung.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/ef-konferenz-2026/article.html",
+      "metaUrl": "/assets/work/blog/ef-konferenz-2026/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
+      "slug": "ef-konferenz-2026-nachtrag",
+      "title": "Wir gewinnen die Julius-Faucher-Medaille – und mischen die libertäre Landschaft auf",
+      "published": "2026-01-19",
+      "updated": "2026-01-19",
+      "eigenanteil": "",
+      "tags": [
+        "politics",
+        "libertarian",
+        "article"
+      ],
+      "excerpt": "Rückblick auf die EF-Konferenz und die Verleihung der Julius-Faucher-Medaille für den Boomer-Artikel.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/ef-konferenz-2026-nachtrag/article.html",
+      "metaUrl": "/assets/work/blog/ef-konferenz-2026-nachtrag/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
       "slug": "julius-faucher-medaille",
       "title": "Artikel im EF-Magazin: Schuld und Unschuld der Boomer - von mir",
       "published": "2025-12-18",
       "updated": "2026-01-19",
-      "eigenanteil": "Libertärer Standpunkt zur Unschuld der Boomer an der Wirtschaftskrise",
+      "eigenanteil": "",
       "tags": [
         "libertarian",
         "politics",
@@ -15,16 +153,233 @@
       ],
       "excerpt": "Mein libertärer Standpunkt hat überzeugt.",
       "description": "",
-      "images": [
-        "/assets/work/julius-faucher-medaille/cover.jpg"
-      ],
-      "cover": "/assets/work/julius-faucher-medaille/cover.jpg",
-      "contentUrl": "/assets/work/julius-faucher-medaille/article.html",
-      "metaUrl": "/assets/work/julius-faucher-medaille/meta.json"
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/julius-faucher-medaille/article.html",
+      "metaUrl": "/assets/work/blog/julius-faucher-medaille/meta.json"
     },
     {
       "type": "work",
+      "category": "blog",
       "slug": "jung-lichstrahl",
+      "title": "Ein Lichtstrahl seiner Liebe - von Angela Jung",
+      "published": "2025-02-18",
+      "updated": "2025-02-18",
+      "eigenanteil": "",
+      "tags": [
+        "christian",
+        "biography",
+        "book",
+        "translation"
+      ],
+      "excerpt": "Angela Jung schreibt von ihren Erlebnissen mit Jesus.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/jung-lichstrahl/article.html",
+      "metaUrl": "/assets/work/blog/jung-lichstrahl/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
+      "slug": "lebensraum",
+      "title": "Neuer Lebensraum im Osten",
+      "published": "2023-02-18",
+      "updated": "2023-02-18",
+      "eigenanteil": "",
+      "tags": [
+        "politics",
+        "article"
+      ],
+      "excerpt": "Ein kritischer Kommentar zur Haltung der Bundesregierung im Ukraine-Krieg und zu deutschen Waffenlieferungen.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/lebensraum/article.html",
+      "metaUrl": "/assets/work/blog/lebensraum/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
+      "slug": "reznik-debater",
+      "title": "Den Zweifler in uns zähmen - von Peter S. Reznik",
+      "published": "2026-09-04",
+      "updated": "2026-08-30",
+      "eigenanteil": "",
+      "tags": [
+        "therapy",
+        "guide",
+        "publishing",
+        "translation"
+      ],
+      "excerpt": "Das Buch richtet sich an Jugendliche und junge Teenager.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/reznik-debater/article.html",
+      "metaUrl": "/assets/work/blog/reznik-debater/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
+      "slug": "reznik-relationships",
+      "title": "Morphologische Geheimnisse von erfolgreichen Beziehungen - von Peter S. Reznik",
+      "published": "2026-02-14",
+      "updated": "2026-01-19",
+      "eigenanteil": "",
+      "tags": [
+        "relationship",
+        "facereading",
+        "guide",
+        "publishing",
+        "book",
+        "translation"
+      ],
+      "excerpt": "Das Buch richtet sich an alle phenomenologisch Interessierten.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/reznik-relationships/article.html",
+      "metaUrl": "/assets/work/blog/reznik-relationships/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
+      "slug": "termin-2026-01-16-ef-konferenz",
+      "title": "EF-Konferenz",
+      "published": "2026-01-16",
+      "updated": "2026-01-16",
+      "eigenanteil": "",
+      "tags": [
+        "politics",
+        "activism",
+        "libertarian"
+      ],
+      "excerpt": "Preisverleihungsalarm!",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/termin-2026-01-16-ef-konferenz/article.html",
+      "metaUrl": "/assets/work/blog/termin-2026-01-16-ef-konferenz/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
+      "slug": "termin-2026-03-01-wohlfuhlmesse-gelsenkirchen",
+      "title": "Wohlfühlmesse Gelsenkirchen",
+      "published": "2026-03-01",
+      "updated": "2026-03-01",
+      "eigenanteil": "",
+      "tags": [
+        "publishing",
+        "fair"
+      ],
+      "excerpt": "Gern lege ich auch Ihr Buch mit aus.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/termin-2026-03-01-wohlfuhlmesse-gelsenkirchen/article.html",
+      "metaUrl": "/assets/work/blog/termin-2026-03-01-wohlfuhlmesse-gelsenkirchen/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
+      "slug": "termin-2026-03-20-leipziger-buchmesse",
+      "title": "Leipziger Buchmesse",
+      "published": "2026-03-20",
+      "updated": "2026-03-20",
+      "eigenanteil": "",
+      "tags": [
+        "publishing",
+        "fair"
+      ],
+      "excerpt": "Ich bin am Freitag da und freue mich euch kennenzulernen.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/termin-2026-03-20-leipziger-buchmesse/article.html",
+      "metaUrl": "/assets/work/blog/termin-2026-03-20-leipziger-buchmesse/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
+      "slug": "termin-2026-09-05-vorarlberger-buchmesse-in-osterreich",
+      "title": "Vorarlberger Buchmesse in Österreich",
+      "published": "2026-08-30",
+      "updated": "2026-08-30",
+      "eigenanteil": "",
+      "tags": [
+        "publishing",
+        "fair"
+      ],
+      "excerpt": "Frisch mit dabei: der 'Zweifler' von Dr. Peter S. Reznik, sowie Angela Jungs 'Lichstrahl'.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/termin-2026-09-05-vorarlberger-buchmesse-in-osterreich/article.html",
+      "metaUrl": "/assets/work/blog/termin-2026-09-05-vorarlberger-buchmesse-in-osterreich/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
+      "slug": "termin-2026-09-26-werdauer-lebensfreude-messe",
+      "title": "Werdauer Lebensfreude Messe",
+      "published": "2026-08-30",
+      "updated": "2026-08-30",
+      "eigenanteil": "",
+      "tags": [
+        "publishing",
+        "fair"
+      ],
+      "excerpt": "Gern lege ich auch Ihr Buch mit aus.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/termin-2026-09-26-werdauer-lebensfreude-messe/article.html",
+      "metaUrl": "/assets/work/blog/termin-2026-09-26-werdauer-lebensfreude-messe/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
+      "slug": "termin-2026-10-04-esoteriktag-gelsenkirchen",
+      "title": "Esoteriktag Gelsenkirchen",
+      "published": "2026-08-30",
+      "updated": "2026-08-30",
+      "eigenanteil": "",
+      "tags": [
+        "publishing",
+        "fair"
+      ],
+      "excerpt": "Gern lege ich auch Ihr Buch mit aus.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/termin-2026-10-04-esoteriktag-gelsenkirchen/article.html",
+      "metaUrl": "/assets/work/blog/termin-2026-10-04-esoteriktag-gelsenkirchen/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "blog",
+      "slug": "termin-2026-10-31-berliner-buchmesse",
+      "title": "Berliner Buchmesse",
+      "published": "2026-08-30",
+      "updated": "2026-08-30",
+      "eigenanteil": "",
+      "tags": [
+        "publishing",
+        "fair"
+      ],
+      "excerpt": "Gern lege ich auch Ihr Buch mit aus.",
+      "description": "",
+      "images": [],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/termin-2026-10-31-berliner-buchmesse/article.html",
+      "metaUrl": "/assets/work/blog/termin-2026-10-31-berliner-buchmesse/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "books",
+      "slug": "jung-lichtstrahl",
       "title": "Ein Lichtstrahl seiner Liebe - von Angela Jung",
       "published": "2025-02-18",
       "updated": "2025-02-18",
@@ -38,15 +393,16 @@
       "excerpt": "Angela Jung schreibt von ihren Erlebnissen mit Jesus.",
       "description": "",
       "images": [
-        "/assets/work/jung-lichstrahl/angela_flyer+.png",
-        "/assets/work/jung-lichstrahl/babou.jpg"
+        "/assets/work/books/jung-lichtstrahl/angela_flyer+.png",
+        "/assets/work/books/jung-lichtstrahl/babou.jpg"
       ],
-      "cover": "/assets/work/jung-lichstrahl/angela_flyer+.png",
-      "contentUrl": "/assets/work/jung-lichstrahl/article.html",
-      "metaUrl": "/assets/work/jung-lichstrahl/meta.json"
+      "cover": "/assets/work/books/jung-lichtstrahl/angela_flyer+.png",
+      "contentUrl": "/assets/work/books/jung-lichtstrahl/article.html",
+      "metaUrl": "/assets/work/books/jung-lichtstrahl/meta.json"
     },
     {
       "type": "work",
+      "category": "books",
       "slug": "reznik-debater",
       "title": "Den Zweifler in uns zähmen - von Peter S. Reznik",
       "published": "2026-09-04",
@@ -61,14 +417,15 @@
       "excerpt": "Das Buch richtet sich an Jugendliche und junge Teenager.",
       "description": "",
       "images": [
-        "/assets/work/reznik-debater/flyer.jpg"
+        "/assets/work/books/reznik-debater/flyer.jpg"
       ],
-      "cover": "/assets/work/reznik-debater/flyer.jpg",
-      "contentUrl": "/assets/work/reznik-debater/article.html",
-      "metaUrl": "/assets/work/reznik-debater/meta.json"
+      "cover": "/assets/work/books/reznik-debater/flyer.jpg",
+      "contentUrl": "/assets/work/books/reznik-debater/article.html",
+      "metaUrl": "/assets/work/books/reznik-debater/meta.json"
     },
     {
       "type": "work",
+      "category": "books",
       "slug": "reznik-relationships",
       "title": "Morphologische Geheimnisse von erfolgreichen Beziehungen - von Peter S. Reznik",
       "published": "2026-02-14",
@@ -85,11 +442,34 @@
       "excerpt": "Das Buch richtet sich an alle phenomenologisch Interessierten.",
       "description": "",
       "images": [
-        "/assets/work/reznik-relationships/flyer.png"
+        "/assets/work/books/reznik-relationships/flyer.png"
       ],
-      "cover": "/assets/work/reznik-relationships/flyer.png",
-      "contentUrl": "/assets/work/reznik-relationships/article.html",
-      "metaUrl": "/assets/work/reznik-relationships/meta.json"
+      "cover": "/assets/work/books/reznik-relationships/flyer.png",
+      "contentUrl": "/assets/work/books/reznik-relationships/article.html",
+      "metaUrl": "/assets/work/books/reznik-relationships/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "events",
+      "slug": "julius-faucher-medaille",
+      "title": "Artikel im EF-Magazin: Schuld und Unschuld der Boomer - von mir",
+      "published": "2025-12-18",
+      "updated": "2026-01-19",
+      "eigenanteil": "Libertärer Standpunkt zur Unschuld der Boomer an der Wirtschaftskrise",
+      "tags": [
+        "libertarian",
+        "politics",
+        "article",
+        "book"
+      ],
+      "excerpt": "Mein libertärer Standpunkt hat überzeugt.",
+      "description": "",
+      "images": [
+        "/assets/work/events/julius-faucher-medaille/cover.jpg"
+      ],
+      "cover": "/assets/work/events/julius-faucher-medaille/cover.jpg",
+      "contentUrl": "/assets/work/events/julius-faucher-medaille/article.html",
+      "metaUrl": "/assets/work/events/julius-faucher-medaille/meta.json"
     }
   ]
 }

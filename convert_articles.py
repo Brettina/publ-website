@@ -122,76 +122,86 @@ def main():
     converted = 0
     items = []
 
-    for folder in sorted(p for p in WORK_DIR.iterdir() if p.is_dir()):
-        slug = folder.name
-        meta_path = folder / "meta.json"
-        desc_path = folder / "beschreibung.txt"
-        out_html = folder / "article.html"
+    # assets/work/<category>/<slug>/ — e.g. articles/400000, books/reznik-debater
+    # "blog" is excluded: it holds generated output from generate-blog-feed.mjs,
+    # not a source category. Scanning it here would feed generated posts back
+    # in as if they were originals, duplicating them on every run.
+    category_dirs = sorted(p for p in WORK_DIR.iterdir() if p.is_dir() and p.name != "blog")
 
-        meta = read_json_if_exists(meta_path)
-        description = read_text_if_exists(desc_path)
-        images = list_images(folder)
+    for category_dir in category_dirs:
+        category = category_dir.name
 
-        # title precedence: meta.title > folder name
-        title = (meta.get("title") or slug.replace("-", " ")).strip()
+        for folder in sorted(p for p in category_dir.iterdir() if p.is_dir()):
+            slug = folder.name
+            meta_path = folder / "meta.json"
+            desc_path = folder / "beschreibung.txt"
+            out_html = folder / "article.html"
 
-        # build article.html from best source if available
-        src = pick_source_by_extension(folder)
-        if src:
-            if (not out_html.exists()) or (out_html.stat().st_mtime < src.stat().st_mtime):
-                log(f"→ Converting: {slug} ({src.name})")
-                try:
-                    ext = src.suffix.lower()
-                    if ext == ".docx":
-                        html_out = convert_docx(src, title)
-                    elif ext == ".pdf":
-                        html_out = convert_pdf(src, title)
-                    elif ext == ".odt":
-                        html_out = convert_odt_basic(src, title)
-                    elif ext == ".md":
-                        html_out = convert_md(src, title)
-                    else:
-                        html_out = HTML_WRAP.format(title=html.escape(title), body="")
-                    out_html.write_text(html_out, encoding="utf-8")
-                    converted += 1
-                    log(f"  ✓ wrote {out_html.relative_to(ROOT)}")
-                except Exception as e:
-                    log(f"  ✗ ERROR converting {slug}: {e}")
+            meta = read_json_if_exists(meta_path)
+            description = read_text_if_exists(desc_path)
+            images = list_images(folder)
+
+            # title precedence: meta.title > folder name
+            title = (meta.get("title") or slug.replace("-", " ")).strip()
+
+            # build article.html from best source if available
+            src = pick_source_by_extension(folder)
+            if src:
+                if (not out_html.exists()) or (out_html.stat().st_mtime < src.stat().st_mtime):
+                    log(f"→ Converting: {category}/{slug} ({src.name})")
+                    try:
+                        ext = src.suffix.lower()
+                        if ext == ".docx":
+                            html_out = convert_docx(src, title)
+                        elif ext == ".pdf":
+                            html_out = convert_pdf(src, title)
+                        elif ext == ".odt":
+                            html_out = convert_odt_basic(src, title)
+                        elif ext == ".md":
+                            html_out = convert_md(src, title)
+                        else:
+                            html_out = HTML_WRAP.format(title=html.escape(title), body="")
+                        out_html.write_text(html_out, encoding="utf-8")
+                        converted += 1
+                        log(f"  ✓ wrote {out_html.relative_to(ROOT)}")
+                    except Exception as e:
+                        log(f"  ✗ ERROR converting {category}/{slug}: {e}")
+                else:
+                    log(f"✓ {category}/{slug}: article.html is up to date (source: {src.name})")
             else:
-                log(f"✓ {slug}: article.html is up to date (source: {src.name})")
-        else:
-            # still allow entry in index even if no article source
-            if not out_html.exists():
-                out_html.write_text(
-                    HTML_WRAP.format(
-                        title=html.escape(title),
-                        body="<p class='fineprint'>(Kein Artikel-Quelldokument gefunden.)</p>"
-                    ),
-                    encoding="utf-8",
-                )
+                # still allow entry in index even if no article source
+                if not out_html.exists():
+                    out_html.write_text(
+                        HTML_WRAP.format(
+                            title=html.escape(title),
+                            body="<p class='fineprint'>(Kein Artikel-Quelldokument gefunden.)</p>"
+                        ),
+                        encoding="utf-8",
+                    )
 
-        # Build URLs as site-absolute
-        base_url = f"/assets/work/{slug}"
-        content_url = f"{base_url}/article.html"
+            # Build URLs as site-absolute
+            base_url = f"/assets/work/{category}/{slug}"
+            content_url = f"{base_url}/article.html"
 
-        # cover: meta.cover > first image > empty
-        cover = meta.get("cover") or (f"{base_url}/{images[0]}" if images else "")
+            # cover: meta.cover > first image > empty
+            cover = meta.get("cover") or (f"{base_url}/{images[0]}" if images else "")
 
-        items.append({
-            "type": "work",
-            "slug": slug,
-            "title": title,
-            "published": meta.get("published", ""),
-            "updated": meta.get("updated", ""),
-            "eigenanteil": meta.get("eigenanteil", ""),
-            "tags": meta.get("tags", []),
-            "excerpt": meta.get("excerpt", "") or description,
-            "description": description,
-            "images": [f"{base_url}/{name}" for name in images],
-            "cover": cover,
-            "contentUrl": content_url,
-            "metaUrl": f"{base_url}/meta.json" if meta_path.exists() else "",
-        })
+            items.append({
+                "type": "work",
+                "category": category,
+                "slug": slug,
+                "title": title,
+                "published": meta.get("published", ""),
+                "updated": meta.get("updated", ""),
+                "eigenanteil": meta.get("eigenanteil", ""),
+                "tags": meta.get("tags", []),
+                "excerpt": meta.get("excerpt", "") or description,
+                "description": description,
+                "images": [f"{base_url}/{name}" for name in images],
+                "cover": cover,
+                "contentUrl": content_url,
+                "metaUrl": f"{base_url}/meta.json" if meta_path.exists() else "",
+            })
 
     INDEX_OUT.write_text(
         json.dumps({"items": items}, ensure_ascii=False, indent=2),

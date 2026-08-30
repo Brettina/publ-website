@@ -808,9 +808,16 @@ async function initSite() {
 
   renderObfuscatedEmail();
 
-  const pageKey = document.body.getAttribute("data-page") || "home";
-  attachContactFormHandler(pageKey);
-  attachOrderFormHandlers(pageKey);
+  // Only pages driven by pages.json (data-page attribute) use the generic
+  // form handlers below. Pages with their own dedicated contact/order form
+  // script (e.g. index.html, webshop) must NOT get a second handler attached
+  // here — that caused two competing submit listeners fighting over the same
+  // mailto navigation. See DOCUMENTATION.md.
+  const pageKey = document.body.getAttribute("data-page");
+  if (pageKey) {
+    attachContactFormHandler(pageKey);
+    attachOrderFormHandlers(pageKey);
+  }
 }
 
 

@@ -150,7 +150,10 @@
           <label for="filter">Filter</label>
           <select id="filter">
             <option value="all">Alle</option>
-            <option value="blog">Nur Blogartikel</option>
+            <option value="books">Bücher</option>
+            <option value="articles">Artikel</option>
+            <option value="events">Presse</option>
+            <option value="calendar">Termine</option>
           </select>
         </div>
       </div>
@@ -159,10 +162,11 @@
     <section class="section" aria-labelledby="posts-title">
       <h2 id="posts-title">Artikel</h2>
       <div id="posts" class="blog-list" aria-live="polite"></div>
+      <div id="scroll-sentinel" aria-hidden="true" style="height:1px;"></div>
 
       <div id="empty" class="card empty" style="display:none;">
         <p class="fineprint" style="margin:0;">
-          Keine Beiträge gefunden. (Wenn alles leer ist: prüfen, ob <code>/assets/activities.json</code> existiert und Blog-Items enthält.)
+          Keine Beiträge gefunden. (Wenn alles leer ist: prüfen, ob <code>/assets/work/blog/blog-index.json</code> existiert und Einträge enthält — <code>node assets/tools/generate-blog-feed.mjs</code> ausführen.)
         </p>
       </div>
     </section>
@@ -173,11 +177,22 @@
   <script>
     const postsEl = document.getElementById("posts");
     const emptyEl = document.getElementById("empty");
+    const sentinelEl = document.getElementById("scroll-sentinel");
     const qEl = document.getElementById("q");
     const filterEl = document.getElementById("filter");
 
-    let items = []; // blog items from activities.json
-    let openSlug = ""; // allow one open at a time (optional). set to "" to allow multiple.
+    const BATCH_SIZE = 6;
+
+    let allItems = [];   // full feed from blog-index.json, already newest-first
+    let visibleCount = BATCH_SIZE;
+    const openSlugs = new Set(); // which cards are currently expanded
+
+    const CATEGORY_LABELS = {
+      books: "Buch",
+      articles: "Artikel",
+      events: "Presse",
+      calendar: "Termin"
+    };
 
     function norm(s) {
       return (s || "").toString().toLowerCase().trim();
@@ -198,474 +213,153 @@
     }
 
     async function safeFetchJson(url) {
-  try {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) return null;
+        return await res.json();
+      } catch {
+        return null;
+      }
+    }
 
+    async function safeFetchText(url) {
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) return null;
+        return await res.text();
+      } catch {
+        return null;
+      }
+    }
 
-function buildTags(meta) {
-  const tags = meta?.tags;
-  if (!tags) return [];
-  if (Array.isArray(tags)) return tags.filter(t => typeof t === "string" && t.trim());
-  return [];
-}
+    async function loadFullArticle(contentUrl) {
+      const raw = await safeFetchText(contentUrl);
+      if (!raw) return "<p class='fineprint'>Konnte den Artikel nicht laden.</p>";
+      const doc = new DOMParser().parseFromString(raw, "text/html");
+      return doc.body?.innerHTML?.trim() ? doc.body.innerHTML : raw;
+    }
 
-    function buildAlsoPublished(meta) {
-      // meta.alsoPublished can be:
-      // - array of { label, url }
-      // - object map { "Medium": "https://...", "LinkedIn": "https://..." }
-      // - array of strings (urls)
-      const ap = meta?.alsoPublished;
-      const out = [];
+    function getFiltered() {
+      const q = norm(qEl.value);
+      const cat = filterEl.value;
 
-      if (!ap) return out;
+      return allItems.filter(it => {
+        if (cat !== "all" && it.sourceCategory !== cat) return false;
+        if (!q) return true;
+        const hay = norm(`${it.title} ${it.excerpt} ${(it.tags || []).join(" ")}`);
+        return hay.includes(q);
+      });
+    }
 
-      if (Array.isArray(ap)) {
-        for (const entry of ap) {
-          if (!entry) continue;
-          if (typeof entry === "string") out.push({ label: entry, url: entry });
-          else if (typeof entry === "object" && entry.url) out.push({ label: entry.label || entry.url, url: entry.url });
+    function makePostCard(item) {
+      const post = document.createElement("article");
+      post.className = "card post";
+
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "post-toggle";
+
+      const left = document.createElement("div");
+      const title = document.createElement("h3");
+      title.className = "post-title";
+      title.textContent = item.title;
+      left.appendChild(title);
+
+      const meta = document.createElement("div");
+      meta.className = "post-meta";
+      meta.appendChild(Object.assign(document.createElement("span"), {
+        className: "fineprint", textContent: formatDate(item.date)
+      }));
+      const catLabel = CATEGORY_LABELS[item.sourceCategory] || "";
+      if (catLabel) {
+        const pill = document.createElement("span");
+        pill.className = "post-pill";
+        pill.textContent = catLabel;
+        meta.appendChild(pill);
+      }
+      left.appendChild(meta);
+
+      const excerpt = document.createElement("p");
+      excerpt.className = "fineprint";
+      excerpt.style.margin = "6px 0 0";
+      excerpt.textContent = item.excerpt || "";
+      left.appendChild(excerpt);
+
+      const chevron = document.createElement("span");
+      chevron.className = "post-chevron";
+      chevron.setAttribute("aria-hidden", "true");
+      chevron.textContent = "▾";
+
+      toggle.appendChild(left);
+      toggle.appendChild(chevron);
+
+      const body = document.createElement("div");
+      body.className = "post-body";
+      body.style.display = openSlugs.has(item.slug) ? "grid" : "none";
+
+      const content = document.createElement("div");
+      content.className = "post-content prose";
+      content.innerHTML = "<p class='fineprint'>Lade…</p>";
+      body.appendChild(content);
+
+      let loaded = false;
+      async function toggleOpen() {
+        const isOpen = openSlugs.has(item.slug);
+        if (isOpen) {
+          openSlugs.delete(item.slug);
+          body.style.display = "none";
+          post.removeAttribute("open");
+          return;
         }
-        return out;
-      }
 
-      if (typeof ap === "object") {
-        for (const [label, url] of Object.entries(ap)) {
-          if (typeof url === "string" && url.trim()) out.push({ label, url });
+        openSlugs.add(item.slug);
+        body.style.display = "grid";
+        post.setAttribute("open", "");
+
+        if (!loaded) {
+          loaded = true;
+          content.innerHTML = await loadFullArticle(item.contentUrl);
         }
       }
-      return out;
+
+      toggle.addEventListener("click", toggleOpen);
+      if (openSlugs.has(item.slug)) toggleOpen();
+
+      post.appendChild(toggle);
+      post.appendChild(body);
+      return post;
     }
 
+    function render() {
+      const filtered = getFiltered();
+      const visible = filtered.slice(0, visibleCount);
 
-
-  // ... keep your existing helpers above (norm, escapeHtml, formatDate, buildTags, buildAlsoPublished)
-
-  async function safeFetchText(url) {
-    try {
-      const res = await fetch(url, { cache: "no-cache" });
-      if (!res.ok) return null;
-      return await res.text();
-    } catch {
-      return null;
-    }
-  }
-
-  async function safeFetchJson(url) {
-    try {
-      const res = await fetch(url, { cache: "no-cache" });
-      if (!res.ok) return null;
-      return await res.json();
-    } catch {
-      return null;
-    }
-  }
-
-  async function loadMetaFor(slug) {
-    if (!slug) return null;
-    return await safeFetchJson(`/assets/blog/${encodeURIComponent(slug)}/meta.json`);
-  }
-
-  function mdToHtml(md) {
-    // small markdown subset (no external libs) — never throws
-    const esc = (s) => (s || "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;");
-
-    const lines = String(md || "").replace(/\r\n/g, "\n").split("\n");
-    let out = [];
-    let inList = false;
-
-    const flushList = () => { if (inList) { out.push("</ul>"); inList = false; } };
-
-    for (let raw of lines) {
-      const line = raw.trimEnd();
-      if (!line.trim()) { flushList(); continue; }
-
-      const h = line.match(/^(#{1,3})\s+(.*)$/);
-      if (h) {
-        flushList();
-        const level = h[1].length;
-        out.push(`<h${level}>${esc(h[2])}</h${level}>`);
-        continue;
-      }
-
-      const li = line.match(/^- (.*)$/);
-      if (li) {
-        if (!inList) { out.push("<ul>"); inList = true; }
-        out.push(`<li>${esc(li[1])}</li>`);
-        continue;
-      }
-
-      flushList();
-      out.push(`<p>${esc(line)}</p>`);
-    }
-
-    flushList();
-    return `<div class="prose">${out.join("\n")}</div>`;
-  }
-
-  // choose cover from meta/item, but if it’s just a filename, make it folder-relative
-
-async function firstExisting(slug, candidates) {
-  for (const name of candidates) {
-    const url = `/assets/blog/${encodeURIComponent(slug)}/${name}`;
-    // try HEAD first (some static hosts don’t allow HEAD → fallback to GET)
-    try {
-      const res = await fetch(url, { method: "HEAD", cache: "no-cache" });
-      if (res.ok) return url;
-    } catch {}
-    const txt = await safeFetchText(url); // GET fallback
-    if (txt !== null) return url;
-  }
-  return "";
-}
-
-// cover from meta/item OR fallback to common filenames inside the folder
-async function coverFor(meta, item) {
-  const slug = (item?.slug || "").toString().trim();
-
-  const raw = (item?.cover || item?.image || meta?.cover || meta?.image || meta?.thumbnail || "").toString().trim();
-  if (raw) {
-    if (raw.startsWith("http://") || raw.startsWith("https://") || raw.startsWith("/") || raw.startsWith("data:")) return raw;
-    if (slug) return `/assets/blog/${encodeURIComponent(slug)}/${raw}`;
-    return raw;
-  }
-
-  if (!slug) return "";
-
-  // folder fallback: try common names
-  return await firstExisting(slug, [
-    "cover.jpg", "cover.jpeg", "cover.png",
-    "titelbild.jpg", "titelbild.png",
-    "image.jpg", "image.png",
-    "thumbnail.jpg", "thumbnail.png",
-    "preview.jpg", "preview.png",
-    "hero.jpg", "hero.png",
-  ]);
-}
-
-  // Make relative URLs inside loaded HTML work:
-  // - <img src="foo.png">
-  // - <a href="file.pdf">
-  function absolutizeBlogHtml(html, slug) {
-    const base = `/assets/blog/${encodeURIComponent(slug)}/`;
-    let s = String(html || "");
-
-    // src=
-    s = s.replace(
-      /(\bsrc=["'])([^"']+)(["'])/gi,
-      (m, a, src, c) => {
-        const u = String(src || "").trim();
-        if (!u || u.startsWith("http://") || u.startsWith("https://") || u.startsWith("/") || u.startsWith("data:")) return m;
-        return `${a}${base}${u}${c}`;
-      }
-    );
-
-    // href=
-    s = s.replace(
-      /(\bhref=["'])([^"']+)(["'])/gi,
-      (m, a, href, c) => {
-        const u = String(href || "").trim();
-        if (!u || u.startsWith("http://") || u.startsWith("https://") || u.startsWith("/") || u.startsWith("#") || u.startsWith("mailto:")) return m;
-        return `${a}${base}${u}${c}`;
-      }
-    );
-
-    return s;
-  }
-
-async function loadPostContent(item, meta) {
-  const slug = (item?.slug || "").toString().trim();
-  if (!slug) return `<div class="prose"><p class="fineprint">Kein Slug vorhanden.</p></div>`;
-
-  // 1) Try HTML files (most robust)
-  const htmlCandidates = ["article.html", "index.html", "text.html", "post.html"];
-  for (const name of htmlCandidates) {
-    const html = await safeFetchText(`/assets/blog/${encodeURIComponent(slug)}/${name}`);
-    if (html) return absolutizeBlogHtml(html, slug);
-  }
-
-  // 2) Try markdown (text.md, README.md, or any common)
-  const mdCandidates = ["text.md", "article.md", "README.md", "post.md"];
-  for (const name of mdCandidates) {
-    const md = await safeFetchText(`/assets/blog/${encodeURIComponent(slug)}/${name}`);
-    if (md) return mdToHtml(md);
-  }
-
-  // 3) Last fallback: meta/excerpt
-  const fallback = (meta?.longDescription || meta?.summary || meta?.excerpt || item?.excerpt || "").toString().trim();
-  return fallback
-    ? `<div class="prose"><p>${escapeHtml(fallback)}</p></div>`
-    : `<div class="prose"><p class="fineprint">Kein Inhalt gefunden (keine HTML/MD Datei).</p></div>`;
-}
-
-
-
-
-
-    function makePostCard(item, meta, contentHtml, isOpen) {
-  const wrapper = document.createElement("article");
-  wrapper.className = "card post";
-  wrapper.dataset.slug = item?.slug || "";
-  if (isOpen) wrapper.setAttribute("open", "true");
-
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "post-toggle";
-  btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-
-  const left = document.createElement("div");
-  left.style.minWidth = "0";
-
-  const title = document.createElement("h3");
-  title.className = "post-title";
-  title.textContent = item?.title || item?.slug || "Artikel";
-
-  const metaRow = document.createElement("div");
-  metaRow.className = "post-meta";
-
-  const pill = document.createElement("span");
-  pill.className = "post-pill";
-  pill.textContent = "Blog";
-
-  const time = document.createElement("span");
-  time.className = "fineprint";
-
-  metaRow.appendChild(pill);
-  left.appendChild(title);
-  left.appendChild(metaRow);
-
-  const chev = document.createElement("span");
-  chev.className = "post-chevron";
-  chev.setAttribute("aria-hidden", "true");
-  chev.textContent = "▾";
-
-  btn.appendChild(left);
-  btn.appendChild(chev);
-
-  const body = document.createElement("div");
-  body.className = "post-body";
-  body.style.display = isOpen ? "grid" : "none";
-
-  const content = document.createElement("div");
-  content.className = "card post-content";
-  content.innerHTML = contentHtml;
-
-  const links = document.createElement("div");
-  links.className = "post-links";
-
-  body.appendChild(content);
-  body.appendChild(links);
-
-  function setHeaderFrom(metaLoaded) {
-    // date
-    const published = metaLoaded?.published ? formatDate(metaLoaded.published) : "";
-    const updated = item?.updated ? formatDate(item.updated) : "";
-
-    if (published && updated && published !== updated) time.textContent = `${published} · aktualisiert ${updated}`;
-    else if (published) time.textContent = published;
-    else if (updated) time.textContent = updated;
-    else time.textContent = "";
-
-    // rebuild meta row: pill + time + tags
-    metaRow.innerHTML = "";
-    metaRow.appendChild(pill);
-    if (time.textContent) metaRow.appendChild(time);
-
-    const tagsNow = buildTags(metaLoaded);
-    for (const t of tagsNow) {
-      const tagPill = document.createElement("span");
-      tagPill.className = "post-pill";
-      tagPill.textContent = `#${t}`;
-      metaRow.appendChild(tagPill);
-    }
-  }
-
-  async function setLinksFrom(metaLoaded) {
-  links.innerHTML = "";
-
-  const slug = (item?.slug || "").toString().trim();
-  if (slug) {
-    const url = `/assets/blog/${encodeURIComponent(slug)}/article.html`;
-    // only show if it exists
-    const exists = await safeFetchText(url);
-    if (exists !== null) {
-      const readLink = document.createElement("a");
-      readLink.href = url;
-      readLink.textContent = "Artikel-Datei öffnen";
-      readLink.target = "_blank";
-      readLink.rel = "noopener";
-      links.appendChild(readLink);
-    }
-  }
-
-  const also = buildAlsoPublished(metaLoaded);
-  if (also.length) {
-    const h = document.createElement("div");
-    h.innerHTML = `<strong>Auch veröffentlicht auf</strong>`;
-    links.appendChild(h);
-
-    const ul = document.createElement("ul");
-    for (const l of also) {
-      const li = document.createElement("li");
-      const a = document.createElement("a");
-      a.href = l.url;
-      a.target = "_blank";
-      a.rel = "noopener";
-      a.textContent = l.label;
-      li.appendChild(a);
-      ul.appendChild(li);
-    }
-    links.appendChild(ul);
-  }
-
-  links.style.display = links.children.length ? "grid" : "none";
-}
-
-
-  btn.addEventListener("click", async () => {
-    const slug = item?.slug || "";
-    const currentlyOpen = wrapper.hasAttribute("open");
-
-    if (currentlyOpen) {
-      wrapper.removeAttribute("open");
-      btn.setAttribute("aria-expanded", "false");
-      body.style.display = "none";
-      openSlug = "";
-      return;
-    }
-
-    if (openSlug) {
-      const other = postsEl.querySelector(`.post[open][data-slug="${CSS.escape(openSlug)}"]`);
-      if (other) {
-        const otherBtn = other.querySelector(".post-toggle");
-        const otherBody = other.querySelector(".post-body");
-        other.removeAttribute("open");
-        otherBtn?.setAttribute("aria-expanded", "false");
-        if (otherBody) otherBody.style.display = "none";
-      }
-    }
-
-    wrapper.setAttribute("open", "true");
-    btn.setAttribute("aria-expanded", "true");
-    body.style.display = "grid";
-    openSlug = slug;
-
-    if (wrapper.dataset.loaded) return;
-    wrapper.dataset.loaded = "true";
-
-    // meta is optional
-    const metaLoaded = meta || await loadMetaFor(slug);
-
-    // header (never crashes if meta missing)
-    setHeaderFrom(metaLoaded);
-
-    // cover (optional)
-    const cover = await coverFor(metaLoaded, item);
-    const coverHtml = cover
-      ? `<div class="card" style="overflow:hidden; padding:0; margin-bottom:12px;">
-           <img src="${cover}"
-                alt="${escapeHtml(item?.title || item?.slug || "Titelbild")}"
-                loading="lazy"
-                style="width:100%; max-height:360px; object-fit:contain; display:block; background:rgba(0,0,0,0.06);">
-         </div>`
-      : "";
-
-    // content (robust fallbacks)
-    const articleHtml = await loadPostContent(item, metaLoaded);
-    content.innerHTML = coverHtml + articleHtml;
-
-    // links (meta optional)
-    await setLinksFrom(metaLoaded);
-  });
-
-  wrapper.appendChild(btn);
-  wrapper.appendChild(body);
-
-  // initial header with whatever we have (meta might be null here)
-  setHeaderFrom(meta);
-
-  return wrapper;
-}
-
-
-    async function render() {
       postsEl.innerHTML = "";
+      visible.forEach(item => postsEl.appendChild(makePostCard(item)));
 
-      const qq = norm(qEl.value);
-      const filter = filterEl.value;
-
-      let list = items.slice();
-
-
-      if (filter === "blog") {
-        list = list.filter(x => x.type === "blog");
-      }
-
-      if (qq) {
-        list = list.filter(x => {
-          const hay = norm(x.title) + " " + norm(x.slug) + " " + norm(x.excerpt);
-          return hay.includes(qq);
-        });
-      }
-
-      emptyEl.style.display = list.length ? "none" : "block";
-
-for (const item of list) {
-  const content = `<div class="prose"><p class="fineprint">Öffnen zum Lesen…</p></div>`;
-  const card = makePostCard(item, null, content, false);
-  postsEl.appendChild(card);
-}
-
-
+      emptyEl.style.display = filtered.length ? "none" : "block";
+      sentinelEl.style.display = visible.length < filtered.length ? "block" : "none";
     }
 
-    qEl.addEventListener("input", render);
-    filterEl.addEventListener("input", render);
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some(e => e.isIntersecting)) {
+        visibleCount += BATCH_SIZE;
+        render();
+      }
+    }, { rootMargin: "400px" });
+    observer.observe(sentinelEl);
 
-   function autoOpenFromUrl() {
-  const params = new URLSearchParams(location.search);
-  const slug = params.get("open");
-  if (!slug) return;
+    [qEl, filterEl].forEach(el => el.addEventListener("input", () => {
+      visibleCount = BATCH_SIZE;
+      render();
+    }));
 
-  const card = postsEl.querySelector(`.post[data-slug="${CSS.escape(slug)}"]`);
-  const btn = card?.querySelector(".post-toggle");
-  if (btn) {
-    btn.click();
-    card.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-}
-
-
-async function loadActivities() {
-  const data = await safeFetchJson("/assets/activities.json");
-  const list = Array.isArray(data?.items) ? data.items : [];
-
-  items = list
-    .filter(x => x && x.type === "blog")
-    .sort((a, b) => String(b.updated || "").localeCompare(String(a.updated || "")));
-}
-
-
-
-(async function init() {
-  try {
-    await loadActivities();
-  } catch (e) {
-    items = [];
-  }
-  await render();
-  autoOpenFromUrl();
-})();
-
-
+    (async function init() {
+      const data = await safeFetchJson("/assets/work/blog/blog-index.json");
+      allItems = Array.isArray(data?.items) ? data.items.slice() : [];
+      allItems.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+      render();
+    })();
   </script>
 </body>
 </html>
