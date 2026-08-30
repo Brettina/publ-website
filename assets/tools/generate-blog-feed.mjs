@@ -40,17 +40,6 @@ const CATEGORY_LABELS = {
   games: "Projekt"
 };
 
-function slugify(s) {
-  return (
-    String(s || "")
-      .toLowerCase()
-      .normalize("NFKD")
-      .replace(/[̀-ͯ]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "") || "eintrag"
-  );
-}
-
 function todayIso() {
   const d = new Date();
   const y = d.getFullYear();
@@ -188,51 +177,64 @@ async function buildFromWorkItems() {
 
 async function buildFromCalendar(todayStr) {
   const data = await readJson(CALENDAR_INDEX, { items: [] });
-  const events = data.items || [];
+
+  // Only events that have actually happened get a blog post — there's
+  // nothing to report on (and nothing to research) for something that
+  // hasn't taken place yet.
+  const events = (data.items || []).filter(ev => ev && ev.date && String(ev.date) <= todayStr);
+
+  // One post per DATE, not per event. If several things happened the same
+  // day, they're covered together in a single write-up — the synopsis text
+  // names each one individually — instead of splitting into several
+  // near-duplicate posts that would all fight for the same "newest" slot.
+  const byDate = new Map();
+  for (const ev of events) {
+    if (!byDate.has(ev.date)) byDate.set(ev.date, []);
+    byDate.get(ev.date).push(ev);
+  }
 
   const entries = [];
 
-  for (const ev of events) {
-    if (!ev || !ev.date) continue;
+  for (const [date, evs] of byDate) {
+    const slug = `termin-${date}`;
+    const titles = evs.map(ev => ev.title || "Termin");
+    const title = titles.join(" & ");
 
-    // Only events that have actually happened get a blog post — there's
-    // nothing to report on (and nothing to research) for something that
-    // hasn't taken place yet.
-    if (String(ev.date) > todayStr) continue;
+    const paragraphs = [];
+    for (const ev of evs) {
+      const t = ev.title || "Termin";
+      paragraphs.push(`Wir waren am ${date}${ev.where ? ` in ${ev.where}` : ""} bei „${t}“.`);
+      if (ev.note) paragraphs.push(ev.note);
+    }
 
-    const slug = `termin-${ev.date}-${slugify(ev.title)}`;
-    const title = ev.title || "Termin";
-
-    const intro = `Wir waren am ${ev.date}${ev.where ? ` in ${ev.where}` : ""} bei „${title}“.`;
-
-    // Sort strictly by the real event date.
-    const sortDate = ev.date;
-    const photos = Array.isArray(ev.photos) ? ev.photos.filter(Boolean) : [];
+    const tags = [...new Set(evs.flatMap(ev => (Array.isArray(ev.tags) ? ev.tags : [])))];
+    const excerpt = evs.map(ev => ev.note || ev.where || "").filter(Boolean).join(" · ");
+    const photos = evs.flatMap(ev => (Array.isArray(ev.photos) ? ev.photos.filter(Boolean) : []));
 
     const computed = {
       slug,
       title,
-      date: sortDate,
-      excerpt: ev.note || ev.where || "",
-      tags: ev.tags || [],
+      date,
+      excerpt,
+      tags,
       cover: photos[0] || "",
       contentUrl: `/assets/work/blog/${slug}/article.html`,
       sourceUrl: "",
       sourceCategory: "calendar",
-      calendarDate: ev.date
+      calendarDate: date
     };
 
     if (!(await postFolderExists(slug))) {
-      const html = articleHtml(title, [intro, ev.note || ""], null);
+      const html = articleHtml(title, paragraphs, null);
 
       await writePost(slug, {
         title,
-        published: sortDate,
-        updated: sortDate,
-        tags: ev.tags || [],
-        excerpt: ev.note || ev.where || "",
+        published: date,
+        updated: date,
+        tags,
+        excerpt,
         sourceCategory: "calendar",
-        calendarDate: ev.date
+        calendarDate: date
       }, html);
     }
 

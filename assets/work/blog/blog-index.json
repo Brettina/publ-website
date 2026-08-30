@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-30T15:12:43.850Z",
+  "generatedAt": "2026-08-30T15:42:11.719Z",
   "items": [
     {
       "slug": "reznik-debater",
@@ -18,31 +18,31 @@
       "sourceCategory": "books"
     },
     {
-      "slug": "termin-2026-03-20-leipziger-buchmesse",
+      "slug": "termin-2026-03-20",
       "title": "Leipziger Buchmesse",
       "date": "2026-03-20",
-      "excerpt": "Ich bin am Freitag da und freue mich euch kennenzulernen.",
+      "excerpt": "Ich war am Freitag da und habe mich gefreut euch kennenzulernen.",
       "tags": [
         "publishing",
         "fair"
       ],
       "cover": "/img/kalender/2026-03-20/leipzgsch.jpg",
-      "contentUrl": "/assets/work/blog/termin-2026-03-20-leipziger-buchmesse/article.html",
+      "contentUrl": "/assets/work/blog/termin-2026-03-20/article.html",
       "sourceUrl": "",
       "sourceCategory": "calendar",
       "calendarDate": "2026-03-20"
     },
     {
-      "slug": "termin-2026-03-01-wohlfuhlmesse-gelsenkirchen",
+      "slug": "termin-2026-03-01",
       "title": "Wohlfühlmesse Gelsenkirchen",
       "date": "2026-03-01",
-      "excerpt": "Gern lege ich auch Ihr Buch mit aus.",
+      "excerpt": "Wir verteilten Flyer für die Bücher, die dieses Jahr erscheinen werden, insbes. von Dr. Peter S. Reznik.",
       "tags": [
         "publishing",
         "fair"
       ],
       "cover": "",
-      "contentUrl": "/assets/work/blog/termin-2026-03-01-wohlfuhlmesse-gelsenkirchen/article.html",
+      "contentUrl": "/assets/work/blog/termin-2026-03-01/article.html",
       "sourceUrl": "",
       "sourceCategory": "calendar",
       "calendarDate": "2026-03-01"
@@ -96,7 +96,7 @@
       "sourceCategory": "articles"
     },
     {
-      "slug": "termin-2026-01-16-ef-konferenz",
+      "slug": "termin-2026-01-16",
       "title": "EF-Konferenz",
       "date": "2026-01-16",
       "excerpt": "Preisverleihungsalarm!",
@@ -106,7 +106,7 @@
         "libertarian"
       ],
       "cover": "",
-      "contentUrl": "/assets/work/blog/termin-2026-01-16-ef-konferenz/article.html",
+      "contentUrl": "/assets/work/blog/termin-2026-01-16/article.html",
       "sourceUrl": "",
       "sourceCategory": "calendar",
       "calendarDate": "2026-01-16"

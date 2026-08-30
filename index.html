@@ -419,7 +419,7 @@
           für Texte, Spiele und Konzepte, die sich nicht in vertraute Raster einfügen lassen. </br>
         Wir helfen Autoren, Experten und Künstlern, ihre Idee zu verwirklichen und ein zufriedenstellendes erstes Exemplar zu erhalten.
        Dazu beraten wir und übernehmen Lektorat, Design, Print und Marketing, stellen Prototypen zur Verfügung, die wir auf Messen testen, und drucken in kleiner Auflage.
-</br>
+</br></br>
        <strong>Sie sind bei uns richtig</strong>, wenn Sie nicht sicher sind, wie Sie Ihre Idee an den Markt bringen, wenn Sie radikale oder neue Perspektiven vertreten, oder wenn Sie Unterstützung bei Design oder Verlegung suchen.
       
         </p>
@@ -848,10 +848,10 @@
       <div class="cards">
         <article class="card">
           <h3>LinkedIn</h3>
-          <p class="fineprint">Berufliches Profil, Laufbahn, öffentliche Einordnung.</p>
+          <p class="fineprint">Berufliches Profil, Laufbahn, Kontakt.</p>
           <p>
             <a href="https://www.linkedin.com/in/bettina-lohr-215756337" target="_blank" rel="noopener">
-              linkedin.com/in/bettina-lohr
+              linkedin.com/in/bettina-lohr-215756337
             </a>
           </p>
           <img
@@ -981,6 +981,7 @@
   let events = [];
   let cursor = new Date();
   let workTitles = {};
+  let workItemsBySlug = {};
 
   try {
     const res = await fetch("/assets/calendar/calendar-index.json", { cache: "no-store" });
@@ -998,7 +999,10 @@
     if (wRes.ok) {
       const wData = await wRes.json();
       (wData.items || []).forEach(x => {
-        if (x && x.slug) workTitles[x.slug] = x.title || x.slug;
+        if (x && x.slug) {
+          workTitles[x.slug] = x.title || x.slug;
+          workItemsBySlug[x.slug] = x;
+        }
       });
     }
   } catch {}
@@ -1022,10 +1026,12 @@
     }
 
     const html = list.map(ev => {
-      const projects = Array.isArray(ev.projects) ? ev.projects : [];
+      const projects = [].concat(ev.projects || []).filter(Boolean);
       const projectLinks = projects.map(id => {
-        const href = `/assets/work/${encodeURIComponent(id)}/article.html`;
-        return `<a href="${href}">${escapeHtml(id)}</a>`;
+        const item = workItemsBySlug[id];
+        const href = item?.contentUrl || `/assets/work/${encodeURIComponent(id)}/article.html`;
+        const label = workTitles[id] || id;
+        return `<a href="${href}">${escapeHtml(label)}</a>`;
       }).join(", ");
 
 
@@ -1111,6 +1117,19 @@
   btnClose?.addEventListener("click", () => { panel.style.display = "none"; });
 
   renderMonth();
+
+  // Lets the "Neues" gallery jump straight to a specific day when its
+  // event card is clicked, instead of trying to open a work-article modal.
+  window.publishLohrCalendar = {
+    goToDate(dateStr) {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return;
+      cursor = new Date(d.getFullYear(), d.getMonth(), 1);
+      renderMonth();
+      openPanel(dateStr);
+      document.getElementById("calendar-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 })();
   </script>
 
@@ -1271,7 +1290,7 @@
     if (rightImg) { rightImg.src = safeCover(next); rightImg.alt = "Bild"; }
 
     if (capTitle) capTitle.textContent = safeTitle(cur);
-    if (capDate) capDate.textContent = cur.updated ? formatDate(cur.updated) : "";
+    if (capDate) capDate.textContent = (cur.published || cur.updated) ? formatDate(cur.published || cur.updated) : "";
     if (capExcerpt) capExcerpt.textContent = safeExcerpt(cur);
 
     leftFig?.setAttribute("aria-label", `Vorheriges Bild: ${safeTitle(prev)}`);
@@ -1314,14 +1333,14 @@
     if (e.key === "ArrowRight") { e.preventDefault(); goNext(); }
     if ((e.key === "Enter" || e.key === " ") && centerFig && centerFig.contains(active)) {
       e.preventDefault();
-      openCurrent();
+      openCurrentOrEvent();
     }
   });
 
   closeBtn?.addEventListener("click", () => dialog?.close());
   dialog?.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
 
-  centerFig?.addEventListener("click", () => openCurrent());
+  centerFig?.addEventListener("click", () => openCurrentOrEvent());
 
 
 
@@ -1334,7 +1353,7 @@ async function openCurrent() {
 
   // reset UI fast
   if (modalTitle) modalTitle.textContent = safeTitle(cur);
-  if (modalMeta) modalMeta.textContent = cur.updated ? formatDate(cur.updated) : (cur.published ? formatDate(cur.published) : "");
+  if (modalMeta) modalMeta.textContent = cur.published ? formatDate(cur.published) : (cur.updated ? formatDate(cur.updated) : "");
   if (modalExcerpt) modalExcerpt.textContent = (cur.excerpt || cur.description || "").toString();
   if (modalTags) modalTags.innerHTML = "";
   if (modalLinks) modalLinks.innerHTML = "";
@@ -1364,7 +1383,7 @@ async function openCurrent() {
 
   // Date + eigenanteil
   if (modalMeta) {
-    const d = (meta?.updated || cur.updated || meta?.published || cur.published || "").toString();
+    const d = (meta?.published || cur.published || meta?.updated || cur.updated || "").toString();
     const eigen = (meta?.eigenanteil || cur.eigenanteil || "").toString().trim();
     const base = d ? formatDate(d) : "";
     modalMeta.textContent = eigen ? `${base}${base ? " · " : ""}${eigen}` : base;
@@ -1461,13 +1480,69 @@ async function openCurrent() {
 
 
 
+  function todayYmd() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  async function loadMostRecentPastEvent() {
+    try {
+      const res = await fetch("/assets/calendar/calendar-index.json", { cache: "no-store" });
+      if (!res.ok) throw new Error("calendar-index.json missing");
+      const data = await res.json();
+      const todayStr = todayYmd();
+
+      const past = (Array.isArray(data.items) ? data.items : [])
+        .filter(e => e && e.date && String(e.date) <= todayStr)
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+      if (!past.length) return null;
+
+      const ev = past[0];
+      const photos = Array.isArray(ev.photos) ? ev.photos.filter(Boolean) : [];
+
+      return {
+        type: "event",
+        dateStr: ev.date,
+        title: ev.title || "Termin",
+        updated: ev.date,
+        excerpt: ev.note || ev.where || "",
+        cover: photos[0] || "/img/webicon.png"
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  function goToCalendarEvent(dateStr) {
+    if (window.publishLohrCalendar && typeof window.publishLohrCalendar.goToDate === "function") {
+      window.publishLohrCalendar.goToDate(dateStr);
+    } else {
+      document.getElementById("calendar-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function openCurrentOrEvent() {
+    const cur = items[index];
+    if (cur && cur.type === "event") {
+      goToCalendarEvent(cur.dateStr);
+      return;
+    }
+    openCurrent();
+  }
+
   async function loadWorkItems() {
+    let list = [];
+
     try {
       const res = await fetch("/assets/work-index.json", { cache: "no-store" });
       if (!res.ok) throw new Error("work-index.json missing");
       const data = await res.json();
 
-      const list = (data.items || [])
+      list = (data.items || [])
         .filter(x => x && x.type === "work")
         .sort((a, b) => String(b.updated || "").localeCompare(String(a.updated || "")))
         .map(x => {
@@ -1488,16 +1563,19 @@ async function openCurrent() {
             contentUrl: x.contentUrl || ""
           };
         })
-        .filter(x => x.contentUrl && x.cover);
-
-      items = list.length ? list : fallbackItems;
-      index = 0;
-      render();
+        .filter(x => x.contentUrl && x.cover)
+        .slice(0, 3);
     } catch {
-      items = fallbackItems;
-      index = 0;
-      render();
+      list = [];
     }
+
+    const eventItem = await loadMostRecentPastEvent();
+
+    items = list.length ? list.slice() : fallbackItems.slice();
+    if (eventItem) items.push(eventItem);
+
+    index = 0;
+    render();
   }
 
   loadWorkItems();

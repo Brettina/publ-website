@@ -202,14 +202,36 @@ andere Richtung.
 zeigt die Galerie nur 3 Werke, keine Event-Karte. Das ist kein Bug, sondern
 Ergebnis der "nur vergangene Events"-Logik.
 
-### Kalender-Projektlinks öffnen jetzt das Artikel-Modal statt wegzunavigieren
+### Kalender-Projektlinks: Titel + korrekter Pfad (Feature ging verloren, zweimal gefixt)
 
-Die Projekt-Links im Kalender-Tagespanel (z. B. "Den Zweifler in uns zähmen"
-unter dem Termin "Leipziger Buchmesse") verlinkten auf die rohe
-`article.html`-Datei — ein unstyled Dokument ohne `<link rel="stylesheet">
-oder Seiten-Chrome, weil `assets/work/*/article.html`-Dateien bewusst nur
-Body-Fragmente sind, die von echten Seiten eingebettet werden sollen, nicht
-eigenständig aufgerufen.
+**Wichtige Falle:** `index.html` wurde irgendwann im Verlauf dieser Session
+(vom Nutzer, im Editor) auf einen deutlich älteren Stand zurückgesetzt —
+nicht nur die "3 Werke + 1 Event"-Galerie fehlte danach, sondern auch dieser
+Fix hier war wieder weg: die Kalender-Projektlinks bauten wieder rohe,
+flache Pfade (`/assets/work/${id}/article.html`, ohne Kategorie-Segment)
+und zeigten den rohen Slug statt des Buchtitels als Linktext — exakt der
+Zustand von vor dem ursprünglichen Fix. Beim erneuten Beheben wurde
+zusätzlich `workItemsBySlug` (vollständige Work-Index-Objekte, nicht nur
+Titel) wieder eingeführt, damit `href` aus `item.contentUrl` kommt statt neu
+zusammengebaut zu werden.
+
+**Noch NICHT wiederhergestellt** (bewusst, da nicht angefragt): das
+In-Page-Artikel-Modal für diese Links (`window.openWorkModal` +
+`data-work-modal`-Attribute) sowie das Foto-Thumbnail-Grid + Lightbox-Popup
+im Kalender-Tagespanel (`data-lightbox-src`, `#cal-lightbox`-Dialog) — beide
+waren zwischenzeitlich gebaut, sind aber nach dem Revert aktuell nicht mehr
+im Code. Die Kalender-Projektlinks navigieren daher aktuell wieder zur
+rohen `article.html` (funktioniert, sieht aber unstyled aus). Falls
+gewünscht: beides erneut bauen, Muster ist in der Git-Historie/vorherigen
+Konversation nachvollziehbar.
+
+Ursprüngliche Beschreibung des In-Page-Modal-Fixes (für den Fall, dass er
+erneut gebaut wird): Die Projekt-Links im Kalender-Tagespanel (z. B. "Den
+Zweifler in uns zähmen" unter dem Termin "Leipziger Buchmesse") verlinkten
+auf die rohe `article.html`-Datei — ein unstyled Dokument ohne
+`<link rel="stylesheet">` oder Seiten-Chrome, weil `assets/work/*/article.html`-
+Dateien bewusst nur Body-Fragmente sind, die von echten Seiten eingebettet
+werden sollen, nicht eigenständig aufgerufen.
 
 Fix: `openCurrent()` (die Funktion, die für die "Neues"-Galerie Artikel im
 `#blog-modal`-Dialog anzeigt) wurde in eine wiederverwendbare Funktion
@@ -275,6 +297,27 @@ Wichtige Designentscheidungen dabei:
   generierte Posts für inzwischen wieder in der Zukunft liegende Events
   werden beim nächsten Lauf automatisch von `clearStalePosts` entfernt, weil
   sie nicht mehr in der Quellmenge auftauchen.
+- **Ein Post pro DATUM, nicht pro Event.** Fänden mehrere Dinge am selben Tag
+  statt, hätte die alte Logik (Slug = `termin-<datum>-<slugifizierter-titel>`)
+  mehrere separate, fast identische Posts erzeugt, die alle um denselben
+  "neuester Post"-Platz konkurrieren. Jetzt gruppiert `buildFromCalendar()`
+  zuerst nach `date` (`byDate` Map) und erzeugt EINEN Post pro Datum
+  (Slug jetzt einfach `termin-<datum>`, kein Titel-Suffix mehr nötig). Bei
+  mehreren Events am selben Tag: Titel werden mit " & " verbunden, Tags
+  dedupliziert, jedes Event bekommt seinen eigenen Absatz im Fließtext
+  (Intro-Satz + Notiz) — die redaktionelle Unterscheidung mehrerer
+  Ereignisse passiert im Text selbst, nicht durch mehrere Posts.
+  **Nebenwirkung, aufgepasst:** Weil sich der Slug geändert hat
+  (`termin-<datum>-<titel>` → `termin-<datum>`), wurden die 3 bereits
+  bestehenden Event-Posts (EF-Konferenz, Wohlfühlmesse Gelsenkirchen,
+  Leipziger Buchmesse) beim nächsten Lauf als verwaist erkannt, gelöscht und
+  unter dem neuen Slug frisch (mechanisch, ohne die von Hand recherchierten
+  Zusatz-Absätze) neu angelegt — die Recherche-Ergänzungen mussten manuell
+  erneut eingefügt werden. **Lehre:** Eine Slug-Schema-Änderung im Generator
+  killt automatisch jede handgepflegte Anreicherung, die an den alten Slug
+  gebunden war, weil write-once nur den Slug kennt, nicht "dasselbe Ereignis
+  unter neuem Namen". Vor einer Slug-Schema-Änderung: bestehende
+  Anreicherungen sichern/manuell migrieren.
 - **`assets/work/blog/` wird von `convert_articles.py` explizit
   ausgeschlossen.** Ohne diesen Ausschluss (Bug, der in dieser Session
   live auftrat und gefixt wurde) würde `convert_articles.py` beim nächsten
@@ -486,6 +529,18 @@ diese Art von Struktur-Änderung.
 
 ## Gefundene und behobene Bugs (mit Ursache, damit sie nicht wiederkommen)
 
+- **Homepage-Galerie/Modal zeigte `updated` statt `published` als Datum**:
+  Drei Stellen in `index.html` (Bildunterschrift unter dem mittleren
+  Karussell-Bild, sowie zweimal im Artikel-Modal) priorisierten
+  `cur.updated`/`meta.updated` vor `cur.published`/`meta.published` beim
+  Anzeigen des Datums — obwohl der Blog-Feed-Generator (`generate-blog-feed.mjs`)
+  bereits korrekt auf "published zuerst" umgestellt worden war (siehe
+  "Sortiert wird nach 'hinzugefügt'" oben). Zwei verschiedene Code-Pfade,
+  nur einer war gefixt. Alle drei Stellen jetzt auf `published`-zuerst
+  umgestellt. **Lehre:** Wenn dieselbe Datenfront (hier: "welches Datum
+  zeigen wir an") an mehreren unabhängigen Stellen im Code dupliziert ist
+  (Blog-Generator UND Homepage-Galerie), reicht es nicht, nur eine Stelle zu
+  fixen — nach `grep -rn "\.updated"` suchen, um alle zu finden.
 - **`mailto:` mit `%40` statt `@`**: `openMailto()` in `index.html` und im
   Webshop rief `encodeURIComponent(to)` auf die komplette E-Mail-Adresse auf.
   Das kodiert `@` zu `%40`, was etliche Mail-Clients (Outlook, Windows Mail)
