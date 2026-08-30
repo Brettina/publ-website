@@ -18,15 +18,6 @@
 
       "note": "Gern lege ich auch Ihr Buch mit aus."
     } ,
-     {
-      "date": "2026-09-03",
-      "title": "Vorarlberger Buchmesse in Österreich",
-      "tags": ["publishing", "fair"],
-      "where": "Vorarlberg",
-            "projects":["reznik", "angela"],
-
-      "note": "IGern lege ich auch Ihr Buch mit aus."
-    }  ,
          {
       "date": "2026-03-20",
       "title": "Leipziger Buchmesse",
@@ -34,6 +25,33 @@
       "where": "Leipzig",
             "projects":["reznik", "angela"],
              "note": "Ich bin am Freitag da und freue mich euch kennenzulernen."
+    }  ,
+         {
+      "date": "2026-09-05",
+      "title": "Vorarlberger Buchmesse in Österreich",
+      "tags": ["publishing", "fair"],
+      "where": "Dornbirn Österreich",
+            "projects":["reznik", "angela"],
+
+      "note": "Frisch mit dabei: der 'Zweifler' von Dr. Peter S. Reznik, sowie Angela Jungs 'Lichstrahl'."
+    }  ,
+         {
+      "date": "2026-09-26",
+      "title": "Werdauer Lebensfreude Messe",
+      "tags": ["publishing", "fair"],
+      "where": "Werdau",
+            "projects":["reznik", "angela"],
+
+      "note": "Gern lege ich auch Ihr Buch mit aus."
+    }  ,
+     {
+      "date": "2026-10-04",
+      "title": "Esoteriktag Gelsenkirchen",
+      "tags": ["publishing", "fair"],
+      "where": "Gelsenkirchen",
+            "projects":["reznik", "angela"],
+
+      "note": "Gern lege ich auch Ihr Buch mit aus."
     }  ,
      {
       "date": "2026-10-31",

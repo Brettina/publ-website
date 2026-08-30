@@ -1,0 +1,19 @@
+{
+  "id": "reznik",
+    "klappentext":"Gibt es Tage, an denen du kein gutes Haar an dir lassen kannst? Das ist der Zweifler in dir. Der Therapeut Dr. Peter S. Reznik erklärt, wie man mit ihm umgeht.",
+
+  "title": "Morphologische Geheimnisse in unseren Gesichtern - von Peter S. Reznik",
+  "published": "2026-09-04",
+      "available": "ja",
+
+  "updated": "2026-08-30",
+      "eigenanteil": "Übersetzung ins Deutsche, Buchsatz, Verlegung und Marketing",
+
+    "tags": ["therapy", "guide","publishing","translation"],
+    "excerpt": "Das Buch richtet sich an Jugendliche und junge Teenager.",
+ "price-print":15,
+  "price-digital":10,  
+  "alsoPublished": [
+    { "label": "Autorenwebsite", "url": "https://www.drpeterreznik.com/" }
+  ]
+}
