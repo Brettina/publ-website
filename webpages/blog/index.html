@@ -43,17 +43,8 @@
       overflow: hidden;
     }
 
-    .post-toggle {
-      width: 100%;
-      display: flex;
-      gap: 12px;
-      justify-content: space-between;
-      align-items: baseline;
-      text-align: left;
-      padding: 14px 14px;
-      background: transparent;
-      border: 0;
-      cursor: pointer;
+    .post-head {
+      padding: 14px 14px 0;
     }
 
     .post-title {
@@ -83,23 +74,18 @@
       white-space: nowrap;
     }
 
-    .post-chevron {
-      flex: 0 0 auto;
-      opacity: 0.8;
-      transform: rotate(0deg);
-      transition: transform 140ms ease;
-      margin-left: 12px;
-    }
-
-    .post[open] .post-chevron {
-      transform: rotate(180deg);
-    }
-
-    /* details/summary behavior – but we use button + div for maximum control */
     .post-body {
-      padding: 0 14px 14px;
+      padding: 12px 14px 14px;
       display: grid;
       gap: 12px;
+    }
+
+    .post-cover {
+      width: 100%;
+      max-height: 320px;
+      object-fit: cover;
+      border-radius: 12px;
+      display: block;
     }
 
     .post-content {
@@ -125,6 +111,32 @@
       border-radius: 14px;
       margin-top: 14px;
     }
+
+    /* In-page article modal (for "Mehr zum Buch" / "Vollständigen Artikel
+       lesen" links embedded in teaser content — never navigate away to the
+       bare, unstyled article.html) */
+    .article-modal {
+      width: min(760px, calc(100vw - 24px));
+      max-height: min(85vh, 900px);
+      border: 1px solid rgba(127,127,127,0.45);
+      border-radius: 16px;
+      padding: 14px 16px 16px;
+    }
+    .article-modal::backdrop {
+      background: rgba(0,0,0,0.55);
+    }
+    .article-modal-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .article-modal-body {
+      overflow: auto;
+      max-height: calc(85vh - 90px);
+      margin-top: 12px;
+      padding-right: 4px;
+    }
   </style>
 </head>
 
@@ -137,7 +149,7 @@
     <header class="page-hero blog-head">
       <h1>Blog</h1>
       <p class="lead" style="margin:0;">
-        Neueste zuerst. Klick auf eine Überschrift, um den Artikel zu öffnen (und erneut zum Schließen).
+        Neueste zuerst. Beim Scrollen werden weitere Beiträge nachgeladen.
       </p>
 
       <div class="blog-controls">
@@ -174,6 +186,14 @@
 
   <div id="footer-slot"></div>
 
+  <dialog class="article-modal" id="article-modal" aria-label="Artikel">
+    <div class="article-modal-head">
+      <h3 id="article-modal-title" style="margin:0;"></h3>
+      <button class="button button-secondary" type="button" id="article-modal-close">Schließen</button>
+    </div>
+    <div class="article-modal-body prose" id="article-modal-body"></div>
+  </dialog>
+
   <script>
     const postsEl = document.getElementById("posts");
     const emptyEl = document.getElementById("empty");
@@ -181,11 +201,15 @@
     const qEl = document.getElementById("q");
     const filterEl = document.getElementById("filter");
 
-    const BATCH_SIZE = 6;
+    const articleModal = document.getElementById("article-modal");
+    const articleModalTitle = document.getElementById("article-modal-title");
+    const articleModalBody = document.getElementById("article-modal-body");
+    const articleModalClose = document.getElementById("article-modal-close");
+
+    const BATCH_SIZE = 3;
 
     let allItems = [];   // full feed from blog-index.json, already newest-first
     let visibleCount = BATCH_SIZE;
-    const openSlugs = new Set(); // which cards are currently expanded
 
     const CATEGORY_LABELS = {
       books: "Buch",
@@ -251,19 +275,41 @@
       });
     }
 
+    async function openArticleModal(url, title) {
+      if (!articleModal) return;
+      articleModalTitle.textContent = title || "";
+      articleModalBody.innerHTML = "<p class='fineprint'>Lade…</p>";
+      if (!articleModal.open) articleModal.showModal();
+      articleModalBody.innerHTML = await loadFullArticle(url);
+    }
+
+    articleModalClose?.addEventListener("click", () => articleModal.close());
+    articleModal?.addEventListener("click", (e) => { if (e.target === articleModal) articleModal.close(); });
+
+    // Teaser content embeds a "Mehr zum Buch" / "Vollständigen Artikel
+    // lesen" link back to the real assets/work/<category>/<slug>/article.html.
+    // That's a bare, unstyled fragment meant to be embedded, not visited
+    // directly — so open it in the modal instead of navigating away.
+    function wireInternalLinks(container, item) {
+      container.querySelectorAll('a[href^="/assets/work/"]').forEach(a => {
+        a.addEventListener("click", (e) => {
+          e.preventDefault();
+          openArticleModal(a.getAttribute("href"), item.title);
+        });
+      });
+    }
+
     function makePostCard(item) {
       const post = document.createElement("article");
       post.className = "card post";
 
-      const toggle = document.createElement("button");
-      toggle.type = "button";
-      toggle.className = "post-toggle";
+      const head = document.createElement("div");
+      head.className = "post-head";
 
-      const left = document.createElement("div");
       const title = document.createElement("h3");
       title.className = "post-title";
       title.textContent = item.title;
-      left.appendChild(title);
+      head.appendChild(title);
 
       const meta = document.createElement("div");
       meta.className = "post-meta";
@@ -277,65 +323,55 @@
         pill.textContent = catLabel;
         meta.appendChild(pill);
       }
-      left.appendChild(meta);
-
-      const excerpt = document.createElement("p");
-      excerpt.className = "fineprint";
-      excerpt.style.margin = "6px 0 0";
-      excerpt.textContent = item.excerpt || "";
-      left.appendChild(excerpt);
-
-      const chevron = document.createElement("span");
-      chevron.className = "post-chevron";
-      chevron.setAttribute("aria-hidden", "true");
-      chevron.textContent = "▾";
-
-      toggle.appendChild(left);
-      toggle.appendChild(chevron);
+      head.appendChild(meta);
 
       const body = document.createElement("div");
       body.className = "post-body";
-      body.style.display = openSlugs.has(item.slug) ? "grid" : "none";
+
+      if (item.cover) {
+        const img = document.createElement("img");
+        img.className = "post-cover";
+        img.loading = "lazy";
+        img.alt = item.title || "";
+        img.src = item.cover;
+        body.appendChild(img);
+      }
 
       const content = document.createElement("div");
       content.className = "post-content prose";
       content.innerHTML = "<p class='fineprint'>Lade…</p>";
       body.appendChild(content);
 
-      let loaded = false;
-      async function toggleOpen() {
-        const isOpen = openSlugs.has(item.slug);
-        if (isOpen) {
-          openSlugs.delete(item.slug);
-          body.style.display = "none";
-          post.removeAttribute("open");
-          return;
-        }
+      loadFullArticle(item.contentUrl).then(html => {
+        content.innerHTML = html;
+        wireInternalLinks(content, item);
+      });
 
-        openSlugs.add(item.slug);
-        body.style.display = "grid";
-        post.setAttribute("open", "");
-
-        if (!loaded) {
-          loaded = true;
-          content.innerHTML = await loadFullArticle(item.contentUrl);
-        }
-      }
-
-      toggle.addEventListener("click", toggleOpen);
-      if (openSlugs.has(item.slug)) toggleOpen();
-
-      post.appendChild(toggle);
+      post.appendChild(head);
       post.appendChild(body);
       return post;
     }
 
-    function render() {
+    // Cards auto-load their content, so re-creating already-shown cards on
+    // every scroll tick would re-fetch them for nothing. Only append cards
+    // for items not yet rendered; a full reset (search/filter change) clears
+    // and starts over since the visible set changes entirely anyway.
+    let renderedSlugs = new Set();
+
+    function render({ reset = false } = {}) {
       const filtered = getFiltered();
       const visible = filtered.slice(0, visibleCount);
 
-      postsEl.innerHTML = "";
-      visible.forEach(item => postsEl.appendChild(makePostCard(item)));
+      if (reset) {
+        postsEl.innerHTML = "";
+        renderedSlugs = new Set();
+      }
+
+      visible.forEach(item => {
+        if (renderedSlugs.has(item.slug)) return;
+        renderedSlugs.add(item.slug);
+        postsEl.appendChild(makePostCard(item));
+      });
 
       emptyEl.style.display = filtered.length ? "none" : "block";
       sentinelEl.style.display = visible.length < filtered.length ? "block" : "none";
@@ -351,14 +387,14 @@
 
     [qEl, filterEl].forEach(el => el.addEventListener("input", () => {
       visibleCount = BATCH_SIZE;
-      render();
+      render({ reset: true });
     }));
 
     (async function init() {
       const data = await safeFetchJson("/assets/work/blog/blog-index.json");
       allItems = Array.isArray(data?.items) ? data.items.slice() : [];
       allItems.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
-      render();
+      render({ reset: true });
     })();
   </script>
 </body>

@@ -261,19 +261,25 @@ const PENDING_MARKER = path.join(BLOG_DIR, "pending-enrichment.json");
 // the "newest" slot actually changes hands. No clock involved: this fires
 // exactly when generate-blog-feed.mjs is next run after new work/calendar
 // content makes a new post the top of the feed — which is the same moment a
-// human (or Claude, asked to check) should notice and do the research. Once
-// that's done, delete this file; its mere presence means "still pending".
+// human (or Claude, asked to check) should notice and do the research.
+//
+// IMPORTANT: this file tracks a status field ("pending" | "done"), it is NOT
+// meant to be deleted once handled — deleting it looks identical to "never
+// seen this slug before" and re-arms the same slug every single run. Whoever
+// completes the enrichment should flip status to "done" (or leave the file
+// as-is with status "done"), not remove the file.
 async function updatePendingEnrichmentMarker(sortedAll) {
   if (!sortedAll.length) return;
   const newest = sortedAll[0];
 
   const existing = await readJson(PENDING_MARKER, null);
-  if (existing && existing.slug === newest.slug) return; // already tracked
+  if (existing && existing.slug === newest.slug) return; // same slug as last run — leave status alone
 
   await fs.writeFile(PENDING_MARKER, JSON.stringify({
     slug: newest.slug,
     title: newest.title,
-    detectedAt: new Date().toISOString()
+    detectedAt: new Date().toISOString(),
+    status: "pending"
   }, null, 2) + "\n", "utf8");
 
   console.log(`Neuer Feed-Spitzenreiter: "${newest.title}" (${newest.slug}) — Anreicherung ausstehend, siehe assets/work/blog/pending-enrichment.json`);

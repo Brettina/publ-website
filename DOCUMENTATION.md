@@ -265,14 +265,25 @@ Stattdessen: `generate-blog-feed.mjs` schreibt nach jedem Lauf
 `blog-index.json.items[0]` (der "neueste" Post) gegenüber dem letzten Lauf
 geändert hat — also genau dann, wenn ein neues Werk oder ein neues
 Kalender-Event den Spitzenplatz übernimmt (`updatePendingEnrichmentMarker()`).
-Diese Datei ist reine Anwesenheits-Logik: existiert sie, ist eine Anreicherung
-fällig; ihr Inhalt (`slug`, `title`, `detectedAt`) sagt für welchen Post.
-Sobald die Anreicherung erledigt ist (von mir manuell in einer Session, siehe
-unten, oder später ggf. automatisiert), wird die Datei gelöscht — ihr Fehlen
-bedeutet "nichts ausstehend".
+Der Inhalt ist `{ slug, title, detectedAt, status }`, wobei `status` entweder
+`"pending"` oder `"done"` ist.
 
-**So läuft die Anreicherung ab, wenn `pending-enrichment.json` existiert**
-(bisher manuell in einer Claude-Code-Session gemacht, kein Automatismus):
+**Wichtige Falle (in dieser Session live aufgetreten):** Die Datei darf NICHT
+gelöscht werden, sobald die Anreicherung erledigt ist — stattdessen wird ihr
+`status`-Feld auf `"done"` gesetzt. Grund: der Generator vergleicht bei jedem
+Lauf nur "ist der aktuelle Spitzenreiter derselbe Slug wie in der
+existierenden Marker-Datei?". Fehlt die Datei komplett, sieht das für den
+Generator identisch aus wie "diesen Slug noch nie gesehen" — er würde bei
+JEDEM erneuten Lauf denselben, bereits erledigten Slug wieder als "neu
+ausstehend" markieren, solange kein anderer Post den Spitzenplatz übernimmt.
+Erster Bugfix-Zyklus dieser Session: Datei nach der `reznik-debater`-
+Anreicherung gelöscht → nächster `generate-blog-feed.mjs`-Lauf hat sofort
+wieder denselben Slug als "neu" gemeldet. Fix: `status`-Feld ergänzt, Datei
+bleibt liegen.
+
+**So läuft die Anreicherung ab, wenn `pending-enrichment.json` `status:
+"pending"` hat** (bisher manuell in einer Claude-Code-Session gemacht, kein
+Automatismus):
 1. `assets/work/blog/<slug>/article.html` und `meta.json` lesen (aktueller
    Stand).
 2. Online recherchieren (WebSearch/WebFetch) zum jeweiligen Thema — bei
@@ -282,7 +293,8 @@ bedeutet "nichts ausstehend".
    (NIE `article.html` direkt überschreiben).
 4. Einen datierten Eintrag in `assets/work/blog/<slug>/enrichment-notes.md`
    anhängen: was gesucht, was gefunden, was geändert, mit Quellenangaben.
-5. `pending-enrichment.json` löschen.
+5. `status` in `pending-enrichment.json` auf `"done"` setzen (Datei NICHT
+   löschen).
 
 Harte Regeln dabei: niemals `assets/work/{articles,books,events,games}/*`
 (die Originale) anfassen, niemals `article.html` direkt überschreiben,
