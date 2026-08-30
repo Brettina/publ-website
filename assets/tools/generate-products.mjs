@@ -62,6 +62,7 @@ async function main() {
     const status = meta?.status || "verfügbar";
     const variants = Array.isArray(meta?.variants) ? meta.variants : ["Standard"];
     const unit = meta?.unit || "Stück";
+    const price = typeof meta?.price === "number" ? meta.price : null;
 
     const imageUrls = images.map(f => toWebImageUrl(slug, f));
 
@@ -75,6 +76,7 @@ async function main() {
       status,
       variants,
       unit,
+      price,
       pickupRequired: Boolean(meta?.pickupRequired),
       decorateJuice: Boolean(meta?.decorateJuice)
     });

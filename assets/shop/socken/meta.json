@@ -4,5 +4,6 @@
   "status": "verfügbar",
   "variants": ["S", "M", "L", "XL"],
   "unit": "Stück",
+   "price":10,
   "pickupRequired": false
 }

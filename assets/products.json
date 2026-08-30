@@ -17,6 +17,7 @@
         "XL"
       ],
       "unit": "Stück",
+      "price": 10,
       "pickupRequired": false,
       "decorateJuice": false
     },
@@ -38,6 +39,7 @@
         "XL"
       ],
       "unit": "Stück",
+      "price": 10,
       "pickupRequired": false,
       "decorateJuice": false
     },
@@ -64,6 +66,7 @@
         "XL"
       ],
       "unit": "Stück",
+      "price": 10,
       "pickupRequired": false,
       "decorateJuice": false
     }

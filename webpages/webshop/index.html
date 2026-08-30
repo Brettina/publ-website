@@ -1509,7 +1509,7 @@ async function loadMerchProducts() {
       image: p.image || "",
       images: Array.isArray(p.images) ? p.images : (p.image ? [p.image] : []),
 
-      price: null,
+      price: toNumber(p.price),
       currency: "EUR",
 
       unit: p.unit || "Stück",
