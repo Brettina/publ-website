@@ -266,6 +266,12 @@
 /* swipe feel */
 [data-blog-gallery] { touch-action: pan-y; user-select: none; }
 
+/* Hidden until the real work/calendar data has loaded — otherwise the
+   static placeholder images baked into the HTML (old stock art, not the
+   actual newest item) flash on screen for a moment on every page load. */
+[data-blog-gallery] { opacity: 0; transition: opacity 180ms ease; }
+[data-blog-gallery].is-ready { opacity: 1; }
+
 
     /* hide default marker */
     .service-summary::-webkit-details-marker { display: none; }
@@ -1347,6 +1353,7 @@
     centerFig?.setAttribute("aria-label", `Artikel öffnen: ${safeTitle(cur)}`);
 
     setDots();
+    root.classList.add("is-ready");
   }
 
   function goPrev() { index = mod(index - 1, items.length); render(); }

@@ -141,6 +141,14 @@
       gap: 10px;
     }
 
+    .shop-topline h3 {
+      /* Without this, the un-wrappable badge sibling (white-space: nowrap)
+         forces nearly all flex-shrink onto the title, collapsing it to
+         one word per line instead of using the card's actual width. */
+      flex: 1 1 0%;
+      min-width: 0;
+    }
+
     .shop-badge {
       display: inline-flex;
       align-items: center;
@@ -151,6 +159,7 @@
       border: 1px solid currentColor;
       opacity: 0.9;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     /* Prominent cart area */
@@ -458,7 +467,7 @@
           <div id="cart-items" class="cart-items"></div>
 
           <div id="cart-empty" class="card empty" style="margin-top:12px;">
-            <p class="fineprint" style="margin:0;">Noch nichts ausgewählt. Öffne ein Buch und füge es hinzu.</p>
+            <p class="fineprint" style="margin:0;">Noch nichts ausgewählt. Klicke auf einen Artikel und füge ihn hinzu.</p>
           </div>
         </aside>
       </div>
@@ -999,7 +1008,7 @@
       if (buyBtn) buyBtn.disabled = !ok;
 
       if (!ok) {
-        if (buyHint) buyHint.textContent = "Füge mindestens ein Buch hinzu, dann kannst du kaufen.";
+        if (buyHint) buyHint.textContent = "Füge mindestens einen Artikel hinzu, dann kannst du kaufen.";
         return;
       }
 

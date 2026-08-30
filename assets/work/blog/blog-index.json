@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-30T14:54:53.320Z",
+  "generatedAt": "2026-08-30T15:12:43.850Z",
   "items": [
     {
       "slug": "reznik-debater",
@@ -75,7 +75,7 @@
         "libertarian",
         "article"
       ],
-      "cover": "",
+      "cover": "/assets/work/articles/ef-konferenz-2026/ef.jpg",
       "contentUrl": "/assets/work/blog/ef-konferenz-2026/article.html",
       "sourceUrl": "/assets/work/articles/ef-konferenz-2026/article.html",
       "sourceCategory": "articles"
@@ -152,7 +152,7 @@
         "politics",
         "article"
       ],
-      "cover": "",
+      "cover": "/assets/work/articles/400000/224 votum berlin.jpg",
       "contentUrl": "/assets/work/blog/400000/article.html",
       "sourceUrl": "/assets/work/articles/400000/article.html",
       "sourceCategory": "articles"
@@ -166,7 +166,7 @@
         "politics",
         "article"
       ],
-      "cover": "",
+      "cover": "/assets/work/articles/lebensraum/postkarte+.jpg",
       "contentUrl": "/assets/work/blog/lebensraum/article.html",
       "sourceUrl": "/assets/work/articles/lebensraum/article.html",
       "sourceCategory": "articles"
