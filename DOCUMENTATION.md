@@ -17,6 +17,30 @@ von Hand gepflegt oder von Skripten generiert werden (Node unter
 vermutlich über Cloudflare Pages (siehe `functions/api/hipster-mail.js`).
 Das GitHub-Repo ist `Brettina/publ-website`.
 
+## Sprachstil: KEIN Gendern
+
+Ausdrückliche Anweisung des Nutzers, gilt für JEDEN Text auf dieser Website
+(Homepage, Blog-Posts, generierte Teaser, Kalender-Notizen, alles):
+**keine Gender-Formen** — kein "-innen" (Autor*innen, Teilnehmer:innen,
+Besucherinnen und Besucher, o. ä.), kein Gendersternchen, kein Doppelpunkt,
+kein Binnen-I, keine Partizip-Konstruktionen wie "Studierende" oder
+"Mitarbeitende" als Ersatz. Stattdessen: **generisches Maskulinum**
+("Autoren", "Künstler", "Besucher", "Teilnehmer" — auch wenn eine gemischte
+oder überwiegend weibliche Gruppe gemeint ist).
+
+Das gilt für generische/plurale Bezeichnungen. **Keine Ausnahme nötig** für
+grammatisch korrekte weibliche Einzelformen bei einer konkret benannten Frau
+(z. B. "Bettina Lohr ist Verlegerin, Gewinnerin des Jungautorenwettbewerbs
+..." — das ist normales, unmarkiertes Deutsch für eine bestimmte Person,
+kein Gendern, und bleibt unangetastet).
+
+Konkreter Anlass: Bei einer "Du→Sie"-Überarbeitung des Hero-Texts ist mir
+"Autorinnen ... Künstlerinnen" hineingerutscht (das Original hatte bereits
+korrekt "Autoren ... Künstlern"). Wurde zurückgesetzt. Bevor neuer Text für
+diese Website geschrieben wird: nochmal an diese Regel denken, besonders bei
+generierten Blog-Teasern (`generate-blog-feed.mjs`) und bei künftigen
+Recherche-Einfügungen — diese Regel gilt auch dort.
+
 ## `assets/work/` — Kategorie-Ordner, generiert vs. von Hand
 
 `assets/work/` ist nach Kategorien unterteilt:
