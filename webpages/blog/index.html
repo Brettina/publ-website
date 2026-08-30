@@ -82,8 +82,9 @@
 
     .post-cover {
       width: 100%;
-      max-height: 320px;
-      object-fit: cover;
+      height: clamp(180px, 32vh, 320px);
+      object-fit: contain;
+      background: rgba(127,127,127,0.08);
       border-radius: 12px;
       display: block;
     }
@@ -136,6 +137,16 @@
       max-height: calc(85vh - 90px);
       margin-top: 12px;
       padding-right: 4px;
+    }
+
+    /* Some source articles (Word/PDF conversions) hardcode inline
+       color:#000000 on every line. That reads fine on a white page but
+       turns invisible in dark mode. Force injected content to follow the
+       reader's theme instead of the source document's assumptions. */
+    .article-modal-body,
+    .article-modal-body * {
+      color: inherit !important;
+      background: transparent !important;
     }
   </style>
 </head>

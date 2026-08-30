@@ -115,8 +115,12 @@ async function postFolderExists(slug) {
 }
 
 // If a post already exists, its own meta.json wins for the manifest listing —
-// that's how an enriched title/excerpt (written by the monthly research task)
+// that's how an enriched title/excerpt (written by the research pass)
 // surfaces in the feed without this script ever rewriting the post itself.
+//
+// Sort date = when it was ADDED (published), never when it was last edited
+// (updated). Fixing a typo in an old post must not bump it back to the top
+// of "newest first" — only genuinely new work/events should move.
 async function manifestEntryFor(slug, computed) {
   const existing = await readJson(path.join(BLOG_DIR, slug, "meta.json"), null);
   if (!existing) return computed;
@@ -126,7 +130,7 @@ async function manifestEntryFor(slug, computed) {
     title: existing.title || computed.title,
     excerpt: existing.excerpt || computed.excerpt,
     tags: Array.isArray(existing.tags) ? existing.tags : computed.tags,
-    date: existing.updated || existing.published || computed.date,
+    date: existing.published || existing.updated || computed.date,
     cover: existing.cover || computed.cover
   };
 }
@@ -141,7 +145,7 @@ async function buildFromWorkItems() {
     const slug = item.slug;
     const title = item.title || slug;
     const excerpt = item.excerpt || item.description || "";
-    const date = item.updated || item.published || "";
+    const date = item.published || item.updated || "";
     const label = CATEGORY_LABELS[item.category] || "Neuigkeit";
 
     const computed = {
@@ -167,8 +171,8 @@ async function buildFromWorkItems() {
 
       await writePost(slug, {
         title,
-        published: item.published || date,
-        updated: date,
+        published: item.published || "",
+        updated: item.updated || item.published || "",
         tags: item.tags || [],
         excerpt,
         sourceCategory: item.category,
@@ -199,10 +203,11 @@ async function buildFromCalendar(todayStr) {
       ? `Wir waren am ${ev.date}${ev.where ? ` in ${ev.where}` : ""} bei „${title}“.`
       : `Wir sind am ${ev.date}${ev.where ? ` in ${ev.where}` : ""} bei „${title}“ dabei.`;
 
-    // Announcements for future events count as "published now"; recaps of
-    // past events keep the real event date — otherwise a September fair
-    // would outrank today's news the moment it's added in January.
-    const sortDate = isPast ? ev.date : todayStr;
+    // Sort strictly by the real event date — "newest" means the event
+    // furthest along the actual calendar timeline, not "when this text was
+    // generated". A September fair legitimately outranks an August post
+    // once it's the next thing coming up.
+    const sortDate = ev.date;
     const photos = Array.isArray(ev.photos) ? ev.photos.filter(Boolean) : [];
 
     const computed = {

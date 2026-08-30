@@ -215,13 +215,19 @@ Wichtige Designentscheidungen dabei:
   automatisch auf, Ziel für weitere Bearbeitung zu sein, sobald ein neuerer
   Eintrag ihn von Position 0 verdrängt — es gibt nichts, was das separat
   tracken müsste.
-- **Zukünftige Kalender-Events sortieren als "heute veröffentlicht".** Ein
-  Event am 1. Oktober würde mit seinem eigenen Datum sortiert VOR
-  aktuellen News vom August landen, wenn man im August generiert — falsch
-  für einen Feed (ein Ankündigungs-Post ist "neu", wenn er geschrieben
-  wird, nicht wenn das Event stattfindet). Deshalb: vergangene Events
-  sortieren nach echtem Event-Datum (Rückblick), zukünftige Events
-  sortieren nach dem Datum des Generator-Laufs (Ankündigung).
+- **Sortiert wird nach "hinzugefügt", nicht nach "zuletzt bearbeitet".**
+  Erster Versuch: Work-Items sortierten nach `updated`, Kalender-Events
+  (zukünftige) nach dem Datum des Generator-Laufs statt nach ihrem echten
+  Datum — mit der Begründung, ein Event im Oktober solle nicht vor News vom
+  August landen, wenn man im August generiert. Der Nutzer hat das
+  korrigiert: "neueste zuerst" heißt das tatsächliche Hinzufüge-/Event-Datum,
+  nicht ein Bearbeitungs-Zeitstempel. Jetzt: Work-Items sortieren nach
+  `published` (Erstveröffentlichung/Hinzufügen), nicht nach `updated` (sonst
+  würde das Korrigieren eines Tippfehlers in einem alten Post ihn an die
+  Spitze des Feeds befördern). Kalender-Events sortieren strikt nach ihrem
+  echten Datum, ohne Sonderbehandlung für die Zukunft — ein Event im
+  Oktober ist zurecht "neuer" als ein Post vom August, sobald es das
+  nächste anstehende Ereignis ist.
 - **`assets/work/blog/` wird von `convert_articles.py` explizit
   ausgeschlossen.** Ohne diesen Ausschluss (Bug, der in dieser Session
   live auftrat und gefixt wurde) würde `convert_articles.py` beim nächsten
@@ -240,13 +246,42 @@ Wichtige Designentscheidungen dabei:
 
 **Blogseite (`webpages/blog/index.html`) komplett neu geschrieben:**
 Statt der alten Akkordeon-Logik mit Fetches gegen `assets/blog/<slug>/...`
-lädt sie jetzt nur noch `/assets/work/blog/blog-index.json`, rendert Karten
-mit Titel/Datum/Excerpt/Kategorie-Pill, und lädt den vollen Artikelinhalt
-erst bei Klick nach (`loadFullArticle()`, DOMParser-Body-Extraktion wie beim
-Homepage-Modal). **Infinite Scroll** statt "alles auf einmal": anfangs 6
-Einträge sichtbar, ein `IntersectionObserver` auf einem unsichtbaren
-Sentinel-Element am Listenende lädt bei Bedarf weitere 6 nach. Die Such-/
-Filterfelder setzen `visibleCount` beim Ändern zurück auf 6.
+lädt sie jetzt nur noch `/assets/work/blog/blog-index.json` und rendert
+Karten mit Titel/Datum/Kategorie-Pill/Cover-Bild.
+
+Wichtig, weil zweimal korrigiert:
+- **Kein Klick zum Aufklappen.** Erste Version hatte einen Akkordeon-Toggle
+  (Klick auf Titel = auf/zuklappen). Der Nutzer wollte das explizit nicht:
+  jede sichtbare Karte lädt ihren vollen Inhalt automatisch
+  (`loadFullArticle()`, DOMParser-Body-Extraktion wie beim Homepage-Modal),
+  sofort beim Rendern, ohne Interaktion. Nur wie viele Karten überhaupt
+  sichtbar/gerendert sind, wird durch Scrollen gesteuert.
+- **Infinite Scroll statt "alles auf einmal".** Anfangs `BATCH_SIZE = 3`
+  Einträge gerendert (nicht 6 — auch das war eine Nutzerkorrektur), ein
+  `IntersectionObserver` auf einem unsichtbaren Sentinel-Element am
+  Listenende lädt bei Bedarf weitere 3 nach.
+- **Rendering ist append-only, nicht "alles neu bauen".** Weil jede Karte
+  sofort ihren Inhalt nachlädt, würde ein `postsEl.innerHTML = ""` bei jedem
+  Scroll-Tick bereits geladene Karten erneut fetchen. `render()` merkt sich
+  `renderedSlugs` und hängt nur neue Karten an; ein echter Reset (Such-/
+  Filteränderung) passiert nur explizit über `render({ reset: true })`.
+- **"Mehr zum Buch"/"Vollständigen Artikel lesen"-Links öffnen ein
+  In-Page-Modal.** Diese Links (vom Generator erzeugt, zeigen auf die rohe
+  `assets/work/<category>/<slug>/article.html`) navigierten sonst zu einer
+  unstyled Seite. Die Blogseite hat jetzt ihr eigenes `<dialog
+  id="article-modal">` (gleiches Muster wie das Homepage-Modal); jeder Link
+  mit `href^="/assets/work/"` innerhalb des geladenen Inhalts wird
+  abgefangen und öffnet stattdessen das Modal (`wireInternalLinks()`).
+- **Farb-Fix im Modal.** Einige Quellartikel (Word/PDF-Konvertierungen,
+  z. B. "Wir gewinnen die Julius-Faucher-Medaille") haben hartkodierte
+  `style="color:#000000"` auf jeder Zeile — unsichtbar im Dark Mode.
+  `.article-modal-body, .article-modal-body * { color: inherit !important;
+  background: transparent !important; }` erzwingt das Theme des Lesers,
+  exakt dasselbe Muster wie schon beim Homepage-`.blog-modal-body`.
+- **Cover-Bilder: `object-fit: contain` statt `cover`.** Erste Version
+  beschnitt die Bilder (`cover` füllt den Slot, schneidet ab). Der Nutzer
+  wollte die Fotos unbeschnitten, an den Slot angepasst per Höhe/Breite
+  (`contain`, mit dezentem Hintergrund für den Letterbox-Bereich).
 
 **Anreicherung: ereignisgesteuert statt monatlicher Cloud-Routine.** Der
 Nutzer wollte ursprünglich, dass der jeweils *neueste* Feed-Post einmal im
@@ -302,11 +337,26 @@ niemals einen anderen Slug als den in `pending-enrichment.json` genannten
 anfassen, niemals `generate-blog-feed.mjs` während der Anreicherung selbst
 laufen lassen.
 
-**Bereits einmal durchgeführt** (in dieser Session, als Beispiel/Test): für
-`reznik-debater` (dem damals aktuell neuesten Post) wurde online zu "Taming
-the Debater Within" recherchiert (Erscheinungsjahr, Illustratorin,
-Verfügbarkeit, ein Testimonial-Zitat gefunden) und ein Entwurf +
-Anreicherungs-Notiz geschrieben. `article.html` blieb unverändert.
+**Bereits durchgeführt:**
+- Als Beispiel/Test des Draft-Workflows: für `reznik-debater` (dem damals
+  aktuell neuesten Post) wurde online zu "Taming the Debater Within"
+  recherchiert (Erscheinungsjahr, Illustratorin, Verfügbarkeit, ein
+  Testimonial-Zitat) und ein Entwurf + Anreicherungs-Notiz geschrieben.
+  `article.html` blieb unverändert.
+- **Ausnahme vom Draft-Workflow, auf expliziten Wunsch:** der Nutzer hat
+  bemängelt, dass die automatisch generierten Kalender-Termine ("Wir sind
+  am ... dabei" + die Notiz aus dem JSON) inhaltsleer wirken — "nichts
+  daran ist recherchiert". Auf explizite Anweisung wurden 7 Kalender-
+  Termin-Posts (EF-Konferenz, Wohlfühlmesse Gelsenkirchen, Leipziger
+  Buchmesse, Vorarlberger Buchmesse, Werdauer Lebensfreude Messe,
+  Esoteriktag Gelsenkirchen, Berliner Buchmesse) direkt recherchiert
+  (WebSearch) und ihre `article.html`-Dateien **direkt** um einen
+  Sachverhalts-Absatz ergänzt (Ort/Datum/Programm/Hintergrund der
+  jeweiligen Messe) — diesmal ohne Draft-Umweg, weil der Nutzer das explizit
+  so wollte. Das ändert NICHT das Standardverhalten des Generators
+  (weiterhin write-once, weiterhin Draft-Workflow für die fortlaufende
+  Ein-Post-pro-Zyklus-Anreicherung) — es war ein einmaliger redaktioneller
+  Eingriff, vergleichbar mit einer Handbearbeitung von `meta.json`.
 
 ### Header/Footer vereinheitlicht — drei verschiedene Marken-Identitäten gefunden
 
