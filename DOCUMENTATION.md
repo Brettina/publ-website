@@ -650,6 +650,28 @@ Umgebung) — Winkel/Größe/Position sind jedes Mal eine begründete Schätzung
    `transform: rotate(45deg)`, zentriert per Flexbox über die volle Box, statt
    prozentual positioniert. Box vergrößert auf 150×115px, Schriftgröße auf
    `0.78rem`, Container von `right:0` auf `left:0` verschoben.
+4. Nutzer-Feedback zu Schritt 3: Schärpe sitzt jetzt gut (Rückmeldung
+   "much better"), aber noch zu weit rechts, darf größer sein, und der
+   Text ist "in die andere Richtung, 25 Grad" verdreht. **Ursache
+   gefunden:** CSS wendet bei `transform: scaleX(-1) rotate(13deg)` die
+   Funktionen von rechts nach links an — `rotate(13deg)` wirkt zuerst (auf
+   den ~32°-Winkel im Originalbild), **danach erst** `scaleX(-1)`. Per
+   Vektor-Rechnung ergibt das einen finalen Winkel von nur ~19°
+   (32° − 13°), nicht die geplanten ~45°. Da dem Nutzer genau dieses ~19°-
+   Ergebnis optisch gefallen hat, wurde **nicht** der Bild-Winkel
+   korrigiert, sondern der Text auf denselben ~19° gebracht
+   (`transform: rotate(19deg)` statt `rotate(45deg)`), damit beide
+   zueinander passen. Box weiter vergrößert (190×145px) und mit
+   `top:-14px; left:-14px` bewusst über den Kartenrand hinaus nach
+   oben-links verschoben, damit die sichtbare Schärpe näher an die
+   tatsächliche Ecke rückt (das Motiv hat selbst einen transparenten Rand,
+   der sonst wie ein Versatz nach rechts/unten wirkt).
+
+**Lehre:** Bei mehreren `transform`-Funktionen in einer Liste wird die
+**rechteste zuerst** angewendet, nicht die linkeste — `scaleX(-1)
+rotate(Xdeg)` bedeutet "erst rotieren, dann spiegeln", nicht umgekehrt.
+Das ist eine häufige Fehlerquelle bei kombinierten CSS-Transforms und hat
+hier zu einem falsch berechneten Winkel geführt.
 
 ## Gefundene und behobene Bugs (mit Ursache, damit sie nicht wiederkommen)
 

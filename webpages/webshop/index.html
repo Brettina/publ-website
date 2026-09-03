@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Buchshop - publish-Lohr</title>
+  <title>Laden - publish-Lohr</title>
 
-  <meta name="description" content="Buchshop. Anfrage per E-Mail." />
+  <meta name="description" content="Laden. Anfrage per E-Mail." />
   <link rel="stylesheet" href="/assets/styles.css" />
   <link rel="icon" href="/img/webicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="/img/webicon.png" />
@@ -13,6 +13,20 @@
 
   <style>
     /* Webshop-local layout (keeps your global styles intact) */
+
+    /* Page background — only on this page, not site-wide. Fixed so it
+       doesn't scroll with the (potentially long) product list; cover so it
+       fills any viewport. Dark fallback color matches this page's own
+       --bg in case the image is slow/fails to load. */
+    body {
+      background-color: #0b0c0f;
+      background-image: url("/img/bg.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
     .shop-head {
       display: flex;
       flex-direction: column;
@@ -117,17 +131,23 @@
     /* Sale ribbon — corner sash on discounted items, overlapping the TOP-LEFT
        corner. Uses schaerpe.png, which is already drawn as a thin diagonal
        sash (rising left-to-right, transparent canvas). Mirrored horizontally
-       (scaleX(-1)) so it falls the other way for the left corner, and nudged
-       with an extra rotate so the printed ~32° diagonal reads as a clean 45°.
-       Image and text are independent siblings, both rotated around the same
-       box center, rather than nested — a nested rotated wrapper previously
-       left the text under-rotated relative to the (already-diagonal) image. */
+       (scaleX(-1)) so it falls the other way for the left corner. NOTE: CSS
+       applies the rightmost transform function first, so `scaleX(-1)
+       rotate(13deg)` actually rotates the artwork's own ~32° diagonal down
+       to ~19° *before* mirroring it (rotate happens first, flip second) —
+       not a clean 45° as originally intended, but this is the look the user
+       confirmed looks good, so it's kept as-is. The text's rotate below is
+       matched to that same ~19° so it tracks the sash instead of the
+       originally-planned 45°. Image and text are independent siblings, both
+       rotated around the same box center, rather than nested — a nested
+       rotated wrapper previously left the text under-rotated relative to
+       the image. */
     .sale-ribbon {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 150px;
-      height: 115px;
+      top: -14px;
+      left: -14px;
+      width: 190px;
+      height: 145px;
       overflow: hidden;
       pointer-events: none;
       z-index: 3;
@@ -148,11 +168,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transform: rotate(45deg);
+      transform: rotate(19deg);
       transform-origin: center center;
       color: #fff;
       font-weight: 700;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       text-align: center;
       text-shadow: 0 1px 3px rgba(0,0,0,0.7);
       white-space: nowrap;
@@ -456,7 +476,7 @@
 
   <main id="main" class="container">
     <header class="page-hero shop-head">
-      <h1>Buchshop</h1>
+      <h1>Laden</h1>
       <p class="lead" style="margin:0;">
         Bücher auswählen. Keine Zahlung auf der Website — du stellst hier eine Auswahl zusammen und sendest eine Anfrage per E-Mail.
       </p>
