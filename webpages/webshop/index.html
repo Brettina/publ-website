@@ -850,12 +850,18 @@
       const hasAmount = typeof sale.amount === "number" && sale.amount > 0;
       if (!hasPercent && !hasAmount) return null;
 
+      const from = (sale.from || "").toString().trim();
+      if (from) {
+        const fromDate = new Date(`${from}T00:00:00`);
+        if (!isNaN(fromDate.getTime()) && fromDate.getTime() > Date.now()) return null;
+      }
+
       const until = (sale.until || "").toString().trim();
       if (until) {
         const untilDate = new Date(`${until}T23:59:59`);
         if (isNaN(untilDate.getTime()) || untilDate.getTime() < Date.now()) return null;
       }
-      return { percent: hasPercent ? sale.percent : null, amount: hasAmount ? sale.amount : null, until };
+      return { percent: hasPercent ? sale.percent : null, amount: hasAmount ? sale.amount : null, from, until };
     }
 
     // Returns the discounted price, or basePrice unchanged if no active sale.
@@ -876,6 +882,25 @@
       if (!active) return "";
       const cut = active.percent != null ? `${active.percent}%` : formatEUR(active.amount);
       return active.until ? `-${cut} bis ${formatDateDE(active.until)}` : `-${cut}`;
+    }
+
+    // Central discount list (products.json "sales") — books look up their
+    // discount here too, keyed by slug, instead of carrying it in meta.json.
+    let salesByIdPromise = null;
+    function loadSalesById() {
+      if (!salesByIdPromise) {
+        salesByIdPromise = fetch("/assets/shop/products.json", { cache: "no-store" })
+          .then(res => res.ok ? res.json() : { sales: [] })
+          .then(data => {
+            const map = new Map();
+            (Array.isArray(data?.sales) ? data.sales : []).forEach(s => {
+              if (s && s.id) map.set(String(s.id), s);
+            });
+            return map;
+          })
+          .catch(() => new Map());
+      }
+      return salesByIdPromise;
     }
 
     function loadCartFromStorage() {
@@ -1565,7 +1590,10 @@ async function resolveWorkImage({ slug, category, meta, indexCover }) {
 }
 
 async function loadBooksFromWorkIndex() {
-  const res = await fetch("/assets/work-index.json", { cache: "no-store" });
+  const [res, salesById] = await Promise.all([
+    fetch("/assets/work-index.json", { cache: "no-store" }),
+    loadSalesById()
+  ]);
   if (!res.ok) throw new Error("work-index.json missing");
   const data = await res.json();
   console.log("work-index.json keys:", Object.keys(data || {}), data);
@@ -1648,7 +1676,7 @@ return {
   price: displayPrice,   // list/sort price (“from”)
   pricePrint,
   priceDigital,
-  sale: (meta.sale && typeof meta.sale === "object") ? meta.sale : null,
+  sale: salesById.get(String(w.id)) || null,
   currency: "EUR",
 
   unit: String(meta.unit || "Buch"),
@@ -1682,6 +1710,11 @@ async function loadMerchProducts() {
 
   const items = Array.isArray(data?.products) ? data.products : [];
 
+  const salesById = new Map();
+  (Array.isArray(data?.sales) ? data.sales : []).forEach(s => {
+    if (s && s.id) salesById.set(String(s.id), s);
+  });
+
   return items
     .filter(p => p && (p.page || "") === "webshop")
     .map(p => ({
@@ -1694,7 +1727,7 @@ async function loadMerchProducts() {
       images: Array.isArray(p.images) ? p.images : (p.image ? [p.image] : []),
 
       price: toNumber(p.price),
-      sale: (p.sale && typeof p.sale === "object") ? p.sale : null,
+      sale: salesById.get(String(p.id)) || null,
       currency: "EUR",
 
       material: p.material || "",

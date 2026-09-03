@@ -529,13 +529,81 @@ diese Art von Struktur-Änderung.
 
 ### Rabatt-/Sale-System
 
-Zentral im jeweiligen Produkt-JSON pflegbar: ein optionales Feld
-`"sale": { "percent": 10, "until": "2026-09-08" }` (alternativ `"amount"`
-statt `"percent"` für einen festen Euro-Abzug) — für Bücher in
-`assets/work/books/<slug>/meta.json`, für Merch in `assets/shop/products.json`.
-Kein neues Dokument, keine zweite Quelle der Wahrheit.
+**Eine zentrale Liste für alle Rabatte — Bücher UND Merch.** `"sales"`
+ganz am Anfang von `assets/shop/products.json`, ein Eintrag pro
+rabattiertem Artikel, verknüpft über die `id` (bei Merch die Produkt-`id`
+aus derselben Datei, bei Büchern der Ordner-Slug aus `assets/work/books/`,
+z. B. `"reznik-debater"`):
 
-`webpages/webshop/index.html` enthält die Logik zentral:
+```json
+"sales": [
+  { "id": "reznik-debater", "percent": 10, "from": "2026-09-05", "until": "2026-09-08" }
+],
+```
+
+`"amount"` statt `"percent"` für einen festen Euro-Abzug (z. B. `4.50`).
+`"from"` und `"until"` sind beide optional (`"YYYY-MM-DD"`): ohne `"from"`
+gilt der Rabatt sofort, ohne `"until"` unbefristet. Mit beiden gesetzt
+schaltet sich der Rabatt (und damit Schärpe + Preis-Durchstreichung) am
+`from`-Datum automatisch scharf und am Tag nach `until` automatisch wieder
+ab — kein manuelles Ein-/Ausschalten oder Aufräumen nötig
+(`getActiveSale()` prüft beide Grenzen bei jedem Seitenaufruf gegen das
+aktuelle Datum). Einfach einen Eintrag hinzufügen/entfernen, ohne im
+Produkt- oder Buch-Objekt selbst etwas anzufassen.
+
+**Wichtig — nur EIN Ort dafür.** Zwei Zwischenstände wurden bewusst wieder
+verworfen, bis das hier stand:
+1. Erste Version hatte `sale` direkt im jeweiligen Merch-Produkt-Objekt in
+   `products.json` — vom Nutzer verworfen ("das heißt ich muss ständig
+   einzelne Produkte anfassen? nein, eine zentrale Liste").
+2. Zweite Version hatte die zentrale `sales`-Liste, aber nur für Merch;
+   Bücher trugen ihren Rabatt weiterhin einzeln im eigenen `meta.json`
+   (`assets/work/books/<slug>/meta.json`). Auch das verworfen: "NO THE
+   DISCOUNT INFO SHOULD GO IN PRODUCTS.JSON. all products, also books."
+
+`webpages/webshop/index.html` liest die Liste über eine gemeinsame
+`loadSalesById()`-Funktion (fetcht `products.json`, baut eine `Map` von
+`id` → Sale-Objekt, gecacht in einem Promise pro Seitenaufruf); sowohl
+`loadMerchProducts()` als auch `loadBooksFromWorkIndex()` schlagen dort
+nach — keiner der beiden liest ein `sale`-Feld mehr aus dem jeweiligen
+Quell-JSON selbst.
+
+**Lehre:** Bei einer Funktion, die für mehrere Content-Typen gilt (hier:
+Bücher UND Merch), nicht "pro Typ an der naheliegendsten Stelle" ablegen,
+auch wenn das erst nach weniger Umbau aussieht — im Zweifel gleich die
+eine echte zentrale Stelle bauen.
+
+**Warum diese Trennung überhaupt Sinn ergibt (Buchpreisbindung):** Das ist
+kein Zufall, sondern folgt aus deutschem Recht. Für Bücher gilt in
+Deutschland die **Buchpreisbindung** (Buchpreisbindungsgesetz) — der
+Verlag legt einen verbindlichen Endpreis fest, der (von engen gesetzlichen
+Ausnahmen abgesehen) nicht beliebig rabattiert werden darf, und die
+verschiedenen Ausgaben/Versionen eines Titels sind an feste, dauerhafte
+Preisangaben gebunden. Deshalb gilt:
+
+- **`assets/work/books/<slug>/meta.json`** enthält die echten, dauerhaften
+  Angaben zu einem Buch — inkl. `price-print`/`price-digital`. Diese Datei
+  gilt als **nicht anzutasten** für alles, was mit Preisänderungen zu tun
+  hat. Nicht weil das technisch unmöglich wäre, sondern weil Bücher rechtlich
+  anders (strenger) behandelt werden müssen als Merch.
+- **`assets/shop/products.json`** ist bewusst der Ort für alles, was sich
+  **ändern darf** — die zentrale `sales`-Liste (siehe oben) gilt für Bücher
+  UND Merch, weil ein zeitlich befristeter Rabatt nach den gesetzlichen
+  Ausnahmen der Buchpreisbindung zulässig ist, aber eben nur als
+  vorübergehende, klar befristete Aktion, nicht als dauerhafte
+  Preisänderung am Buch selbst. Merch (T-Shirts, Socken etc.) unterliegt
+  der Buchpreisbindung ohnehin nicht und darf frei rabattiert werden — es
+  lebt in derselben Datei, weil es ohnehin schon "das veränderliche Zeug"
+  ist, keine so strengen Regeln wie Bücher befolgen muss.
+
+Praktische Konsequenz für zukünftige Änderungen: **niemals** `price-print`/
+`price-digital` (oder andere feste Angaben) in einem Buch-`meta.json`
+verändern, um einen Rabatt abzubilden — Rabatte gehören ausschließlich in
+die `sales`-Liste von `products.json`, die Buch-Originalpreise bleiben
+davon unberührt und werden zur Laufzeit nur für die Anzeige reduziert
+(`applySale()`), nie im Quell-JSON selbst überschrieben.
+
+`webpages/webshop/index.html` enthält die weitere Logik zentral:
 
 - `getActiveSale(sale)` — prüft, ob `percent`/`amount` gesetzt und `until`
   (falls vorhanden) noch nicht abgelaufen ist. Kein Enddatum = Rabatt läuft
