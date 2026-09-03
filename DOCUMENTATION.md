@@ -1476,26 +1476,20 @@ künftiger `functions/api/archiv-search.js`-Endpunkt für die KI-Suche wäre
 also ohne komplett neue Infrastruktur möglich, nur die eigentliche
 LLM-Anbindung fehlt noch.
 
-### Archiv: zwei Sektionen — Suche (Hinweis) + kuratiertes Raster
+### Archiv: "Übersicht"-Raster wieder entfernt
 
-Zweite Sektion auf `webpages/archiv/index.html` ergänzt:
-
-1. **"Suche"** (bestehend): jetzt mit explizitem deutschem Hinweistext
-   direkt über dem Suchfeld — "Wir arbeiten an einem neuen Feature für
-   dich: einer KI-gestützten Suche durch alles, was publish-Lohr
-   veröffentlicht hat." Funktion bleibt wie zuvor beschrieben nicht
-   angeschlossen (`search()` gibt `null` zurück).
-2. **"Übersicht"** (neu): ein Karten-Raster (Bild + Titel, verlinkt) für
-   alles, was in `assets/archiv.json` steht — eine neue, **von Hand
-   gepflegte** Datei (wie `assets/shop/products.json`), kein Generator.
-   Jeder Eintrag: `{ "title", "image", "link", "excerpt" }`. Mit acht
-   Einträgen vorbefüllt (alle aktuellen Bücher/Artikel/Events/Spiele aus
-   `assets/work-index.json`, händisch übernommen) als Startpunkt — Einträge
-   hinzufügen/entfernen/bearbeiten direkt in `assets/archiv.json`, kein
-   Codeänderung nötig. `excerpt` wird aktuell nicht angezeigt, ist aber
-   bewusst mit im Schema: laut Nutzer der richtige Ort, um zusätzlichen
-   Kontext zu hinterlegen, den die künftige KI-Suche einmal nutzen soll
-   ("alles, was die LLM einschließen soll").
+Kurzlebige Ergänzung: eine zweite Sektion "Übersicht" (Karten-Raster mit
+Bild+Titel, gespeist aus einer neuen, von Hand gepflegten
+`assets/archiv.json`, acht Einträge aus dem aktuellen Katalog vorbefüllt)
+wurde direkt danach vom Nutzer wieder verworfen ("delete the übersicht
+again"). Beides rückgängig gemacht: die Sektion samt zugehörigem CSS/JS
+aus `webpages/archiv/index.html` entfernt, `assets/archiv.json` selbst
+gelöscht (nichts referenziert es mehr). `webpages/archiv/index.html`
+besteht jetzt wieder nur aus der einen "Suche"-Sektion — Hinweistext
+("Wir arbeiten an einem neuen Feature für dich: einer KI-gestützten Suche
+durch alles, was publish-Lohr veröffentlicht hat.") + Suchfeld, Funktion
+weiterhin nicht angeschlossen (`search()` gibt `null` zurück, siehe
+"Neue Nav-Seite 'Archiv'" weiter oben für die volle Historie).
 
 ### Morphologie-Werkzeug (Spiel) in den Webshop aufgenommen
 
@@ -1553,8 +1547,172 @@ Erscheinen, vor Rabattstart) keine, ab dem 05.09. dann die goldene
 Sale-Ribbon — funktioniert wie ein natürlicher Live-Test der neuen
 Funktion mit echten Daten.
 
+**Ungewollter Nebeneffekt sofort gefunden und gefixt:** Durch das
+Entfernen der harten `available:"nein"`-Ausblendung (s.o.) tauchte
+`assets/work/events/julius-faucher-medaille/meta.json` (der "Artikel im
+EF-Magazin"-Eintrag) plötzlich im Webshop auf, mit `"price-digital": 10`
+— ein Preisfeld, das offenbar aus einer früheren, nicht mehr
+nachvollziehbaren Testphase dort stehen geblieben war ("did i even add
+the price?!" — Nutzer wusste selbst nicht mehr, woher das kam). Dieses
+Event war nie als Verkaufsartikel gedacht. Fix: `price-print`/
+`price-digital` aus dieser `meta.json` entfernt — der bestehende
+"kein Preis = nicht im Shop"-Filter greift dann wieder, das Event
+verschwindet erneut aus dem Webshop. **Lehre:** Bei einer Änderung, die
+zuvor ausgeblendete Inhalte plötzlich sichtbar macht (wie hier die
+comingSoon-Umstellung), IMMER prüfen, was dadurch neu auftaucht — nicht
+nur, ob die neue Funktion selbst richtig funktioniert. Nach dieser
+Bereinigung haben nur noch die drei echten Bücher und das Morphologie-
+Spiel ein Preisfeld (`grep -rl "price-print\|price-digital"
+assets/work/*/*/meta.json` als schneller Check für künftige Male).
+
+### Mitgliedschaft/Login: nur beschreibender Inhalt, bewusst KEIN echtes Login/Zahlungssystem
+
+Der Nutzer wollte: einen Login-Bereich im Header, ein Werkzeug, das nur
+für angemeldete Mitglieder zugänglich ist, und ein Abrechnungsmodell, bei
+dem Mitglieder ein Zahlungsmittel hinterlegen und monatlich nur nach
+tatsächlicher Nutzung abgerechnet werden (wenige Cent/Monat, nichts bei
+Nichtnutzung).
+
+**Bewusste Entscheidung, das NICHT als echte Funktion zu bauen:** Ein
+Login-Formular mit Benutzername/Passwort-Feldern, das nichts wirklich
+authentifiziert, oder ein Formular, das zum "Hinterlegen" einer
+Zahlungsmethode auffordert, ohne dass dahinter eine echte, sichere
+Zahlungsabwicklung steht, wäre ein Dark Pattern — es würde Besuchern
+vorgaukeln, ihre Zugangsdaten oder Zahlungsinformationen würden sicher
+verarbeitet, obwohl nichts davon tatsächlich passiert. Das ist unabhängig
+von Format ("ist ja nur für später") ein echtes Sicherheits-/Vertrauens-
+Problem, sobald ein Formularfeld für Passwörter oder Kartendaten
+angezeigt wird, ohne dass eine echte Backend-Absicherung existiert.
+
+Stattdessen umgesetzt — konsistent mit dem Rest der Seite (die auch sonst
+überall mit `mailto:`-Anfragen statt echter Transaktionsverarbeitung
+arbeitet, siehe z. B. "Bestellung = Reservierung" beim Webshop):
+
+- **`webpages/login/index.html`** (neu): reine Info-Seite, kein
+  Formularfeld. "Login noch nicht verfügbar", Link zur "Mitglied
+  werden"-Sektion der Startseite und zum bestehenden Kontaktformular.
+  Verlinkt in `assets/partials/header.html` und (da der Webshop eine
+  eigene, nicht über das Partial geladene Kopfzeile hat — siehe
+  "Header/Footer-Unifizierung") auch dort separat.
+- **Startseite, neue Sektion "Mitglied werden"** (`#mitglied-werden`,
+  direkt unter `.hero`): beschreibt das geplante Abrechnungsmodell in
+  Fließtext, mit einem Button, der zum bestehenden Kontaktformular
+  scrollt (`href="#contact"`) — keine echte Zahlungsmittel-Erfassung,
+  nur eine Einladung, per Mail Interesse zu bekunden.
+- **`assets/work/games/morphology/article.html`** und `meta.json`
+  (`klappentext`): erklären den Bezug zu Dr. Peter S. Reznik, Ph.Ds Buch
+  "Morphologische Geheimnisse von erfolgreichen Beziehungen" (verlinkt),
+  dass das Werkzeug ein Foto hochlädt und eine Gesichtsanalyse liefert,
+  dass es nur für angemeldete Mitglieder gedacht ist, und dasselbe
+  Abrechnungsmodell wie oben.
+
+**Nachtrag: Link zum eigentlichen Werkzeug.** Nutzerwunsch: beim Klick auf
+das Morphologie-Werkzeug soll ein Link zur eigentlichen Anwendung sichtbar
+sein (Unterseite von `assets/work/games/morphology/`), "für jetzt generisch"
+— also ohne echte Login-Prüfung, einfach sichtbar für alle, bis es echtes
+Login gibt. Umgesetzt:
+
+- **`assets/work/games/morphology/tool/index.html`** (neu): reine
+  Platzhalter-Seite für die eigentliche Anwendung (Foto hochladen →
+  Analyse), noch ohne echte Funktion — analog zu `webpages/login/` und
+  `webpages/archiv/` "bald verfügbar" gehalten.
+- Verlinkt an zwei Stellen, beide generisch (keine Login-Prüfung, wie
+  angefragt): in `assets/work/games/morphology/article.html` (Fließtext-
+  Link "Zum Werkzeug") UND im Webshop-Produkt-Modal, über ein neues
+  `"alsoPublished"`-Array in `meta.json` (dasselbe Feld, das bei den
+  Büchern für "Autorenwebsite"/"Amazon"-Links genutzt wird) — dadurch
+  taucht der Link automatisch auf, sobald jemand die Produktkarte im
+  Webshop anklickt, ohne dass die Modal-Rendering-Logik selbst angefasst
+  werden musste.
+
+**Für später, falls ein echtes Login/Bezahlsystem gebaut werden soll:**
+Es gibt bereits `functions/api/` mit echten Cloudflare-Pages-Functions
+(siehe "Archiv"-Abschnitt weiter oben) — die technische Basis für ein
+Backend ist also vorhanden, aber Authentifizierung + wiederkehrende
+Zahlungen (Kartendaten hinterlegen, monatlich automatisch abbuchen)
+brauchen einen echten Zahlungsdienstleister (z. B. Stripe Billing/
+Subscriptions), eine Nutzerverwaltung/Datenbank und wahrscheinlich eine
+rechtliche Prüfung (PCI-Konformität, Fernabsatzrecht bei wiederkehrenden
+Kleinbeträgen) — das ist ein eigenständiges Projekt, keine Sache, die
+nebenbei in einem CSS/Copy-Task mitgebaut werden sollte.
+
+### Echter Passwortschutz fürs Morphologie-Werkzeug (Server-seitig)
+
+Nachtrag zum vorigen Abschnitt: Der Nutzer bestand nach der ersten
+Sicherheitswarnung mehrfach auf einer Passwort-Lösung ("do the pw
+solution i told you"), auch nachdem "manuell per Mail" als Option gewählt
+wurde. Wichtige Klarstellung dabei erarbeitet: das Problem ist NICHT, wie
+ein Passwort verteilt wird (das darf gerne manuell/persönlich per Mail
+passieren) — das Problem ist, WO es geprüft wird. Eine Prüfung im
+Website-eigenen Code (egal ob JSON-Datei oder JS-Array) ist zwangsläufig
+öffentlich einsehbar, weil eine statische Seite alles ausliefert, was
+angefragt wird — es gibt keine Möglichkeit, eine Datei "nur für berechtigte
+Nutzer" sichtbar zu machen, ohne dass die Prüfung selbst irgendwo
+serverseitig passiert.
+
+**Tatsächlich umgesetzte, sichere Lösung** (Nutzer stimmte dieser
+Variante ausdrücklich zu, per Rückfrage): eine echte serverseitige Prüfung
+über die bereits vorhandenen Cloudflare-Pages-Functions.
+
+- **`functions/api/game-access.js`** (neu): `POST { game, password }` →
+  vergleicht `password` gegen eine Cloudflare-Pages-Umgebungsvariable
+  (`GAME_PASSWORD_MORPHOLOGY`, Klartext-Name absichtlich pro Spiel
+  eindeutig) — **diese Variable steht NUR im Cloudflare-Dashboard, nirgends
+  im Repo**. Bei Treffer: `{ ok: true, url: "/assets/work/games/morphology/tool/" }`.
+  Bei Fehltreffer oder wenn die Env-Var noch gar nicht gesetzt ist: `401`,
+  `{ ok: false }` — kein "offen, weil noch nicht konfiguriert". Registrierung
+  neuer Spiele: Eintrag im `GAMES`-Objekt in dieser Datei ergänzen + die
+  passende Env-Var im Cloudflare-Dashboard anlegen.
+- **`assets/work/games/morphology/tool/index.html`**: jetzt die eigentliche
+  Zugangsschranke selbst (nicht mehr nur ein Platzhalter-Hinweis) —
+  Passwort-Feld + "Freischalten"-Button, ruft `/api/game-access` auf, zeigt
+  bei Erfolg den (weiterhin als Platzhalter markierten) Werkzeug-Bereich,
+  bei Misserfolg eine Fehlermeldung. Absichtlich als EIGENE, vollständige
+  Seite gebaut (nicht als in `article.html` eingebettetes Fragment) — Grund:
+  `article.html`-Inhalte werden an mehreren Stellen per `fetch()` +
+  `innerHTML` in ein Modal eingefügt (Blog, Homepage-Galerie), und
+  per `innerHTML` eingefügte `<script>`-Tags führen sich in keinem Browser
+  aus. Nur ein echter Seitenaufruf (wie bei `webpages/login/`,
+  `webpages/archiv/`) garantiert, dass das eigene `<script>` zuverlässig
+  läuft.
+- Da die eigentliche Zugangskontrolle jetzt AUF der Werkzeug-Seite selbst
+  sitzt, ist ein direkter Link dorthin wieder unbedenklich (kein "Security
+  through obscurity" mehr nötig) — `article.html` und `meta.json`
+  (`alsoPublished`) verlinken jetzt wieder direkt
+  `/assets/work/games/morphology/tool/`, zusätzlich weiterhin der
+  "Zugang anfragen"-Mailto-Link, über den man überhaupt erst ein Passwort
+  bekommt.
+
+**Für den Nutzer zu erledigen, damit das live funktioniert:** Im
+Cloudflare-Pages-Dashboard des Projekts unter Settings → Environment
+variables eine Variable `GAME_PASSWORD_MORPHOLOGY` mit dem gewünschten
+Passwort als Wert anlegen (als "Secret", nicht als Klartext-Variable, falls
+die Cloudflare-UI das unterscheidet) — ohne diesen Schritt lässt sich das
+Werkzeug für niemanden freischalten (bewusst "geschlossen", nicht "offen",
+solange nichts konfiguriert ist, siehe oben).
+
+**Nicht umgesetzt (bewusst, zu großer Scope für diese Anfrage):** Rate-
+Limiting gegen wiederholtes Passwort-Raten (bräuchte Cloudflare KV/Durable
+Objects), Passwort-Rotation/mehrere gültige Passwörter pro Spiel, dieselbe
+Absicherung für die Archiv-Suche (aktuell ohnehin noch nicht implementiert,
+siehe "Archiv"-Abschnitt — sinnvollerweise gleichzeitig mit dem echten
+Such-Backend abzusichern, nicht vorher separat).
+
 ## Offene Punkte
 
+- **`GAME_PASSWORD_MORPHOLOGY` muss noch im Cloudflare-Dashboard gesetzt
+  werden.** Ohne diese Umgebungsvariable (Settings → Environment
+  variables im Cloudflare-Pages-Projekt) bleibt `/api/game-access` für
+  jeden Versuch geschlossen, egal welches Passwort eingegeben wird — siehe
+  "Echter Passwortschutz fürs Morphologie-Werkzeug" weiter oben.
+- **Login/Mitgliedschaft ist reiner Info-Inhalt, keine echte Funktion.**
+  `webpages/login/index.html`, die "Mitglied werden"-Sektion auf der
+  Startseite und der Login-Hinweis im Morphologie-Werkzeug beschreiben ein
+  geplantes Konto- + nutzungsbasiertes Abrechnungsmodell, ohne dass echtes
+  Login oder echte Zahlungsabwicklung existiert (bewusst so — siehe
+  "Mitgliedschaft/Login" weiter oben, Sicherheitsbedenken bei einem
+  Schein-Login-/Zahlungsformular). Sobald das wirklich gebaut werden soll,
+  braucht es einen echten Zahlungsdienstleister + Nutzerverwaltung.
 - **"Archiv"-Suche ist bewusst unangeschlossen.** `webpages/archiv/index.html`
   (umbenannt von "Entdecken", siehe "Neue Nav-Seite Archiv") hat nur
   Suchfeld + Button, keine funktionierende Suche dahinter (eine erste

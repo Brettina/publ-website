@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login - publish-Lohr</title>
+  <script src="/assets/site.js" defer></script>
+
+  <meta name="description" content="Login und Mitgliedschaft - demnächst verfügbar." />
+  <link rel="stylesheet" href="/assets/styles.css?v=3" />
+  <link rel="icon" href="/img/webicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/img/webicon.png" />
+  <meta name="color-scheme" content="light dark" />
+
+  <style>
+    :root {
+      --bg: #0b0c0f;
+      --panel: #12141a;
+      --text: #e9eef6;
+      --muted: #c9b48f;
+      --border: rgba(255,255,255,.12);
+      --shadow: rgba(0,0,0,.35);
+    }
+    body { color-scheme: dark; }
+    body {
+      background-color: #0b0c0f;
+      background-image: url("/img/bg.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+    .section {
+      background: color-mix(in srgb, var(--panel) 50%, transparent) !important;
+    }
+    .page-hero,
+    .card {
+      background: color-mix(in srgb, var(--panel) 99.9%, transparent) !important;
+    }
+  </style>
+</head>
+<body class="page-login">
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <div id="header-slot"></div>
+
+  <main id="main" class="container">
+    <header class="page-hero">
+      <h1>Login</h1>
+      <p class="lead" style="margin:0;">
+        Die Mitgliedschaft (Login + monatliche Abrechnung nach Nutzung) ist
+        noch im Aufbau — hier ist noch kein echtes Konto anlegbar.
+      </p>
+    </header>
+
+    <section class="section" aria-labelledby="login-soon-title">
+      <h2 id="login-soon-title">Bald verfügbar</h2>
+      <p class="fineprint">
+        Mehr zur geplanten Mitgliedschaft: <a href="/#mitglied-werden">Startseite, „Mitglied werden“</a>.
+        Interesse schon jetzt? <a href="/#contact">Schreib mir eine Mail</a>.
+      </p>
+    </section>
+  </main>
+
+  <div id="footer-slot"></div>
+</body>
+</html>

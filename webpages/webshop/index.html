@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Laden - publish-Lohr</title>
+  <title>Laden - Publish-Lohr</title>
 
   <meta name="description" content="Laden. Anfrage per E-Mail." />
   <link rel="stylesheet" href="/assets/styles.css?v=3" />
@@ -198,10 +198,12 @@
        still has just ONE rotation, applied to this one element. */
     .sale-ribbon {
       position: absolute;
-      top: 16px;
-      left: -38px;
-      width: 170px;
-      padding: 7px 0;
+      top: 12px;
+      left: -42px;
+      /* Bigger than .availability-ribbon (170px/0.72rem) — sale takes
+         visual priority over the plain "coming soon" notice. */
+      width: 190px;
+      padding: 9px 0;
       transform: rotate(-42deg);
       transform-origin: center center;
       /* Stopgap per user request: schaerpe.png (even just as a zoomed-in
@@ -213,7 +215,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.45);
       color: #fff;
       font-weight: 700;
-      font-size: 0.72rem;
+      font-size: 0.84rem;
       text-align: center;
       text-shadow: 0 1px 2px rgba(0,0,0,0.6);
       white-space: nowrap;
@@ -586,6 +588,7 @@
         <li><a href="/webpages/blog/">Blog</a></li>
         <li><a href="/webpages/archiv/">Archiv</a></li>
         <li><a href="/webpages/webshop/" aria-current="page">Webshop</a></li>
+        <li><a href="/webpages/login/">Anmelden</a></li>
         <li>
           <a href="#cart" class="cart-link" aria-label="Zum Warenkorb">
             <span aria-hidden="true">🛒</span>
@@ -612,7 +615,7 @@
 
     <section class="section" aria-labelledby="shop">
       <div class="section-head">
-        <h2 id="shop" style="margin:0;">Bücher &amp; Merch</h2>
+        <h2 id="shop" style="margin:0;">Bücher , Spiele &amp; Merch</h2>
 
       </div>
 
@@ -814,7 +817,7 @@
 </div>
 
   <footer class="site-footer">
-    <p>© <span id="year"></span> publish-Lohr</p>
+    <p>© <span id="year"></span> Publish-Lohr</p>
     <ul class="footer-links">
       <li><a href="/regulation/privacy/">Datenschutz</a></li>
       <li><a href="/regulation/cookies/">Cookies</a></li>

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Morphologie-Werkzeug - Anwendung</title>
+  <script src="/assets/site.js" defer></script>
+
+  <meta name="description" content="Morphologie-Werkzeug - nur für zahlende Mitglieder." />
+  <link rel="stylesheet" href="/assets/styles.css?v=3" />
+  <link rel="icon" href="/img/webicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/img/webicon.png" />
+  <meta name="color-scheme" content="light dark" />
+
+  <style>
+    :root {
+      --bg: #0b0c0f;
+      --panel: #12141a;
+      --text: #e9eef6;
+      --muted: #c9b48f;
+      --border: rgba(255,255,255,.12);
+      --shadow: rgba(0,0,0,.35);
+    }
+    body { color-scheme: dark; }
+    body {
+      background-color: #0b0c0f;
+      background-image: url("/img/bg.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+    .section {
+      background: color-mix(in srgb, var(--panel) 50%, transparent) !important;
+    }
+    .page-hero,
+    .card {
+      background: color-mix(in srgb, var(--panel) 99.9%, transparent) !important;
+    }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body class="page-morphology-tool">
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <div id="header-slot"></div>
+
+  <main id="main" class="container">
+    <header class="page-hero">
+      <h1>Morphologie-Werkzeug</h1>
+      <p class="lead" style="margin:0;">Nur für zahlende Mitglieder.</p>
+    </header>
+
+    <section class="section" id="gate-section" aria-labelledby="gate-title">
+      <h2 id="gate-title">Passwort eingeben</h2>
+      <p class="fineprint">
+        Noch kein Passwort? <a href="/assets/work/games/morphology/article.html">Zugang anfragen</a>.
+      </p>
+
+      <form class="form" id="gate-form">
+        <div class="field">
+          <label for="gate-password">Passwort</label>
+          <input id="gate-password" type="password" autocomplete="current-password" required />
+        </div>
+        <button class="button" type="submit">Freischalten</button>
+      </form>
+
+      <p class="fineprint" id="gate-error" style="margin-top:10px; display:none;">
+        Falsches Passwort — bitte erneut versuchen.
+      </p>
+    </section>
+
+    <section class="section" id="tool-section" aria-labelledby="tool-title" hidden>
+      <h2 id="tool-title">Willkommen</h2>
+      <p class="fineprint">
+        Zugang bestätigt. Die eigentliche Anwendung (Foto hochladen, Analyse
+        erhalten) ist noch in Arbeit — diese Seite ist aktuell ein
+        Platzhalter für zahlende Mitglieder.
+      </p>
+    </section>
+  </main>
+
+  <div id="footer-slot"></div>
+
+  <script>
+    (function () {
+      const form = document.getElementById("gate-form");
+      const errorEl = document.getElementById("gate-error");
+      const gateSection = document.getElementById("gate-section");
+      const toolSection = document.getElementById("tool-section");
+      const submitBtn = form.querySelector("button[type=submit]");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorEl.style.display = "none";
+        submitBtn.disabled = true;
+
+        const password = document.getElementById("gate-password").value;
+
+        try {
+          const res = await fetch("/api/game-access", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ game: "morphology", password })
+          });
+          const data = await res.json().catch(() => ({ ok: false }));
+
+          if (data.ok) {
+            gateSection.hidden = true;
+            toolSection.hidden = false;
+          } else {
+            errorEl.style.display = "block";
+          }
+        } catch {
+          errorEl.textContent = "Prüfung aktuell nicht erreichbar — bitte später erneut versuchen.";
+          errorEl.style.display = "block";
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

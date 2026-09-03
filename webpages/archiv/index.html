@@ -66,39 +66,6 @@
       text-decoration: none;
     }
     .archiv-hit .fineprint { margin: 4px 0 0; }
-
-    .archiv-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      margin-top: 16px;
-    }
-    @media (min-width: 640px) {
-      .archiv-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (min-width: 960px) {
-      .archiv-grid { grid-template-columns: repeat(4, 1fr); }
-    }
-    .archiv-item {
-      display: block;
-      text-decoration: none;
-      overflow: hidden;
-      padding: 0;
-    }
-    .archiv-item img {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-      display: block;
-    }
-    .archiv-item .archiv-item-body {
-      padding: 10px;
-    }
-    .archiv-item strong {
-      display: block;
-      font-size: 0.95rem;
-      line-height: 1.3;
-    }
   </style>
 </head>
 <body class="page-archiv">
@@ -130,13 +97,6 @@
       </form>
 
       <div class="archiv-results" id="archiv-results" aria-live="polite"></div>
-    </section>
-
-    <section class="section" aria-labelledby="archiv-grid-title">
-      <h2 id="archiv-grid-title">Übersicht</h2>
-      <p class="fineprint" style="margin:0;">Zum Stöbern, bis die Suche fertig ist.</p>
-
-      <div class="archiv-grid" id="archiv-grid"></div>
     </section>
   </main>
 
@@ -202,32 +162,6 @@
         const hits = await search(query);
         render(hits, query);
       });
-
-      // Hand-curated grid (assets/archiv.json) — separate from the future
-      // search above. Add/edit entries there (title, image, link, excerpt)
-      // to change what shows here; also the natural place to note
-      // anything extra the future LLM search should know about an item.
-      async function loadArchivGrid() {
-        const gridEl = document.getElementById("archiv-grid");
-        if (!gridEl) return;
-        try {
-          const res = await fetch("/assets/archiv.json", { cache: "no-store" });
-          if (!res.ok) throw new Error("archiv.json missing");
-          const data = await res.json();
-          const gridItems = Array.isArray(data?.items) ? data.items : [];
-          gridEl.innerHTML = gridItems.map(it => `
-            <a class="card archiv-item" href="${it.link || "#"}">
-              <img src="${it.image || "/img/webicon.png"}" alt="" loading="lazy" />
-              <div class="archiv-item-body">
-                <strong>${escapeHtml(it.title || "")}</strong>
-              </div>
-            </a>
-          `).join("");
-        } catch {
-          gridEl.innerHTML = `<p class="fineprint">Übersicht konnte nicht geladen werden.</p>`;
-        }
-      }
-      loadArchivGrid();
     })();
   </script>
 </body>
