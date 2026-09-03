@@ -32,34 +32,41 @@
     /* Layered transparency — TWO tiers, not a fine gradient (see
        DOCUMENTATION.md, "Transparenz-Hierarchie" for the full history of
        why this settled here):
-       - BRANCH containers, that wrap a whole grid/list of other boxes
-         (.section, in its general/normal use — "Neues", "Rabattaktionen",
-         "Kontaktieren Sie mich!"): transparent, 50%. The background is
-         meant to show through the gaps around/behind that list.
-       - LEAF containers, that hold real content directly with nothing
-         further nested inside (.card, .hero, .page-hero, .note-block,
-         .service-item — plus the "contact"/mail .section below, which
-         holds a form directly rather than wrapping cards, unlike a normal
-         .section): always ALMOST FULLY OPAQUE, ~0.1% lookthrough —
-         readability of dense/interactive content matters more than the
-         background showing through.
-       The classification is about STRUCTURE (does this element wrap other
-       boxes, or hold content itself?), not about how deep it happens to be
-       nested — that's why .service-item (one level inside .section) gets
-       the SAME near-opaque treatment as .card, not something in between.
-       Overrides the shared backgrounds from assets/styles.css — scoped to
-       this page only via normal cascade order (this <style> loads after
-       the shared stylesheet). */
+       - BRANCH containers, that wrap several other distinct pieces of
+         content (.section in its general/normal use — "Neues",
+         "Rabattaktionen", "Kontaktieren Sie mich!"; .hero — it wraps
+         headings, paragraphs AND the .leistungs-chips row, so it's a
+         wrapper, not a leaf): transparent, 50%. The background is meant to
+         show through the gaps around/behind that content.
+       - LEAF elements, the actual smallest/deepest content units (.card,
+         .page-hero, .note-block, .service-item, .leistungs-chips .chip,
+         the calendar day-cell buttons (inline style, see renderMonth()) —
+         plus the "contact"/mail .section, which holds a form directly
+         rather than wrapping cards, unlike a normal .section): always
+         ALMOST FULLY OPAQUE, ~0.1% lookthrough — readability of
+         dense/interactive content matters more than the background
+         showing through.
+       The classification is about STRUCTURE (is this the deepest/smallest
+       content unit, or does it wrap several of those?), not about a fixed
+       "depth number" — .hero looked like it should be a leaf (nothing
+       wraps it), but it itself wraps multiple distinct pieces (text +
+       chips), so it's a branch; the .chip pills inside it are the real
+       leaves.
+       `!important` here is deliberate: this rule was silently losing to
+       older per-component background rules elsewhere in this file/in
+       assets/styles.css more than once (.service-item, e.g.) despite
+       correct cascade order on paper — safer to guarantee it always wins.
+       Scoped to this page only via this page's own <style> block. */
     .section {
-      background: color-mix(in srgb, var(--panel) 50%, transparent);
+      background: color-mix(in srgb, var(--panel) 50%, transparent) !important;
     }
     .card,
-    .hero,
     .page-hero,
     .note-block,
     .service-item,
+    .leistungs-chips .chip,
     .section[aria-labelledby="contact"] {
-      background: color-mix(in srgb, var(--panel) 99.9%, transparent);
+      background: color-mix(in srgb, var(--panel) 99.9%, transparent) !important;
     }
 
     /* --- Saftladen header replacement + hero image --- */
@@ -124,7 +131,10 @@
       border-radius: 16px;
       border: 1px solid rgba(127,127,127,0.35);
       overflow: hidden;
-      background: rgba(0,0,0,0.02);
+      /* background intentionally NOT set here — the near-opaque leaf
+         background comes from the transparency-hierarchy rule near the
+         top of this <style> block (with !important, since this rule used
+         to silently win over it despite lower position in the cascade). */
     }
 
     .service-summary {
@@ -1165,7 +1175,7 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
             padding:10px 8px;
             border-radius:12px;
             border:1px solid currentColor;
-            background:transparent;
+            background:color-mix(in srgb, var(--panel) 99.9%, transparent);
             cursor:pointer;
             opacity:${has ? 1 : 0.65};
             position:relative;

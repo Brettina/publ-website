@@ -38,12 +38,12 @@
        this page only via normal cascade order (this <style> loads after
        the shared stylesheet). */
     .section {
-      background: color-mix(in srgb, var(--panel) 50%, transparent);
+      background: color-mix(in srgb, var(--panel) 50%, transparent) !important;
     }
     .page-hero,
     .note-block,
     .card {
-      background: color-mix(in srgb, var(--panel) 99.9%, transparent);
+      background: color-mix(in srgb, var(--panel) 99.9%, transparent) !important;
     }
 
     .shop-head {
@@ -86,7 +86,11 @@
     }
 
     .shop-card {
-      overflow: hidden;
+      /* overflow intentionally NOT hidden — the sale ribbon (inside
+         .shop-img below) is meant to hang past the picture's edge. Corners
+         stay visually rounded anyway since .shop-img/.shop-body each carry
+         their own matching border-radius instead of relying on this
+         element clipping them. */
       border-radius: 16px;
       cursor: pointer;
     }
@@ -95,7 +99,11 @@
       width: 100%;
       height: 220px;
       position: relative;
-      overflow: hidden;
+      /* Not hidden — see .shop-card comment above. .gallery-img still
+         can't visually overflow since it's sized to 100%/100% with
+         object-fit, so this only matters for the ribbon. */
+      overflow: visible;
+      border-radius: 16px 16px 0 0;
       background: rgba(0, 0, 0, 0.08);
     }
     .shop-img .gallery-img {
@@ -105,6 +113,10 @@
          hard cropping of tall covers like the debater book. The .shop-img
          background above fills any letterboxing above/below. */
       object-fit: contain;
+      /* .shop-img no longer clips (overflow:visible, for the ribbon), so
+         this keeps the top corners visually rounded on its own instead of
+         relying on that clipping. */
+      border-radius: 16px 16px 0 0;
       display: block;
     }
 
@@ -151,73 +163,40 @@
     }
     .gallery-dot.is-active { background: #fff; }
 
-    /* Sale ribbon — corner sash on discounted items, overlapping the TOP-LEFT
-       corner. Uses schaerpe.png. Measured the artwork's actual baked
-       diagonal directly from its pixels (fitting a line through the
-       highest-alpha point per column) instead of eyeballing it: ~29°,
-       FALLING left-to-right (a "\", not a "/" as earlier assumed — that
-       wrong assumption was the root cause of the last two mismatched text
-       angles). Current transform `scaleX(-1) rotate(13deg)` — CSS applies
-       the rightmost function first, so rotate(13deg) is applied to the
-       falling ~29° line first (29+13=42°, still falling), THEN scaleX(-1)
-       mirrors it, which flips a falling line into a RISING one ("/") of the
-       same ~42° magnitude. So the sash actually renders at ~42°, rising —
-       the text below is rotated to match that exactly.
-       No more oversized/offset trick on the <img> — a previous version
-       intentionally let .sale-ribbon's own overflow:hidden crop the
-       artwork to "pull it into the corner", but that risked cropping off
-       the ribbon's pointed tail. Now the image is plain 100%/object-fit:
-       contain, so the WHOLE artwork (both ends) is always guaranteed to
-       show, never clipped — box sized generously so it still reads as
-       tucked into the corner. */
+    /* Sale ribbon — corner sash on discounted items, hanging over the
+       TOP-LEFT corner of the picture (needs .shop-img/.shop-card above to
+       NOT clip — see their overflow comments).
+       Simplified architecture: ONE element, text as its own textContent
+       (no separate image/span children). A single `transform: rotate()`
+       on this one element rotates the background AND the text together,
+       by construction — they can never end up mismatched, unlike the
+       previous version (schaerpe.png at its own baked diagonal, mirrored,
+       plus an independently-computed matching angle for a separate text
+       element — three past iterations went into just getting those two
+       numbers to visually agree). Uses a plain gold gradient instead of
+       schaerpe.png for the same reason: that PNG is a big, mostly-
+       transparent canvas with the sash drawn at its own fixed diagonal —
+       fine as a full corner graphic, but fighting its baked-in angle to
+       reuse as a flat rotated strip is exactly what caused the repeated
+       mismatches. */
     .sale-ribbon {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 190px;
-      height: 150px;
-      overflow: hidden;
-      pointer-events: none;
-      z-index: 3;
-    }
-    .sale-ribbon img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      /* Anchor the visible artwork toward the box's top-left instead of
-         centering it — pulls the sash further up/left without risking the
-         old clipping bug (this only repositions within the box, contain
-         still guarantees the whole image stays visible). */
-      object-position: top left;
-      transform: scaleX(-1) rotate(13deg);
-      transform-origin: center center;
-      display: block;
-      z-index: 1;
-    }
-    .sale-ribbon span {
-      position: absolute;
-      /* Shrunk to the box's top-left region (instead of inset:0, the full
-         box) so its own center — the rotation pivot below — sits shifted
-         toward the top-left, matching the image's object-position above,
-         instead of pivoting around the full box's center. */
-      top: 0;
-      left: 0;
-      width: 70%;
-      height: 70%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      top: 16px;
+      left: -38px;
+      width: 160px;
+      padding: 5px 0;
       transform: rotate(-42deg);
       transform-origin: center center;
+      background: linear-gradient(135deg, #d9b23c, #a3791c);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.45);
       color: #fff;
       font-weight: 700;
-      font-size: 0.8rem;
+      font-size: 0.72rem;
       text-align: center;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
       white-space: nowrap;
-      z-index: 2;
+      pointer-events: none;
+      z-index: 3;
     }
 
     /* Sale badge — plain inline version for use in running text (modal
@@ -291,11 +270,23 @@
 
     /* Prominent cart area */
     .cart-hero {
+      /* LEAF (holds "Deine Auswahl" text + the cart-item list directly):
+         needs to be near-opaque like .card/.page-hero, same reasoning as
+         DOCUMENTATION.md "Transparenz-Hierarchie" — this had its own
+         separately-set warm cream tint at only 20% alpha, letting so much
+         of the background texture through that the text became unreadable.
+         NOTE: raising that same rgba(255,230,150,...) tint's alpha close
+         to 1 would have made this a near-solid LIGHT cream box — but the
+         text inside (h2/p) uses the theme's light --text color (for the
+         dark theme), so a light background would have flipped this into
+         unreadable light-on-light. Mixed the warm tint INTO the dark
+         --panel instead (mostly panel, a bit of the cream for a warm
+         highlight), keeping it dark enough for the existing light text. */
       margin-top: 18px;
       border-radius: 18px;
       padding: 14px;
       border: 2px solid currentColor;
-      background: rgba(255, 230, 150, 0.20);
+      background: color-mix(in srgb, var(--panel) 88%, rgba(255, 230, 150, 0.6));
     }
 
     /* Put cart near the top on wide screens (prominent) */
@@ -1081,16 +1072,7 @@
         if (activeSale) {
           const ribbon = document.createElement("div");
           ribbon.className = "sale-ribbon";
-
-          const ribbonImg = document.createElement("img");
-          ribbonImg.src = "/img/schaerpe.png";
-          ribbonImg.alt = "";
-          ribbon.appendChild(ribbonImg);
-
-          const ribbonText = document.createElement("span");
-          ribbonText.textContent = saleRibbonLabel(p.sale);
-          ribbon.appendChild(ribbonText);
-
+          ribbon.textContent = saleRibbonLabel(p.sale);
           img.appendChild(ribbon);
         }
 

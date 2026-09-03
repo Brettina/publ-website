@@ -754,6 +754,37 @@ von Hand nachjustiert werden, bis er optisch zur Schärpe passt.
      unvorhersehbar gemacht (der Angelpunkt bleibt so weiterhin die Mitte
      einer Box, nur einer kleineren, statt an eine Ecke verlegt zu werden).
 
+7. **Architektur-Neubau (Nutzer-Vorschlag, umgesetzt):** Statt weiter an
+   Bild- und Text-Winkel getrennt zu justieren, wurde die Konstruktion
+   grundsätzlich vereinfacht — Vorschlag des Nutzers: "wenn Text als Kind
+   des Ribbons drin steckt, löst das doch das Rotationsproblem". Die
+   Schärpe ist jetzt **ein einziges** `<div class="sale-ribbon">` mit dem
+   Rabatt-Text als eigenem `textContent` (kein verschachteltes `<img>` +
+   `<span>` mehr), mit `background: linear-gradient(...)` (Gold-Ton) statt
+   `schaerpe.png`, und **einem** `transform: rotate(-42deg)` auf genau
+   diesem einen Element. Damit rotieren Hintergrund und Text zwangsläufig
+   immer exakt gleich — es gibt keine zwei Werte mehr, die auseinanderlaufen
+   können. Grund für den Wechsel weg von `schaerpe.png`: die Grafik hat
+   selbst schon eine feste Diagonale ins Bild gezeichnet (siehe Schritt 5) —
+   genau das war über mehrere Runden hinweg die Ursache für Fehlberechnungen,
+   sobald man versuchte, sie zusätzlich zu drehen/spiegeln. Ein einfacher
+   Verlaufshintergrund hat dieses Problem nicht.
+
+8. **Ribbon darf jetzt über das Bild hinausragen** (Nutzer-Wunsch: "es
+   sollte overflowen"). Vorher saß die Schärpe zwangsläufig komplett
+   innerhalb von `.shop-img`, weil sowohl `.shop-img` als auch `.shop-card`
+   `overflow: hidden` hatten (nötig, um Bild-Ecken abzurunden bzw. die
+   Galerie zu begrenzen). Beides auf `overflow: visible` umgestellt; damit
+   das nicht zu eckigen Ecken am Bild führt, tragen `.shop-img` UND das
+   `<img class="gallery-img">` jetzt selbst `border-radius: 16px 16px 0 0`
+   (vorher kam die Rundung nur indirekt vom Zuschneiden der Eltern-Box).
+
+Aktuelle Werte: `webpages/webshop/index.html`, Regel `.sale-ribbon` — Größe,
+Position (`top`/`left`) und Winkel (`transform: rotate(-42deg)`) sind
+weiterhin Schätzungen ohne Browser-Vorschau, aber jetzt strukturell
+unmöglich, aus dem Gleichgewicht zu bringen (Text und Hintergrund sitzen
+auf demselben Element).
+
 ### Seiten-Hintergrundbild (Startseite, Blog, Webshop)
 
 Alle drei Seiten (`index.html`, `webpages/blog/index.html`,
@@ -845,60 +876,117 @@ Muster, das für `.modal-img` schon vorher galt (dort war der Kommentar
 
 ### Transparenz-Hierarchie (aktueller, korrekter Stand: ZWEI Stufen)
 
-**Die Regel, aktuell gültig:** Es gibt genau zwei Kategorien, und die
-Einordnung richtet sich nach STRUKTUR, nicht nach Verschachtelungstiefe:
+**Denkrichtung: von innen nach außen, nicht von außen nach innen.**
+Explizite Nutzer-Korrektur: Das Wichtigste ist, dass die INNERSTE Einheit
+opak ist — nicht, dass alle äußersten Elemente überall denselben
+Transparenzwert haben. Man geht die Verschachtelung vom tiefsten Inhalt
+aus gedanklich nach außen durch, nicht umgekehrt vom Seitenrand nach
+innen. Der Fehler, den man dabei vermeiden muss: irgendwo einen fixen
+Prozentsatz für "die äußerste Ebene" festzulegen und zu hoffen, dass er
+überall passt — denn ein Kasten mit einem EIGENEN, separat gesetzten
+Hintergrund (wie `.cart-hero`, `.hero`, `.service-item`, die Kalender-
+Buttons — jedes davon an anderer Stelle in dieser Doku beschrieben) hält
+sich nicht an eine global deklarierte Prozent-Regel, wenn er selbst schon
+einen eigenen Wert mitbringt. Ergebnis, wenn man das übersieht: ein
+harter Kontrast-Sprung zwischen einem korrekt opaken innersten Element
+und einem direkt danebenliegenden/umschließenden Element, das (weil
+übersehen) noch seinen alten, viel transparenteren Wert behalten hat —
+obwohl die äußerste Ebene der Seite insgesamt einen sauberen Verlauf zeigt.
 
-- **BRANCH** — ein Kasten, der eine ganze Gruppe/Gitter anderer Boxen
-  umschließt (z. B. `.section` in seiner normalen Verwendung: "Neues",
-  "Rabattaktionen", "Kontaktieren Sie mich!"): **transparent, 50%**. Der
-  Hintergrund soll in den Lücken um/hinter der Liste sichtbar sein.
-- **LEAF** — ein Kasten, der Inhalt direkt hält und nichts weiter
-  verschachtelt (egal wie tief er im DOM sitzt): `.card`, `.hero`
-  ("Willkommen in der Werkstatt"/Profiltext), `.page-hero`, `.note-block`,
-  `.service-item` (die Akkordeon-Zeilen), und die Ausnahme
-  `.section[aria-labelledby="contact"]` (dieser eine `.section` umschließt
-  KEINE Karten, sondern hält das Kontaktformular direkt — untypisch für
-  `.section`, deshalb eigens per Attribut-Selektor herausgenommen): **immer
-  fast vollständig opak, `color-mix(..., 99.9%, transparent)`** — nur
-  0,1 % Hintergrund-Durchschein. Lesbarkeit von dichtem/interaktivem
-  Inhalt zählt hier mehr als der Textur-Effekt.
+**Die Regel, aktuell gültig:** Es gibt genau zwei Kategorien, und die
+Einordnung richtet sich nach STRUKTUR, nicht nach Verschachtelungstiefe
+und nicht danach, ob ein Element selbst irgendwo "ganz oben" auf der
+Seite sitzt:
+
+- **BRANCH** — ein Kasten, der MEHRERE eigenständige Kind-Inhalte
+  umschließt (eine Karten-Gruppe wie bei `.section` in seiner normalen
+  Verwendung: "Neues", "Rabattaktionen", "Kontaktieren Sie mich!" — ODER
+  mehrere verschiedenartige Inhalts-Blöcke wie bei `.hero`, das Überschrift
+  + Fließtext + die `.leistungs-chips`-Zeile umschließt): **transparent,
+  50%**. Der Hintergrund soll in den Lücken um/zwischen diesen Kind-
+  Elementen sichtbar sein.
+- **LEAF** — die tatsächlich kleinste/dichteste Inhaltseinheit an dieser
+  Stelle, die selbst nichts Nennenswertes weiter umschließt: `.card`,
+  `.page-hero`, `.note-block`, `.service-item` (Akkordeon-Zeilen),
+  `.leistungs-chips .chip` (einzelne Pill-Chips — NICHT `.hero` selbst,
+  s.u.), die Kalender-Tages-Buttons (Inline-Style in `renderMonth()`), und
+  die Ausnahme `.section[aria-labelledby="contact"]` (hält das
+  Kontaktformular direkt statt Karten zu umschließen — untypisch für
+  `.section`, deshalb per Attribut-Selektor einzeln herausgenommen):
+  **immer fast vollständig opak, `color-mix(..., 99.9%, transparent)`** —
+  nur 0,1 % Hintergrund-Durchschein.
 
 Umgesetzt identisch auf allen drei Seiten (Startseite, Blog, Webshop) —
-Blog/Webshop haben kein `.service-item` und keine "contact"-Ausnahme, sonst
-dieselbe Zwei-Stufen-Logik.
+Blog/Webshop haben keine `.leistungs-chips`, kein `.service-item`, keinen
+Kalender und keine "contact"-Ausnahme, sonst dieselbe Zwei-Stufen-Logik.
 
-**Warum nicht mehr Stufen (Verlauf der Korrekturen):** Ursprünglich gab es
-eine einzige 30%-Stufe für alles (zu inkonsistent), dann eine 4-stufige,
-gleichmäßig gestaffelte Skala nach Verschachtelungstiefe (50/65/80/90%).
-Der Nutzer korrigierte das mehrfach anhand konkreter Screenshots:
+**Warum nicht mehr Stufen, und warum `.hero` KEIN Leaf ist (Verlauf der
+Korrekturen):** Ursprünglich eine einzige 30%-Stufe für alles (zu
+inkonsistent), dann eine 4-stufige Skala nach Verschachtelungstiefe
+(50/65/80/90%), dann (kurzzeitig) `.hero` als Leaf eingestuft, weil es
+"ganz oben, nicht in einem Eltern-Panel verschachtelt" ist. Der Nutzer
+korrigierte das ausdrücklich: **`.hero` selbst ist der falsche Ort** — es
+umschließt mehrere eigenständige Stücke (Überschrift, Fließtext, die
+Chip-Zeile), ist also ein BRANCH; die wirklich innerste Einheit darin sind
+die einzelnen `.chip`-Pills. Das war der entscheidende Denkfehler: "ganz
+oben auf der Seite, nichts wraps mich" ist NICHT dasselbe wie "hält
+Inhalt direkt, ohne selbst mehrere Kind-Stücke zu umschließen". Daraus
+folgt die endgültige Regel oben: die Frage ist immer "ist DIES die
+kleinste/dichteste Einheit an dieser Stelle, oder umschließt es mehrere
+solche Einheiten" — nicht Tiefe, nicht Position auf der Seite.
 
-- `.hero` und `.service-item` hatten jeweils eigene, unabhängig gesetzte
-  Hintergründe in `assets/styles.css` (`.hero`: fast blickdichter
-  Verlauf; `.service-item`: `rgba(0,0,0,0.02)`, praktisch unsichtbar) —
-  beide wurden von der generischen `.card`/`.section`-Regel gar nicht
-  getroffen und blieben so lange als Ausreißer unbemerkt.
-- Entscheidender Moment: der Nutzer stellte klar, dass `.hero` **kein**
-  Wrapper wie `.section` ist (es umschließt keine Karten, sondern hält
-  Fließtext direkt) — es ist strukturell ein LEAF, gehört also NICHT in
-  dieselbe Stufe wie `.section`, auch wenn beide "oberste Ebene" sind.
-  Dieselbe Logik traf dann auch auf die "... oder klassisch per Mail."-
-  `.section` zu (hält das Formular direkt, keine Karten) und auf
-  `.note-block`/`.page-hero`/`.service-item` (alles Leaf-Inhalte).
-- Daraus die entscheidende Vereinfachung: die Zwischenstufen (65%, 80%)
-  waren unnötig — sobald man nach "wrapt dieser Kasten andere Boxen, oder
-  hält er Inhalt direkt" statt nach Tiefe sortiert, bleiben nur zwei
-  echte Kategorien übrig, s.o.
+Zwei weitere, konkrete Bugs beim Umsetzen gefunden:
 
-**Lehre:** Bei einer "innen opaker als außen"-Regel ist die relevante
-Frage nicht "wie tief ist dieses Element verschachtelt", sondern "wrapt
-es andere Boxen, oder hält es Inhalt direkt". Ein einzelnes, unverschach-
-teltes Element (wie `.hero`) kann trotzdem ein LEAF sein und gehört dann
-zur opaken Stufe — nicht automatisch zur transparenten Stufe, nur weil es
-"ganz oben" auf der Seite sitzt. Und: jede Komponente mit einem EIGENEN,
-unabhängig gesetzten Hintergrund (`.hero`, `.service-item`, beide mit
-eigenen Regeln in `assets/styles.css`) muss einzeln gefunden und
-eingeordnet werden — generische `.card`/`.section`-Regeln treffen sie
-nicht automatisch.
+- `.service-item` hatte in `assets/styles.css` **zusätzlich** eine ältere,
+  eigene Regel `background: rgba(0,0,0,0.02)` (weiter unten im selben
+  `<style>`-Block als die Transparenz-Hierarchie-Regel) — bei gleicher
+  Spezifität gewinnt die spätere Regel im Quelltext, das hat die 99,9%-
+  Regel also lautlos überschrieben. Entfernt (background-Deklaration dort
+  ersatzlos gestrichen, die Hierarchie-Regel bestimmt es jetzt exklusiv).
+- Die Kalender-Tages-Buttons setzen ihr `background` **inline** per
+  JavaScript-Template-String in `renderMonth()` (`style="...
+  background:transparent; ..."`) — das kann keine externe CSS-Regel
+  normalerweise überschreiben. Direkt im Template-String auf
+  `color-mix(in srgb, var(--panel) 99.9%, transparent)` geändert, statt
+  über CSS zu versuchen, das Inline-Style zu überstimmen.
+- Zusätzlich `!important` auf beide Stufen-Regeln (BRANCH und LEAF)
+  ergänzt, auf allen drei Seiten — nachdem `.service-item` schon einmal
+  lautlos überschrieben wurde, ist das eine bewusste Absicherung gegen
+  weitere, noch unentdeckte ältere Einzel-Regeln irgendwo im selben
+  `<style>`-Block oder in `assets/styles.css`.
+- `.cart-hero` ("Deine Auswahl"-Warenkorb-Box im Webshop) hatte ebenfalls
+  einen eigenen, separat gesetzten Hintergrund:
+  `background: rgba(255, 230, 150, 0.20)` — ein warmer Cremeton bei nur
+  20% Deckkraft, dadurch fast unlesbar über der Hintergrund-Textur. **Nicht
+  einfach die Deckkraft dieses Cremetons erhöht** — bei ~94% Deckkraft wäre
+  daraus eine fast massive HELLE Box geworden, während der Text darin
+  (`h2`/`p`, kein eigens gesetztes `color`) die normale HELLE `--text`-Farbe
+  des dunklen Themes erbt — Ergebnis wäre helle Schrift auf hellem
+  Hintergrund gewesen, also grundsätzlich falsch. Stattdessen den
+  Cremeton IN den dunklen `--panel`-Ton gemischt:
+  `color-mix(in srgb, var(--panel) 88%, rgba(255, 230, 150, 0.6))` — bleibt
+  dunkel genug für die vorhandene helle Schrift, behält aber einen
+  warmen goldenen Unterton als optisches Highlight.
+
+**Lehre:** Bei einer "Leaf = opak"-Regel ist die relevante Frage nicht
+"wie tief ist dieses Element verschachtelt" oder "sitzt es ganz oben ohne
+Eltern-Panel", sondern "umschließt DIESES Element mehrere eigenständige
+Kind-Inhalte, oder IST es die dichteste Einheit selbst". Und: jede
+Komponente mit einem EIGENEN, unabhängig gesetzten Hintergrund — ob als
+CSS-Regel (`.service-item`) oder als Inline-Style (Kalender-Buttons) —
+muss einzeln gefunden und eingeordnet werden; generische
+`.card`/`.section`-Regeln treffen sie nicht automatisch, und Inline-Styles
+schlagen externes CSS ohnehin unabhängig von der Reihenfolge.
+
+**Zweite Lehre (Kontrast beim Opak-Machen prüfen):** Beim Erhöhen der
+Deckkraft eines Kastens mit einer EIGENEN, ungewöhnlichen Hintergrundfarbe
+(wie `.cart-hero`s warmer Cremeton, statt des üblichen dunklen `--panel`)
+immer auch die TEXTFARBE innerhalb prüfen — nicht blind den Alpha-Wert der
+existierenden Farbe hochsetzen. Text ohne eigene `color`-Angabe erbt die
+Theme-Textfarbe (hell im dunklen Theme), und ein naiv auf ~94% Deckkraft
+hochgesetzter heller Cremeton hätte helle Schrift auf hellem Hintergrund
+ergeben. Der Fix mischt die Akzentfarbe stattdessen IN den dunklen
+`--panel`-Ton, statt sie pur hochzuskalieren.
 
 ### Shop-Karten: Titel/Chip überlappten trotz `flex-wrap: wrap`
 
