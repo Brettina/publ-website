@@ -114,26 +114,23 @@
     }
     .gallery-dot.is-active { background: #fff; }
 
-    /* Sale ribbon — small corner sash on discounted items, using schaerpe.png
-       (already drawn as a thin diagonal sash on a transparent canvas). The
-       image/text share one rotated wrapper so they nudge together from the
-       artwork's own ~32° diagonal to a clean 45° corner angle, sized small
-       so most of the cover stays visible/readable. */
+    /* Sale ribbon — corner sash on discounted items, overlapping the TOP-LEFT
+       corner. Uses schaerpe.png, which is already drawn as a thin diagonal
+       sash (rising left-to-right, transparent canvas). Mirrored horizontally
+       (scaleX(-1)) so it falls the other way for the left corner, and nudged
+       with an extra rotate so the printed ~32° diagonal reads as a clean 45°.
+       Image and text are independent siblings, both rotated around the same
+       box center, rather than nested — a nested rotated wrapper previously
+       left the text under-rotated relative to the (already-diagonal) image. */
     .sale-ribbon {
       position: absolute;
       top: 0;
-      right: 0;
-      width: 110px;
-      height: 80px;
+      left: 0;
+      width: 150px;
+      height: 115px;
       overflow: hidden;
       pointer-events: none;
       z-index: 3;
-    }
-    .sale-ribbon-band {
-      position: absolute;
-      inset: 0;
-      transform: rotate(-13deg);
-      transform-origin: 60% 40%;
     }
     .sale-ribbon img {
       position: absolute;
@@ -141,16 +138,21 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
+      transform: scaleX(-1) rotate(13deg);
+      transform-origin: center center;
       display: block;
     }
     .sale-ribbon span {
       position: absolute;
-      top: 36%;
-      left: 6%;
-      width: 88%;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(45deg);
+      transform-origin: center center;
       color: #fff;
       font-weight: 700;
-      font-size: 0.62rem;
+      font-size: 0.78rem;
       text-align: center;
       text-shadow: 0 1px 3px rgba(0,0,0,0.7);
       white-space: nowrap;
@@ -984,19 +986,15 @@
           const ribbon = document.createElement("div");
           ribbon.className = "sale-ribbon";
 
-          const band = document.createElement("div");
-          band.className = "sale-ribbon-band";
-
           const ribbonImg = document.createElement("img");
           ribbonImg.src = "/img/schaerpe.png";
           ribbonImg.alt = "";
-          band.appendChild(ribbonImg);
+          ribbon.appendChild(ribbonImg);
 
           const ribbonText = document.createElement("span");
           ribbonText.textContent = saleRibbonLabel(p.sale);
-          band.appendChild(ribbonText);
+          ribbon.appendChild(ribbonText);
 
-          ribbon.appendChild(band);
           img.appendChild(ribbon);
         }
 

@@ -624,18 +624,32 @@ Modal-Preiszeile (Durchstreichung + `.sale-badge`-Pille), und beim
 Warenkorb/Bestellmail (`getUnitPriceForVariant()` → `applySale()`), damit
 der tatsächlich in der Mail stehende Preis korrekt reduziert ist.
 
-**Sale-Ribbon-Winkel (Korrektur):** Erste Version hat `/img/schaerpe.png`
-(eine fertige, transparente Schärpen-Grafik, ~32° Diagonale bereits ins Bild
-gezeichnet) 1:1 in einer 150×100px-Box in die Ecke gesetzt, mit separat um
--34° gedrehtem Text darüber. Der Nutzer fand das zu groß (verdeckt zu viel
-vom Buchcover) und den Winkel nicht sauber ("nicht diagonal... 45 grad").
-Fix: Bild und Text stecken jetzt gemeinsam in einem `.sale-ribbon-band`-Wrapper,
-der als Ganzes um -13° gedreht wird — das addiert sich zum bereits ins Bild
-gezeichneten ~32°-Winkel zu einem sauberen ~45°, ohne Bild und Text getrennt
-und potenziell uneinheitlich zu drehen. Box verkleinert auf 110×80px, damit
-das Cover größtenteils lesbar bleibt. **Nicht live im Browser geprüft** (kein
-Browser-Zugriff in dieser Umgebung) — Winkel/Größe sind eine begründete
-Schätzung, ggf. nachjustieren.
+**Sale-Ribbon — Verlauf der Korrekturen:** Drei Iterationen, jeweils ohne
+Möglichkeit, live im Browser zu testen (kein Browser-Zugriff in dieser
+Umgebung) — Winkel/Größe/Position sind jedes Mal eine begründete Schätzung.
+
+1. Erste Version: `/img/schaerpe.png` (fertige, transparente Schärpen-Grafik,
+   ~32° Diagonale bereits ins Bild gezeichnet) 1:1 in einer 150×100px-Box
+   oben rechts, separat um -34° gedrehter Text darüber. Zu groß, Winkel
+   nicht sauber ("nicht diagonal... 45 grad").
+2. Zweite Version: Bild und Text in einem gemeinsamen
+   `.sale-ribbon-band`-Wrapper, der als Ganzes um -13° gedreht wird (addiert
+   sich zum ~32°-Winkel im Bild zu ~45°). Box auf 110×80px verkleinert. **Bug
+   dabei entdeckt:** Da der Text selbst keine eigene Rotation hatte und nur
+   die Rotation des Eltern-Wrappers erbte, landete er nur bei -13° statt bei
+   den beabsichtigten ~45° — er lag also nicht wirklich auf der Diagonale
+   des Bildes.
+3. Aktuelle Version (Screenshot-Feedback: Schärpe soll gespiegelt sein und
+   die **linke obere** Ecke überlappen, Text soll dazu ausgerichtet sein,
+   darf größer sein): Bild und Text sind jetzt unabhängige Geschwister-
+   Elemente statt verschachtelt, beide rotieren um denselben Box-Mittelpunkt
+   (`transform-origin: center center`), das behebt auch den Bug aus Schritt 2.
+   Bild: `transform: scaleX(-1) rotate(13deg)` — horizontal gespiegelt (damit
+   die Schärpe von der rechten in die linke Ecke "kippt") und um 13°
+   nachgedreht, um wieder auf ~45° zu kommen. Text: eigenständig
+   `transform: rotate(45deg)`, zentriert per Flexbox über die volle Box, statt
+   prozentual positioniert. Box vergrößert auf 150×115px, Schriftgröße auf
+   `0.78rem`, Container von `right:0` auf `left:0` verschoben.
 
 ## Gefundene und behobene Bugs (mit Ursache, damit sie nicht wiederkommen)
 
