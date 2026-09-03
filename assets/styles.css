@@ -79,9 +79,19 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 
 .brand{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   text-decoration: none;
   font-weight: 700;
   letter-spacing: .2px;
+}
+
+.brand-icon{
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
 }
 
 .nav-list{
