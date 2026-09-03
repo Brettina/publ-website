@@ -415,12 +415,12 @@
       <div class="hero-text">
         <h2 style="margin-top:0;">Willkommen in der Werkstatt!</h2>
 <p class="lead">
-          publish-Lohr ist ein unabhängiger Verlag aus Ostdeutschland für Experimente, Kleinauflagen und neue Perspektiven,
+          publish-Lohr ist ein unabhängiger Verlag aus Ostdeutschland für Experimente und neue Perspektiven;
           für Texte, Spiele und Konzepte, die sich nicht in vertraute Raster einfügen lassen. </br>
-        Wir helfen Autoren, Experten und Künstlern, ihre Idee zu verwirklichen und ein zufriedenstellendes erstes Exemplar zu erhalten.
+        Wir helfen Autoren, Experten und Künstlern, ihre Idee zu verwirklichen, ein erstes Exemplar zu entwickeln und zu vermarkten.
        Dazu beraten wir und übernehmen Lektorat, Design, Print und Marketing, stellen Prototypen zur Verfügung, die wir auf Messen testen, und drucken in kleiner Auflage.
 </br></br>
-       <strong>Sie sind bei uns richtig</strong>, wenn Sie nicht sicher sind, wie Sie Ihre Idee an den Markt bringen, wenn Sie radikale oder neue Perspektiven vertreten, oder wenn Sie Unterstützung bei Design oder Verlegung suchen.
+      <h2> Sie sind bei uns richtig</h2>, wenn Sie nicht sicher sind, wie Sie Ihre Idee an den Markt bringen, wenn Sie radikale oder neue Perspektiven vertreten, oder wenn Sie Unterstützung bei Design oder Verlegung suchen.
       
         </p>
         <p class="fineprint">
@@ -432,11 +432,7 @@
           Lässt sich Ihr Werk nicht klar in etablierte Genres einordnen, ist das klassische Verlagsmodell nichts für Sie, oder suchen Sie eine individuelle Vertragslösung?
         </br>
         Dann kommen Sie zu uns!</strong>
-        <p class="fineprint">
-          Leistungsbereiche:
-          <span style="opacity:.85;">Beratung · Marketing · Buch & Verlegung · Ratgeber · 
-          Grafikdesign · Online-Shop · Seminare & Vorträge · Webdesign · Brettspiele · Kartenspiele</span>
-        </p>
+       
         <p class="fineprint" style="margin-bottom:0;">
          <p>Erschienene Titel:</p>
 <ul>
@@ -458,6 +454,12 @@
   Basteln in ihre Arbeit einfließen.
         </p>
       </div>
+
+       <p class="fineprint">
+          Leistungsbereiche:
+          <span style="opacity:.85;">Beratung · Marketing · Buch & Verlegung · Ratgeber · 
+          Grafikdesign · Online-Shop · Seminare & Vorträge · Webdesign · Brettspiele · Kartenspiele</span>
+        </p>
     </section>
 
 <dialog class="blog-modal" id="blog-modal" aria-label="Blogartikel">
@@ -981,7 +983,6 @@
   let events = [];
   let cursor = new Date();
   let workTitles = {};
-  let workItemsBySlug = {};
 
   try {
     const res = await fetch("/assets/calendar/calendar-index.json", { cache: "no-store" });
@@ -999,10 +1000,7 @@
     if (wRes.ok) {
       const wData = await wRes.json();
       (wData.items || []).forEach(x => {
-        if (x && x.slug) {
-          workTitles[x.slug] = x.title || x.slug;
-          workItemsBySlug[x.slug] = x;
-        }
+        if (x && x.slug) workTitles[x.slug] = x.title || x.slug;
       });
     }
   } catch {}
@@ -1026,12 +1024,10 @@
     }
 
     const html = list.map(ev => {
-      const projects = [].concat(ev.projects || []).filter(Boolean);
+      const projects = Array.isArray(ev.projects) ? ev.projects : [];
       const projectLinks = projects.map(id => {
-        const item = workItemsBySlug[id];
-        const href = item?.contentUrl || `/assets/work/${encodeURIComponent(id)}/article.html`;
-        const label = workTitles[id] || id;
-        return `<a href="${href}">${escapeHtml(label)}</a>`;
+        const href = `/assets/work/${encodeURIComponent(id)}/article.html`;
+        return `<a href="${href}">${escapeHtml(id)}</a>`;
       }).join(", ");
 
 
