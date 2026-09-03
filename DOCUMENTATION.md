@@ -1733,6 +1733,51 @@ Absicherung für die Archiv-Suche (aktuell ohnehin noch nicht implementiert,
 siehe "Archiv"-Abschnitt — sinnvollerweise gleichzeitig mit dem echten
 Such-Backend abzusichern, nicht vorher separat).
 
+### Leseproben-Abo-Button war kaputt — und Redesign auf "füllt das Kontaktformular"
+
+**Bug gefunden:** Der "Abonnieren"-Button tat sichtbar nichts beim
+Klicken. Ursache: der Submit-Handler griff auf
+`form.querySelector("#sub-review-program").checked` zu — dieses
+Checkbox-Element war irgendwann zwischen dem ursprünglichen Einbau und
+späteren Umbauten der "Kontaktieren Sie mich!"-Sektion (Karten-Merge,
+dann wieder Aufteilung in zwei Karten) aus dem Markup verschwunden.
+`null.checked` wirft eine TypeError, die den kompletten restlichen
+Handler abbricht, bevor `window.location.href` je erreicht wurde — der
+Button reagierte dadurch nach außen wie "tot". Checkbox wieder ergänzt;
+zusätzlich der Zugriff jetzt mit `?.` abgesichert (`form.querySelector(...)
+?.checked || false`), damit ein erneutes versehentliches Entfernen des
+Elements künftig nur noch "gilt als nicht angehakt" statt den ganzen
+Handler zum Absturz zu bringen.
+
+**Fehlendes E-Mail-Feld ergänzt:** `#sub-email` (Pflichtfeld,
+`type="email"`) zwischen Ort und der Bewertungsprogramm-Checkbox
+hinzugefügt — wird jetzt mit in den Nachrichtentext übernommen.
+
+**Redesign — kein eigener Versand mehr, sondern Formular-Vorbefüllung:**
+Das Abonnieren-Formular hat (bewusst) keine eigene Datennutzungs-
+Zustimmungs-Checkbox — die existiert bereits im rechten "... oder
+klassisch per Mail"-Formular. Statt eine zweite, ungeprüfte
+`mailto:`-Öffnung zu bauen, befüllt "Abonnieren" jetzt stattdessen
+`#contact-name` und `#contact-message` im rechten Formular (Adresse,
+E-Mail zur Bestätigung und die Bewertungsprogramm-Entscheidung als
+Fließtext in der Nachricht) und scrollt dorthin — der Klick selbst
+verschickt nichts. Die Besucherin muss weiterhin bewusst die
+Zustimmungs-Checkbox anhaken und den bestehenden "E-Mail-Entwurf
+öffnen"-Button des rechten Formulars selbst betätigen. Kleiner
+Hinweistext unter dem Abonnieren-Button erklärt das.
+
+### Widerruf-Link fehlte im Footer der Startseite
+
+`index.html` hat einen eigenen, fest im Markup stehenden Footer (nicht
+über `footer-slot`/das geteilte Partial geladen — anders als Archiv,
+Blog, Login) und listete nur Datenschutz/Cookies/Impressum, ohne
+"Widerruf". `assets/partials/footer.html` (das die anderen Seiten nutzen)
+hatte den Link schon länger. Ergänzt: `<li><a
+href="/regulation/withdrawal/">Widerruf</a></li>` zwischen Cookies und
+Impressum, passend zur Reihenfolge im geteilten Partial. Webshop hat
+ebenfalls einen eigenen, separaten Footer — dort war der Link bereits
+vorhanden, keine Änderung nötig.
+
 ## Offene Punkte
 
 - **`GAME_PASSWORD_MORPHOLOGY` muss noch im Cloudflare-Dashboard gesetzt

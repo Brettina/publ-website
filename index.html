@@ -1002,9 +1002,9 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
 
           <hr style="margin:20px 0; border:none; border-top:1px solid var(--border);" />
 
-          <h3>Leseproben abonnieren</h3>
+          <h3>Leseproben und Probezugänge abonnieren</h3>
           <p class="fineprint">
-            Kostenlose Leseproben und Werbung, vierteljährlich in den Briefkasten.
+            Kostenlose Leseproben, Probezugänge und Werbung, vierteljährlich in den Briefkasten.
           </p>
 
           <form class="form" data-subscribe-form>
@@ -1024,8 +1024,24 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
               <label for="sub-city">Ort</label>
               <input id="sub-city" name="city" autocomplete="address-level2" required />
             </div>
+            <div class="field">
+              <label for="sub-email">E-Mail (zur Bestätigung)</label>
+              <input id="sub-email" name="email" type="email" autocomplete="email" required />
+            </div>
+
+            <div class="field checkbox">
+              <input id="sub-review-program" name="reviewProgram" type="checkbox" />
+              <label for="sub-review-program">
+                Am <a href="#rabatt-meinung-title" target="_blank">langfristigen Bewertungsprogramm</a> teilnehmen
+                (neue Werke vor Verkaufsstart 50&nbsp;% reduziert, gegen dauerhafte Bewertungen).
+              </label>
+            </div>
 
             <button class="button" type="submit" id="sub-submit" disabled>Abonnieren</button>
+            <p class="fineprint" style="margin-top:8px;">
+              Trägt Name und Nachricht rechts bei "... oder klassisch per Mail" ein —
+              dort noch der Datennutzung zustimmen und absenden.
+            </p>
           </form>
         </article>
 
@@ -1087,6 +1103,13 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
         form.addEventListener("input", updateEnabled);
         updateEnabled();
 
+        // Doesn't send anything itself — this form has no data-use consent
+        // checkbox of its own. Instead it prefills Name + Nachricht in the
+        // "... oder klassisch per Mail" form on the right, which already
+        // has the consent checkbox and the actual send flow
+        // (attachContactFormHandler in assets/site.js) — the visitor still
+        // has to review, tick consent, and click that form's own submit
+        // button themselves.
         form.addEventListener("submit", (e) => {
           e.preventDefault();
           if (!form.checkValidity()) return;
@@ -1095,23 +1118,29 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
           const street = form.querySelector("#sub-street").value.trim();
           const zip = form.querySelector("#sub-zip").value.trim();
           const city = form.querySelector("#sub-city").value.trim();
+          const email = form.querySelector("#sub-email").value.trim();
           const address = `${name}, ${street}, ${zip} ${city}`;
-          const wantsReviewProgram = form.querySelector("#sub-review-program").checked;
+          // Optional chaining: if this checkbox ever goes missing again
+          // (it did once — silently broke the whole submit handler via a
+          // TypeError on .checked of null, so the button looked "dead"),
+          // this degrades to "not participating" instead of crashing.
+          const wantsReviewProgram = form.querySelector("#sub-review-program")?.checked || false;
 
-          const subject = "Leseproben-Abo";
-          const body =
+          const message =
             "Ich möchte den kostenlosen Leseproben und Werbung abonnieren - meine Adresse ist die:\n\n" +
             address + "\n\n" +
+            "E-Mail zur Bestätigung: " + email + "\n\n" +
             (wantsReviewProgram
               ? "Ich möchte außerdem am langfristigen Bewertungsprogramm teilnehmen (neue Werke vor Verkaufsstart 50% reduziert, gegen dauerhafte Bewertungen)."
               : "Am langfristigen Bewertungsprogramm möchte ich nicht teilnehmen.");
 
-          const url =
-            `mailto:${typeof CONTACT_EMAIL !== "undefined" ? CONTACT_EMAIL : "anfrage@publish-lohr.com"}` +
-            `?subject=${encodeURIComponent(subject)}` +
-            `&body=${encodeURIComponent(body)}`;
+          const contactName = document.getElementById("contact-name");
+          const contactMessage = document.getElementById("contact-message");
+          if (contactName) contactName.value = name;
+          if (contactMessage) contactMessage.value = message;
 
-          window.location.href = url;
+          document.getElementById("contact")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          document.getElementById("contact-consent")?.focus();
         });
       })();
     </script>
@@ -1138,6 +1167,7 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
     <ul class="footer-links">
       <li><a href="/regulation/privacy/">Datenschutz</a></li>
       <li><a href="/regulation/cookies/">Cookies</a></li>
+      <li><a href="/regulation/withdrawal/">Widerruf</a></li>
       <li><a href="/regulation/imprint/">Impressum</a></li>
     </ul>
   </footer>
