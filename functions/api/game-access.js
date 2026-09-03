@@ -14,7 +14,7 @@
 const GAMES = {
   morphology: {
     envVar: "GAME_PASSWORD_MORPHOLOGY",
-    url: "/assets/work/games/morphology/tool/"
+    url: "/assets/work/games/morphology/"
   }
 };
 

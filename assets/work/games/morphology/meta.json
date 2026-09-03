@@ -7,9 +7,9 @@
   "price-digital": 20,
   "tags": ["morphology", "game"],
   "excerpt": "Ein Werkzeug um schnell dein Gegenüber einzuschätzen.",
-  "klappentext": "Das Wissen von Dr. Peter S. Reznik, Ph.D aus seinem Buch \"Morphologische Geheimnisse von erfolgreichen Beziehungen\" als interaktives Werkzeug: Foto hochladen, sofort eine erste Gesichtsanalyse erhalten. Nur für angemeldete Mitglieder nutzbar. Mitglieder zahlen nicht im Voraus: hinterlegtes Zahlungsmittel, monatliche Abrechnung nur für tatsächlich genutzte Werkzeuge/Spiele (wenige Cent pro Monat) - wird nichts genutzt, wird auch nichts abgebucht.",
+  "klappentext": "Das Wissen von Dr. Peter S. Reznik, Ph.D aus seinem Buch \"Morphologische Geheimnisse von erfolgreichen Beziehungen\" als interaktives Werkzeug: Foto hochladen, sofort eine erste Gesichtsanalyse erhalten. Für angemeldete Mitglieder und Einmalzahler bald verfügbar.",
   "alsoPublished": [
-    { "label": "Zum Werkzeug (Passwort erforderlich)", "url": "/assets/work/games/morphology/tool/" },
+    { "label": "Zum Werkzeug (Passwort erforderlich)", "url": "/assets/work/games/morphology/" },
     { "label": "Zugang anfragen (Passwort per Mail nach Zahlung)", "url": "mailto:anfrage@publish-lohr.com?subject=Zugang%20zum%20Morphologie-Werkzeug&body=Ich%20m%C3%B6chte%20Zugang%20zum%20Morphologie-Werkzeug%20erhalten%20und%20bin%20bereit%2C%20den%20Preis%20zu%20zahlen." }
   ]
 }

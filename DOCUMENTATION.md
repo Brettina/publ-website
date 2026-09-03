@@ -103,6 +103,43 @@ umsortiert. Dadurch mussten alle Pfad-Annahmen im Code (die vorher
 `/assets/work/${slug}/...` bauten) auf `/assets/work/${category}/${slug}/...`
 umgestellt werden — siehe "Pfad-Sweep" weiter unten.
 
+### Ordnerstruktur-Regel: alles zu einem Produkt bleibt EINE Ebene tief
+
+Ausdrückliche Regel des Nutzers: **jede Zusatzinformation zu einem
+Produkt (Buch, Spiel, Artikel, …) gehört direkt auf die erste Ebene des
+`<slug>`-Ordners, dessen Name/Titel auf seine `id` gemappt ist — keine
+weiteren Unterordner pro Feature.** Konkreter Anlass: Für das
+Morphologie-Werkzeug (`assets/work/games/morphology/`) wurde die
+Passwort-geschützte Werkzeug-Seite zunächst in einem eigenen Unterordner
+`morphology/tool/index.html` angelegt. Vom Nutzer explizit verworfen ("i
+dont like that you made the index.html below the morphology game in its
+own tool folder") und selbst korrigiert: die Datei liegt jetzt direkt als
+`assets/work/games/morphology/index.html` — eine Ebene, kein `tool/`-
+Unterordner. Damit hat der `morphology/`-Ordner jetzt:
+
+```
+assets/work/games/morphology/
+  meta.json      — Produktdaten (Titel, Preis, Tags, alsoPublished, …)
+  article.html   — Beschreibung/Verkaufstext (öffentlich, per Fetch+innerHTML
+                   in Blog-/Homepage-Modals eingebettet)
+  index.html     — die eigentliche, passwortgeschützte Werkzeug-Seite
+                   (eigener vollständiger Seitenaufruf, kein Fragment —
+                   deshalb NICHT wie article.html eingebettet, siehe
+                   "Echter Passwortschutz" weiter unten)
+  cover.png      — Bild
+```
+
+Alle Links auf die alte `tool/`-URL wurden auf die neue, direkte URL
+(`/assets/work/games/morphology/`, `index.html` ist der Default bei
+einem Ordner-Aufruf) korrigiert: `article.html` ("Zum Werkzeug"-Link),
+`meta.json` (`alsoPublished`-Eintrag), und
+`functions/api/game-access.js` (die bei Erfolg zurückgegebene `url`).
+**Lehre:** bei künftigen Produkt-Unterseiten (weitere Werkzeuge, Spiele
+mit mehreren Ansichten, …) diese Regel von Anfang an einhalten —
+zusätzliche Dateien als eigene, klar benannte Dateien direkt im
+`<slug>`-Ordner (z. B. `index.html`, `tool.html`, `preview.html`), nicht
+in einem weiteren Unterordner verschachteln.
+
 ## Wichtige Datenquellen — welche ist generiert, welche ist von Hand gepflegt?
 
 Das ist die größte Falle im Projekt: **gleich aussehende Dateien haben
@@ -1693,7 +1730,8 @@ Variante ausdrücklich zu, per Rückfrage): eine echte serverseitige Prüfung
   vergleicht `password` gegen eine Cloudflare-Pages-Umgebungsvariable
   (`GAME_PASSWORD_MORPHOLOGY`, Klartext-Name absichtlich pro Spiel
   eindeutig) — **diese Variable steht NUR im Cloudflare-Dashboard, nirgends
-  im Repo**. Bei Treffer: `{ ok: true, url: "/assets/work/games/morphology/tool/" }`.
+  im Repo**. Bei Treffer: `{ ok: true, url: "/assets/work/games/morphology/" }`
+  (Pfad seither geändert, siehe "Ordnerstruktur" weiter unten).
   Bei Fehltreffer oder wenn die Env-Var noch gar nicht gesetzt ist: `401`,
   `{ ok: false }` — kein "offen, weil noch nicht konfiguriert". Registrierung
   neuer Spiele: Eintrag im `GAMES`-Objekt in dieser Datei ergänzen + die
@@ -1713,8 +1751,8 @@ Variante ausdrücklich zu, per Rückfrage): eine echte serverseitige Prüfung
 - Da die eigentliche Zugangskontrolle jetzt AUF der Werkzeug-Seite selbst
   sitzt, ist ein direkter Link dorthin wieder unbedenklich (kein "Security
   through obscurity" mehr nötig) — `article.html` und `meta.json`
-  (`alsoPublished`) verlinken jetzt wieder direkt
-  `/assets/work/games/morphology/tool/`, zusätzlich weiterhin der
+  (`alsoPublished`) verlinken direkt zur Werkzeug-Seite (Pfad seither
+  geändert, siehe "Ordnerstruktur" weiter unten), zusätzlich weiterhin der
   "Zugang anfragen"-Mailto-Link, über den man überhaupt erst ein Passwort
   bekommt.
 
@@ -1797,14 +1835,26 @@ selbst verschickt nichts, die Besucherin klickt den bestehenden
   auf Nutzerwunsch ersatzlos gestrichen (war zuvor Teil des
   Nachrichtentexts) — das Abonnieren-Formular behandelt jetzt nur noch
   Leseproben/Probezugänge, keine Bewertungsprogramm-Entscheidung mehr.
-- **Button jetzt zusätzlich an die Zustimmungs-Checkbox des RECHTEN
-  Formulars gekoppelt** (`#contact-consent`) — explizite Anforderung:
-  "der Abonnieren-Button soll nicht funktionieren, bevor man der
-  Datenschutz-Checkbox rechts zugestimmt hat". `updateEnabled()` prüft
-  jetzt beides: `!form.checkValidity() || !consentCheckbox.checked` —
-  ein `change`-Listener auf der (fremden) Checkbox sorgt dafür, dass sich
-  der Button automatisch entsperrt, sobald sie angehakt wird, auch ohne
-  dass im linken Formular selbst etwas passiert.
+- **Button kurzzeitig an die Zustimmungs-Checkbox des RECHTEN Formulars
+  gekoppelt, dann wieder entfernt.** Zunächst umgesetzt: `updateEnabled()`
+  prüfte `!form.checkValidity() || !consentCheckbox.checked`, mit einem
+  `change`-Listener auf der fremden Checkbox. Direkt danach vom Nutzer
+  korrigiert: "the abonnieren button should automatically write the
+  nachricht on the right without agreeing with the data. i cant open the
+  email entwurf without agreeing. thats enough." — die Zustimmung wird
+  bereits dort erzwungen, wo sie zählt (das rechte Formular kann ohne
+  angehakte Checkbox gar nicht abgeschickt werden, `required` auf
+  `#contact-consent`), das Vorausfüllen selbst muss das nicht zusätzlich
+  blockieren. `updateEnabled()` prüft jetzt wieder nur
+  `form.checkValidity()` des linken Formulars, keine Abhängigkeit mehr
+  von `#contact-consent`.
+
+**PLZ + Ort nebeneinander statt untereinander:** neue geteilte Klasse
+`.form-row` in `assets/styles.css` (Grid, zwei Spalten) für "zwei
+`.field`-Elemente nebeneinander innerhalb eines `.form`" — allgemein
+wiederverwendbar für künftige Formulare, nicht nur hier. PLZ/Ort nutzen
+sie mit einem angepassten Spaltenverhältnis (`1fr 2fr` statt `1fr 1fr`
+per Inline-Style), da PLZ deutlich weniger Platz braucht als Ort.
 
 ### Widerruf-Link fehlte im Footer der Startseite
 

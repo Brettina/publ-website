@@ -554,7 +554,7 @@
   und Trägerin der
   <a href="https://faucherpreis.info/" target="_blank" rel="noopener">Julius-Faucher-Medaille</a>,
   die von der Zeitschrift „eigentümlich frei“ verliehen wird. Sie hat unter anderem Gamedesign und
-  Politik/Journalismus studiert, (noch vor KI-Zeiten) einige Zeit als Softwareentwicklerin im Ausland gearbeitet (u.a. China, Brasilien) und lässt ihre Offenheit und Leidenschaft für das Lesen, Experimentieren und
+  Politik/Journalismus studiert, einige Zeit (noch vor KI) als Softwareentwicklerin u.a. im Ausland gearbeitet (u.a. China, Brasilien) und lässt ihre Offenheit und Leidenschaft für das Lesen, Experimentieren und
   Basteln in ihre Arbeit einfließen. 
   <br> 
         </p>
@@ -860,7 +860,7 @@
       <div class="service-body">
         <p class="fineprint">
           Ja. Englischsprachige Manuskripte können verlegt werden, inklusive Lektorat, Satz und Veröffentlichung
-          auf Amazon und im Buchshop. Auch zweisprachige Ausgaben (DE/EN) sind möglich. Chinesisch- und Portugiesischsprachige Partner können auch diese Sprachen übernehmen.
+          auf Amazon und im Buchshop. Auch zweisprachige Ausgaben (DE/EN) sind möglich. Chinesisch- und Portugiesischsprachige Partner können auch diese Sprachen übernehmen, denn wir lassen unsere Übersetzungen stets von Muttersprachlern kontrollieren.
         </p>
       </div>
     </details>
@@ -1028,11 +1028,7 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
             </div>
 
             <button class="button" type="submit" id="sub-submit" disabled>Abonnieren</button>
-            <p class="fineprint" style="margin-top:8px;">
-              Erst rechts bei "... oder klassisch per Mail" der Datennutzung
-              zustimmen, dann werden Name und Nachricht dort automatisch
-              vorausgefüllt.
-            </p>
+
 
           </form>
         </article>
@@ -1088,28 +1084,26 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
         const form = document.querySelector("[data-subscribe-form]");
         if (!form) return;
         const submitBtn = document.getElementById("sub-submit");
-        const consentCheckbox = document.getElementById("contact-consent");
 
-        // Gated on BOTH: this form's own fields valid, AND the consent
-        // checkbox in the "... oder klassisch per Mail" form on the right
-        // already ticked — the button must not work before that consent is
-        // given, even though it's a different, separate form.
+        // Only gated on this form's own fields being valid — NOT on the
+        // consent checkbox in the "... oder klassisch per Mail" form on the
+        // right. Consent is enforced where it actually matters: that form's
+        // own required checkbox blocks its own submit button (opening the
+        // mail draft), so gating this prefill step too would be redundant.
         function updateEnabled() {
-          const consentGiven = !!consentCheckbox?.checked;
-          submitBtn.disabled = !form.checkValidity() || !consentGiven;
+          submitBtn.disabled = !form.checkValidity();
         }
         form.addEventListener("input", updateEnabled);
-        consentCheckbox?.addEventListener("change", updateEnabled);
         updateEnabled();
 
         // Doesn't send anything itself — prefills Name + Nachricht in the
-        // "... oder klassisch per Mail" form on the right, which already
-        // has the consent checkbox (required above) and the actual send
-        // flow (attachContactFormHandler in assets/site.js). The visitor
-        // still has to click that form's own submit button themselves.
+        // "... oder klassisch per Mail" form on the right, which has the
+        // actual send flow (attachContactFormHandler in assets/site.js) and
+        // its own consent checkbox guarding that. The visitor still has to
+        // click that form's own submit button themselves.
         form.addEventListener("submit", (e) => {
           e.preventDefault();
-          if (submitBtn.disabled) return;
+          if (!form.checkValidity()) return;
 
           const name = form.querySelector("#sub-name").value.trim();
           const street = form.querySelector("#sub-street").value.trim();
@@ -1118,7 +1112,7 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
           const address = `${name}, ${street}, ${zip} ${city}`;
 
           const message =
-            "Ich möchte den kostenlosen Leseproben und Werbung abonnieren - meine Adresse ist die:\n\n" +
+            "Ich möchte die kostenlosen Leseproben und Werbung abonnieren. Meine Adresse lautet:\n\n" +
             address;
 
           const contactName = document.getElementById("contact-name");
