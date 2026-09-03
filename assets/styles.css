@@ -206,6 +206,15 @@ p{ margin: 0 0 10px; color: var(--muted); }
 }
 .field.checkbox input{ width: auto; margin-top: 3px; }
 
+/* Two .field elements side by side within a .form (e.g. PLZ + Ort) instead
+   of each stacking on its own row — wrap them in <div class="form-row"> */
+.form-row{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.form-row .field{ margin: 0; }
+
 .button{
   display: inline-block;
   text-decoration: none;

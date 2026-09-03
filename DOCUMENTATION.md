@@ -1733,6 +1733,35 @@ Absicherung für die Archiv-Suche (aktuell ohnehin noch nicht implementiert,
 siehe "Archiv"-Abschnitt — sinnvollerweise gleichzeitig mit dem echten
 Such-Backend abzusichern, nicht vorher separat).
 
+**Geplantes Zugangsstufen-Modell (Design-Notiz, noch NICHT gebaut):** Der
+Nutzer hat das gewünschte Verhalten für verschiedene Zugangsarten pro
+Spiel festgelegt — aktuell unterstützt `functions/api/game-access.js` nur
+EIN einziges, statisches Passwort pro Spiel (`GAME_PASSWORD_<SPIEL>`),
+das reicht für dieses Modell noch nicht aus:
+
+- **Betatester:** bekommen pro Spiel ein eigenes Passwort, das **abläuft**
+  (zeitlich befristet).
+- **Zahlende Kunden** (die den Preis für ein bestimmtes Spiel einmalig
+  bezahlt haben): bekommen ein Passwort, das **dauerhaft/unbegrenzt**
+  gilt ("eternal").
+- **Mitglieder** (siehe "Mitgliedschaft/Login" weiter oben — das geplante
+  nutzungsbasierte Abo-Modell): haben Zugriff, **solange sie eingeloggt
+  UND aktives Mitglied sind** — kein festes Passwort, sondern an den
+  Mitgliedschaftsstatus selbst gekoppelt, endet also automatisch, wenn
+  die Mitgliedschaft endet.
+
+Damit das umsetzbar wird, braucht `game-access.js` (bzw. seine
+Nachfolge-Version) mehr als einen einzelnen String-Vergleich: mindestens
+ein Ablaufdatum pro Passwort (Betatester), eine Unterscheidung
+"Passwort" vs. "Mitgliedschaftsstatus" als Zugangsart, und einen Ort, an
+dem mehrere gültige Passwörter pro Spiel (nicht nur eines) verwaltet
+werden können — das setzt wiederum eine echte Datenspeicherung voraus
+(z. B. Cloudflare KV oder D1), nicht nur einzelne Umgebungsvariablen wie
+aktuell. Voraussetzung dafür ist ohnehin erst das echte Mitgliedschafts-/
+Login-System selbst (aktuell nur Info-Inhalt ohne Funktion, siehe
+"Mitgliedschaft/Login" weiter oben) — dieses Zugangsstufen-Modell baut
+darauf auf und sollte erst danach umgesetzt werden.
+
 ### Leseproben-Abo-Button war kaputt — und Redesign auf "füllt das Kontaktformular"
 
 **Bug gefunden:** Der "Abonnieren"-Button tat sichtbar nichts beim
@@ -1749,22 +1778,33 @@ zusätzlich der Zugriff jetzt mit `?.` abgesichert (`form.querySelector(...)
 Elements künftig nur noch "gilt als nicht angehakt" statt den ganzen
 Handler zum Absturz zu bringen.
 
-**Fehlendes E-Mail-Feld ergänzt:** `#sub-email` (Pflichtfeld,
-`type="email"`) zwischen Ort und der Bewertungsprogramm-Checkbox
-hinzugefügt — wird jetzt mit in den Nachrichtentext übernommen.
-
 **Redesign — kein eigener Versand mehr, sondern Formular-Vorbefüllung:**
 Das Abonnieren-Formular hat (bewusst) keine eigene Datennutzungs-
 Zustimmungs-Checkbox — die existiert bereits im rechten "... oder
 klassisch per Mail"-Formular. Statt eine zweite, ungeprüfte
 `mailto:`-Öffnung zu bauen, befüllt "Abonnieren" jetzt stattdessen
-`#contact-name` und `#contact-message` im rechten Formular (Adresse,
-E-Mail zur Bestätigung und die Bewertungsprogramm-Entscheidung als
-Fließtext in der Nachricht) und scrollt dorthin — der Klick selbst
-verschickt nichts. Die Besucherin muss weiterhin bewusst die
-Zustimmungs-Checkbox anhaken und den bestehenden "E-Mail-Entwurf
-öffnen"-Button des rechten Formulars selbst betätigen. Kleiner
-Hinweistext unter dem Abonnieren-Button erklärt das.
+`#contact-name` und `#contact-message` im rechten Formular (Name +
+Adresse als Fließtext in der Nachricht) und scrollt dorthin — der Klick
+selbst verschickt nichts, die Besucherin klickt den bestehenden
+"E-Mail-Entwurf öffnen"-Button des rechten Formulars selbst.
+
+**Zwei Korrekturen nach erstem Feedback:**
+- **Kein E-Mail-Feld.** Erst ergänzt ("E-Mail zur Bestätigung"), dann vom
+  Nutzer explizit verworfen: unnötig, da ohnehin der eigene Mail-Client
+  des Besuchers geöffnet wird — die Absenderadresse ist damit implizit
+  bekannt. Feld wieder entfernt.
+- **Keine Bewertungsprogramm-Checkbox mehr in diesem Formular.** Ebenfalls
+  auf Nutzerwunsch ersatzlos gestrichen (war zuvor Teil des
+  Nachrichtentexts) — das Abonnieren-Formular behandelt jetzt nur noch
+  Leseproben/Probezugänge, keine Bewertungsprogramm-Entscheidung mehr.
+- **Button jetzt zusätzlich an die Zustimmungs-Checkbox des RECHTEN
+  Formulars gekoppelt** (`#contact-consent`) — explizite Anforderung:
+  "der Abonnieren-Button soll nicht funktionieren, bevor man der
+  Datenschutz-Checkbox rechts zugestimmt hat". `updateEnabled()` prüft
+  jetzt beides: `!form.checkValidity() || !consentCheckbox.checked` —
+  ein `change`-Listener auf der (fremden) Checkbox sorgt dafür, dass sich
+  der Button automatisch entsperrt, sobald sie angehakt wird, auch ohne
+  dass im linken Formular selbst etwas passiert.
 
 ### Widerruf-Link fehlte im Footer der Startseite
 
