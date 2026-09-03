@@ -114,6 +114,62 @@
     }
     .gallery-dot.is-active { background: #fff; }
 
+    /* Sale ribbon — small corner sash on discounted items, using schaerpe.png
+       (already drawn as a thin diagonal sash on a transparent canvas). The
+       image/text share one rotated wrapper so they nudge together from the
+       artwork's own ~32° diagonal to a clean 45° corner angle, sized small
+       so most of the cover stays visible/readable. */
+    .sale-ribbon {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 110px;
+      height: 80px;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .sale-ribbon-band {
+      position: absolute;
+      inset: 0;
+      transform: rotate(-13deg);
+      transform-origin: 60% 40%;
+    }
+    .sale-ribbon img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .sale-ribbon span {
+      position: absolute;
+      top: 36%;
+      left: 6%;
+      width: 88%;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.62rem;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+      white-space: nowrap;
+    }
+
+    /* Sale badge — plain inline version for use in running text (modal
+       price line), not the corner graphic. */
+    .sale-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #d9b23c, #a3791c);
+      color: #1a1400;
+      font-weight: 700;
+      font-size: 0.7rem;
+      white-space: nowrap;
+    }
+
     .shop-body {
       padding: 14px;
       display: grid;
@@ -500,6 +556,8 @@
           <!-- KLAPPENTEXT -->
           <p id="modal-klappentext" style="margin:0;"></p>
 
+          <p id="modal-material" class="fineprint" style="margin:0; opacity:0.75; font-style:italic;"></p>
+
           <div class="shop-row">
             <div class="field">
               <label for="modal-variant">Variante</label>
@@ -671,6 +729,7 @@
     const modalTags = $("#modal-tags");
     const modalLinks = $("#modal-links");
     const modalKlappentext = $("#modal-klappentext");
+    const modalMaterial = $("#modal-material");
     const modalVariant = $("#modal-variant");
     const modalQty = $("#modal-qty");
     const modalUnit = $("#modal-unit");
@@ -772,6 +831,53 @@
       }
     }
 
+    function formatDateDE(iso) {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return String(iso || "");
+      return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+    }
+
+    // Central sale/discount logic. A product (or a book's meta.json) can carry:
+    //   "sale": { "percent": 20, "until": "2026-12-31" }
+    // or:
+    //   "sale": { "amount": 5, "until": "2026-12-31" }
+    // "until" is inclusive (end of that day) and optional — omit it for an
+    // open-ended sale. Once "until" passes, this automatically stops
+    // returning a discount, no regeneration/edit needed elsewhere.
+    function getActiveSale(sale) {
+      if (!sale || typeof sale !== "object") return null;
+      const hasPercent = typeof sale.percent === "number" && sale.percent > 0;
+      const hasAmount = typeof sale.amount === "number" && sale.amount > 0;
+      if (!hasPercent && !hasAmount) return null;
+
+      const until = (sale.until || "").toString().trim();
+      if (until) {
+        const untilDate = new Date(`${until}T23:59:59`);
+        if (isNaN(untilDate.getTime()) || untilDate.getTime() < Date.now()) return null;
+      }
+      return { percent: hasPercent ? sale.percent : null, amount: hasAmount ? sale.amount : null, until };
+    }
+
+    // Returns the discounted price, or basePrice unchanged if no active sale.
+    function applySale(basePrice, sale) {
+      if (basePrice == null) return basePrice;
+      const active = getActiveSale(sale);
+      if (!active) return basePrice;
+
+      const reduced = active.percent != null
+        ? basePrice * (1 - active.percent / 100)
+        : basePrice - active.amount;
+
+      return Math.max(0, Math.round(reduced * 100) / 100);
+    }
+
+    function saleRibbonLabel(sale) {
+      const active = getActiveSale(sale);
+      if (!active) return "";
+      const cut = active.percent != null ? `${active.percent}%` : formatEUR(active.amount);
+      return active.until ? `-${cut} bis ${formatDateDE(active.until)}` : `-${cut}`;
+    }
+
     function loadCartFromStorage() {
       try {
         const raw = localStorage.getItem(CART_KEY);
@@ -848,6 +954,26 @@
         const img = buildGallery(safeImages(p), p.name || p.id);
         img.classList.add("shop-img");
 
+        const activeSale = getActiveSale(p.sale);
+        if (activeSale) {
+          const ribbon = document.createElement("div");
+          ribbon.className = "sale-ribbon";
+
+          const band = document.createElement("div");
+          band.className = "sale-ribbon-band";
+
+          const ribbonImg = document.createElement("img");
+          ribbonImg.src = "/img/schaerpe.png";
+          ribbonImg.alt = "";
+          band.appendChild(ribbonImg);
+
+          const ribbonText = document.createElement("span");
+          ribbonText.textContent = saleRibbonLabel(p.sale);
+          band.appendChild(ribbonText);
+
+          ribbon.appendChild(band);
+          img.appendChild(ribbon);
+        }
 
         const body = document.createElement("div");
         body.className = "shop-body";
@@ -879,8 +1005,26 @@
           const priceLine = document.createElement("p");
           priceLine.className = "fineprint";
           priceLine.style.margin = "0";
-          priceLine.textContent = `Preis: ${formatEUR(p.price)}`;
+
+          const salePrice = applySale(p.price, p.sale);
+          if (salePrice !== p.price) {
+            priceLine.innerHTML =
+              `<span style="text-decoration:line-through; opacity:0.6;">${formatEUR(p.price)}</span> ` +
+              `Preis: ${formatEUR(salePrice)}`;
+          } else {
+            priceLine.textContent = `Preis: ${formatEUR(p.price)}`;
+          }
           body.appendChild(priceLine);
+        }
+
+        if (p.material) {
+          const materialLine = document.createElement("p");
+          materialLine.className = "fineprint";
+          materialLine.style.margin = "0";
+          materialLine.style.opacity = "0.75";
+          materialLine.style.fontStyle = "italic";
+          materialLine.textContent = p.material;
+          body.appendChild(materialLine);
         }
 
         card.appendChild(img);
@@ -1029,14 +1173,31 @@ function getUnitPriceForVariant(p, variant) {
 
 function renderModalPriceForVariant(p) {
   const v = modalVariant?.value || "Print";
-  const unitPrice = getUnitPriceForVariant(p, v);
+  const basePrice = getUnitPriceForVariant(p, v);
+  const salePrice = applySale(basePrice, p.sale);
+  const onSale = basePrice != null && salePrice !== basePrice;
 
   if (modalPrice) {
-    modalPrice.textContent = (unitPrice != null) ? `Preis: ${formatEUR(unitPrice)}` : "";
+    if (basePrice == null) {
+      modalPrice.textContent = "";
+    } else if (onSale) {
+      modalPrice.innerHTML =
+        `<span style="text-decoration:line-through; opacity:0.6; font-weight:400; font-size:0.75em;">${formatEUR(basePrice)}</span> ` +
+        `Preis: ${formatEUR(salePrice)} <span class="sale-badge" style="margin-left:6px;">${escapeHtmlAttr(saleRibbonLabel(p.sale))}</span>`;
+    } else {
+      modalPrice.textContent = `Preis: ${formatEUR(basePrice)}`;
+    }
   }
 
-  const priceTxt = (unitPrice != null) ? ` · ${formatEUR(unitPrice)} / ${safeUnit(p)}` : "";
+  const priceTxt = (salePrice != null) ? ` · ${formatEUR(salePrice)} / ${safeUnit(p)}` : "";
   modalUnit.textContent = `Einheit: ${safeUnit(p)}${priceTxt}`;
+}
+
+function escapeHtmlAttr(s) {
+  return String(s || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
 
@@ -1075,6 +1236,10 @@ function openProductModal(p, opts = {}) {
     (p.longDescription || p.description || "").toString().trim();
 
   if (modalKlappentext) modalKlappentext.textContent = klappentext;
+
+  // Textilkennzeichnung (EU-Verordnung Nr. 1007/2011) — nur bei Produkten
+  // mit "material"-Feld (Textil-Merch), Bücher haben keins.
+  if (modalMaterial) modalMaterial.textContent = p.material || "";
 
   // variants
   modalVariant.innerHTML = "";
@@ -1127,7 +1292,7 @@ function openProductModal(p, opts = {}) {
       if (existing) {
         existing.qty = Math.min(50, (parseInt(existing.qty, 10) || 0) + qty);
       } else {
-        const unitPrice = getUnitPriceForVariant(activeProduct, variant);
+        const unitPrice = applySale(getUnitPriceForVariant(activeProduct, variant), activeProduct.sale);
 
         cart.push({
           id: activeProduct.id,
@@ -1483,6 +1648,7 @@ return {
   price: displayPrice,   // list/sort price (“from”)
   pricePrint,
   priceDigital,
+  sale: (meta.sale && typeof meta.sale === "object") ? meta.sale : null,
   currency: "EUR",
 
   unit: String(meta.unit || "Buch"),
@@ -1528,7 +1694,10 @@ async function loadMerchProducts() {
       images: Array.isArray(p.images) ? p.images : (p.image ? [p.image] : []),
 
       price: toNumber(p.price),
+      sale: (p.sale && typeof p.sale === "object") ? p.sale : null,
       currency: "EUR",
+
+      material: p.material || "",
 
       unit: p.unit || "Stück",
       variants: Array.isArray(p.variants) ? p.variants : ["Standard"],

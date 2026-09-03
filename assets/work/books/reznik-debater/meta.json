@@ -10,9 +10,10 @@
       "eigenanteil": "Übersetzung ins Deutsche, Buchsatz, Verlegung und Marketing",
 
     "tags": ["therapy", "guide","publishing","translation"],
-    "excerpt": "Die Worte eines Therapeuten an Jugendliche und alle, die sich ab und zu ohne Grund wertlos, unfähig und mangelhaft fühlen.",
+    "excerpt": "Die Hinweise eines Therapeuten an Jugendliche und alle, die mit sich selbst kämpfen.",
  "price-print":15,
-  "price-digital":10,  
+  "price-digital":10,
+  "sale": { "percent": 10, "until": "2026-09-08" },
   "alsoPublished": [
     { "label": "Autorenwebsite", "url": "https://www.drpeterreznik.com/" },
     { "label": "Amazon", "url": "https://www.amazon.com/Taming-Debater-Within-Peter-Reznik/dp/B09MYXSPPY" }

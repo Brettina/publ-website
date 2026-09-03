@@ -527,6 +527,48 @@ Index verwenden (`contentUrl`, `metaUrl`, `cover`), nie einen Pfad aus
 `slug` selbst zusammenbauen — dann sind sie automatisch robust gegen genau
 diese Art von Struktur-Änderung.
 
+### Rabatt-/Sale-System
+
+Zentral im jeweiligen Produkt-JSON pflegbar: ein optionales Feld
+`"sale": { "percent": 10, "until": "2026-09-08" }` (alternativ `"amount"`
+statt `"percent"` für einen festen Euro-Abzug) — für Bücher in
+`assets/work/books/<slug>/meta.json`, für Merch in `assets/shop/products.json`.
+Kein neues Dokument, keine zweite Quelle der Wahrheit.
+
+`webpages/webshop/index.html` enthält die Logik zentral:
+
+- `getActiveSale(sale)` — prüft, ob `percent`/`amount` gesetzt und `until`
+  (falls vorhanden) noch nicht abgelaufen ist. Kein Enddatum = Rabatt läuft
+  unbefristet weiter.
+- `applySale(basePrice, sale)` — rechnet den reduzierten Preis aus.
+- `saleRibbonLabel(sale)` — baut den Text ("-10% bis 08.09.2026").
+
+Der Rabatt wirkt auf **jeden Preis, auf den er angewendet wird** — bei
+Büchern mit Print- und E-Book-Preis wird `applySale()` separat auf
+`pricePrint` und auf `priceDigital` angewendet (abhängig davon, welche
+Variante im Modal gerade ausgewählt ist), nicht auf einen gemeinsamen
+Gesamtpreis. Beide Preise sind also unabhängig um denselben Prozentsatz/
+Betrag reduziert; auf der Karte selbst wird nur der "ab"-Preis
+(`p.price` = das Minimum aus beiden) mit Rabatt und Durchstreichung gezeigt.
+
+Angewendet an drei Stellen: Karten-Preiszeile (Durchstreichung),
+Modal-Preiszeile (Durchstreichung + `.sale-badge`-Pille), und beim
+Warenkorb/Bestellmail (`getUnitPriceForVariant()` → `applySale()`), damit
+der tatsächlich in der Mail stehende Preis korrekt reduziert ist.
+
+**Sale-Ribbon-Winkel (Korrektur):** Erste Version hat `/img/schaerpe.png`
+(eine fertige, transparente Schärpen-Grafik, ~32° Diagonale bereits ins Bild
+gezeichnet) 1:1 in einer 150×100px-Box in die Ecke gesetzt, mit separat um
+-34° gedrehtem Text darüber. Der Nutzer fand das zu groß (verdeckt zu viel
+vom Buchcover) und den Winkel nicht sauber ("nicht diagonal... 45 grad").
+Fix: Bild und Text stecken jetzt gemeinsam in einem `.sale-ribbon-band`-Wrapper,
+der als Ganzes um -13° gedreht wird — das addiert sich zum bereits ins Bild
+gezeichneten ~32°-Winkel zu einem sauberen ~45°, ohne Bild und Text getrennt
+und potenziell uneinheitlich zu drehen. Box verkleinert auf 110×80px, damit
+das Cover größtenteils lesbar bleibt. **Nicht live im Browser geprüft** (kein
+Browser-Zugriff in dieser Umgebung) — Winkel/Größe sind eine begründete
+Schätzung, ggf. nachjustieren.
+
 ## Gefundene und behobene Bugs (mit Ursache, damit sie nicht wiederkommen)
 
 - **Homepage-Galerie/Modal zeigte `updated` statt `published` als Datum**:

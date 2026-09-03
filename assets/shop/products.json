@@ -3,8 +3,9 @@
     {
       "id": "bademantel",
       "page": "webshop",
-      "name": "Bademantel",
-      "description": "Flauschiger Bademantel mit verschiedenen Motiven",
+      "name": "Bademantel und Überziehmode",
+      "description": "Mit verschiedenen Motiven, auch gern individuell gestaltet",
+      "material": "Materialzusammensetzung: idR Baumwolle, bitte erfragen",
       "image": "/assets/shop/bademantel/bademantel.png",
       "images": [
         "/assets/shop/bademantel/bademantel.png"
@@ -17,15 +18,16 @@
         "XL"
       ],
       "unit": "Stück",
-      "price": 15,
+      "price": 20,
       "pickupRequired": false,
       "decorateJuice": false
     },
     {
       "id": "partner",
       "page": "webshop",
-      "name": "T-Shirt im Doppelpack",
-      "description": "Für den rebellischen Austausch. Kleine Auflage.",
+      "name": "T-Shirt -auch im Partnerlook",
+      "description": "Zurzeit Wikinger-Kreuzritter Motive noch erhältlich. Kleine Auflage.",
+      "material": "Materialzusammensetzung: idR Baumwolle, Bitte erfragen",
       "image": "/assets/shop/partner/engl.png",
       "images": [
         "/assets/shop/partner/engl.png",
@@ -48,6 +50,7 @@
       "page": "webshop",
       "name": "kurze und lange Socken",
       "description": "für Untentschiedene und Schizophrene.",
+      "material": "Materialzusammensetzung: idR Baumwolle, bitte erfragen",
       "image": "/assets/shop/socken/odin black.png",
       "images": [
         "/assets/shop/socken/odin black.png",
