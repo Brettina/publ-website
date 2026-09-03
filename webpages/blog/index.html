@@ -7,7 +7,7 @@
   <script src="/assets/site.js" defer></script>
 
   <meta name="description" content="Blog — Artikel zum Aufklappen. Neueste zuerst." />
-  <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="stylesheet" href="/assets/styles.css?v=2" />
   <link rel="icon" href="/img/webicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="/img/webicon.png" />
   <meta name="color-scheme" content="light dark" />
@@ -26,24 +26,25 @@
       background-attachment: fixed;
     }
 
-    /* Layered transparency: the further "out" (the bigger the wrapping
-       panel), the more the background shows through; the further "in"
-       (dense, text-heavy content), the more opaque, for readability.
-       - .section (wraps the whole post list): most transparent.
-       - .page-hero, .note-block: mostly opaque, directly-read intro text —
-         too transparent to read comfortably otherwise.
-       - .card/.post (individual blog posts, the innermost boxes): back to
-         fully opaque — no override, falls back to the shared near-solid
-         background from assets/styles.css.
+    /* Layered transparency: a GRADUAL scale, most transparent at the
+       outermost wrapping panel down to most opaque at the innermost boxes
+       — evenly spaced rather than one big jump straight from "mostly
+       see-through" to "solid" (see DOCUMENTATION.md, "Transparenz-Hierarchie").
+       - .section (wraps the whole post list): 50%.
+       - .page-hero, .note-block: directly-read intro text: 65%.
+       - .card/.post (individual blog posts, the innermost boxes): 90%.
        Overrides the shared backgrounds from assets/styles.css — scoped to
        this page only via normal cascade order (this <style> loads after
        the shared stylesheet). */
     .section {
-      background: color-mix(in srgb, var(--panel) 35%, transparent);
+      background: color-mix(in srgb, var(--panel) 50%, transparent);
     }
     .page-hero,
     .note-block {
-      background: color-mix(in srgb, var(--panel) 85%, transparent);
+      background: color-mix(in srgb, var(--panel) 65%, transparent);
+    }
+    .card {
+      background: color-mix(in srgb, var(--panel) 90%, transparent);
     }
 
     /* Blog-local: simple accordion layout */

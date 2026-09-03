@@ -12,7 +12,7 @@
     name="description"
     content="publish-Lohr — Bücher und Artikel verlegen."
   />
-  <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="stylesheet" href="/assets/styles.css?v=2" />
   <meta name="color-scheme" content="light dark" />
 
   <style>
@@ -29,24 +29,35 @@
       background-attachment: fixed;
     }
 
-    /* Layered transparency: the further "out" (the bigger the wrapping
-       panel), the more the background shows through; the further "in"
-       (dense, text-heavy content), the more opaque, for readability.
-       - .section (e.g. "Neues", wraps a whole grid/group): most transparent.
-       - .page-hero, .note-block: mostly opaque, directly-read intro text —
-         too transparent to read comfortably otherwise.
-       - .card (individual item boxes, the innermost boxes): back to fully
-         opaque — no override, falls back to the shared near-solid
-         background from assets/styles.css.
+    /* Layered transparency: a GRADUAL 4-step scale, most transparent at the
+       outermost wrapping panel down to most opaque at the innermost boxes
+       — evenly spaced (~13-15 points apart) rather than one big jump
+       straight from "mostly see-through" to "solid", which read as two
+       disconnected looks rather than a gradient.
+       1. .section (e.g. "Neues", "Rabattaktionen", wraps a whole
+          grid/group), .hero (the "Willkommen"/profile block — same tier,
+          a big top-level block, not nested in anything else): 50%.
+       2. .page-hero, .note-block: directly-read intro text: 65%.
+       3. .service-item (the accordion rows nested inside .section, e.g.
+          each "Rabatt..."/"Leistung..." row): 80%.
+       4. .card (individual item boxes — blog-card gallery figures,
+          product/post cards — the innermost boxes): 90%.
        Overrides the shared backgrounds from assets/styles.css — scoped to
        this page only via normal cascade order (this <style> loads after
        the shared stylesheet). */
-    .section {
-      background: color-mix(in srgb, var(--panel) 35%, transparent);
+    .section,
+    .hero {
+      background: color-mix(in srgb, var(--panel) 50%, transparent);
     }
     .page-hero,
     .note-block {
-      background: color-mix(in srgb, var(--panel) 85%, transparent);
+      background: color-mix(in srgb, var(--panel) 65%, transparent);
+    }
+    .service-item {
+      background: color-mix(in srgb, var(--panel) 80%, transparent);
+    }
+    .card {
+      background: color-mix(in srgb, var(--panel) 90%, transparent);
     }
 
     /* --- Saftladen header replacement + hero image --- */
@@ -1286,6 +1297,30 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
   const root = document.querySelector("[data-blog-gallery]");
   if (!root) return;
 
+  // Tags are stored in English (meta.json) — this only translates the
+  // DISPLAYED label, never the underlying value used for matching/URLs.
+  const TAG_LABELS_DE = {
+    therapy: "Therapie",
+    guide: "Ratgeber",
+    publishing: "Verlagswesen",
+    translation: "Übersetzung",
+    christian: "Christlich",
+    biography: "Biografie",
+    book: "Buch",
+    relationship: "Beziehung",
+    facereading: "Gesichtslesen",
+    politics: "Politik",
+    article: "Artikel",
+    libertarian: "Libertär",
+    activism: "Aktivismus",
+    fair: "Messe",
+    merch: "Merch"
+  };
+  function tagLabel(t) {
+    const key = String(t || "").toLowerCase().trim();
+    return TAG_LABELS_DE[key] || String(t || "");
+  }
+
   const leftFig = root.querySelector('[data-slot="left"]');
   const centerFig = root.querySelector('[data-slot="center"]');
   const rightFig = root.querySelector('[data-slot="right"]');
@@ -1465,7 +1500,7 @@ async function openCurrent() {
   // Tags
   if (modalTags) {
     const tags = (Array.isArray(meta?.tags) ? meta.tags : cur.tags) || [];
-    modalTags.innerHTML = tags.map(t => `<span class="chip">${String(t)}</span>`).join("");
+    modalTags.innerHTML = tags.map(t => `<span class="chip">${tagLabel(t)}</span>`).join("");
   }
 
   // alsoPublished links

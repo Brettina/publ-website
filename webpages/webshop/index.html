@@ -6,7 +6,7 @@
   <title>Laden - publish-Lohr</title>
 
   <meta name="description" content="Laden. Anfrage per E-Mail." />
-  <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="stylesheet" href="/assets/styles.css?v=2" />
   <link rel="icon" href="/img/webicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="/img/webicon.png" />
   <meta name="color-scheme" content="light dark" />
@@ -27,25 +27,26 @@
       background-attachment: fixed;
     }
 
-    /* Layered transparency: the further "out" (the bigger the wrapping
-       panel), the more the background shows through; the further "in"
-       (dense, text-heavy content), the more opaque, for readability.
-       - .section ("Bücher & Merch", wraps the whole grid): most transparent.
-       - .page-hero ("Laden"), .note-block (pickup hint): mostly opaque,
-         directly-read intro text — too transparent to read comfortably
-         otherwise.
-       - .card (individual product cards, the innermost boxes): back to
-         fully opaque — no override, falls back to the shared near-solid
-         background from assets/styles.css.
+    /* Layered transparency: a GRADUAL scale, most transparent at the
+       outermost wrapping panel down to most opaque at the innermost boxes
+       — evenly spaced rather than one big jump straight from "mostly
+       see-through" to "solid" (see DOCUMENTATION.md, "Transparenz-Hierarchie").
+       - .section ("Bücher & Merch", wraps the whole grid): 50%.
+       - .page-hero ("Laden"), .note-block (pickup hint): directly-read
+         intro text: 65%.
+       - .card (individual product cards, the innermost boxes): 90%.
        Overrides the shared backgrounds from assets/styles.css — scoped to
        this page only via normal cascade order (this <style> loads after
        the shared stylesheet). */
     .section {
-      background: color-mix(in srgb, var(--panel) 35%, transparent);
+      background: color-mix(in srgb, var(--panel) 50%, transparent);
     }
     .page-hero,
     .note-block {
-      background: color-mix(in srgb, var(--panel) 85%, transparent);
+      background: color-mix(in srgb, var(--panel) 65%, transparent);
+    }
+    .card {
+      background: color-mix(in srgb, var(--panel) 90%, transparent);
     }
 
     .shop-head {
@@ -154,33 +155,39 @@
     .gallery-dot.is-active { background: #fff; }
 
     /* Sale ribbon — corner sash on discounted items, overlapping the TOP-LEFT
-       corner. Uses schaerpe.png, already drawn as a thin diagonal sash
-       (rising left-to-right, transparent canvas). Mirrored horizontally
-       (scaleX(-1)) so it falls the other way for the left corner.
-       IMPORTANT: the outer .sale-ribbon box must stay fully INSIDE .shop-img
-       (no negative top/left on it) — .shop-img/.shop-card both clip
-       overflow, so anything pushed outside this box's own bounds via a
-       negative offset gets cropped off entirely (that was cutting the top
-       of the sash off). To still pull the visible sash tight into the
-       actual corner, the oversized/offset trick is applied to the <img>
-       itself instead, which is safely clipped by this box's own
-       overflow:hidden — a clip boundary we control, not an accidental one. */
+       corner. Uses schaerpe.png. Measured the artwork's actual baked
+       diagonal directly from its pixels (fitting a line through the
+       highest-alpha point per column) instead of eyeballing it: ~29°,
+       FALLING left-to-right (a "\", not a "/" as earlier assumed — that
+       wrong assumption was the root cause of the last two mismatched text
+       angles). Current transform `scaleX(-1) rotate(13deg)` — CSS applies
+       the rightmost function first, so rotate(13deg) is applied to the
+       falling ~29° line first (29+13=42°, still falling), THEN scaleX(-1)
+       mirrors it, which flips a falling line into a RISING one ("/") of the
+       same ~42° magnitude. So the sash actually renders at ~42°, rising —
+       the text below is rotated to match that exactly.
+       No more oversized/offset trick on the <img> — a previous version
+       intentionally let .sale-ribbon's own overflow:hidden crop the
+       artwork to "pull it into the corner", but that risked cropping off
+       the ribbon's pointed tail. Now the image is plain 100%/object-fit:
+       contain, so the WHOLE artwork (both ends) is always guaranteed to
+       show, never clipped — box sized generously so it still reads as
+       tucked into the corner. */
     .sale-ribbon {
       position: absolute;
       top: 0;
       left: 0;
-      width: 170px;
-      height: 130px;
+      width: 190px;
+      height: 150px;
       overflow: hidden;
       pointer-events: none;
       z-index: 3;
     }
     .sale-ribbon img {
       position: absolute;
-      top: -20px;
-      left: -20px;
-      width: 130%;
-      height: 130%;
+      inset: 0;
+      width: 100%;
+      height: 100%;
       object-fit: contain;
       transform: scaleX(-1) rotate(13deg);
       transform-origin: center center;
@@ -193,7 +200,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transform: rotate(-19deg);
+      transform: rotate(-42deg);
       transform-origin: center center;
       color: #fff;
       font-weight: 700;
@@ -239,19 +246,16 @@
 
 
     .shop-topline {
+      /* Stacked, not a row: with a row layout, the title's min-width:0
+         lets it shrink to fit next to the badge no matter how narrow that
+         makes it (wrapping internally instead), so flex-wrap never
+         actually triggers — the badge ends up pinned beside/overlapping a
+         squeezed, multi-line title instead of dropping to its own line.
+         Stacking removes that ambiguity entirely. */
       display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .shop-topline h3 {
-      /* Without this, the un-wrappable badge sibling (white-space: nowrap)
-         forces nearly all flex-shrink onto the title, collapsing it to
-         one word per line instead of using the card's actual width. */
-      flex: 1 1 0%;
-      min-width: 0;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
     }
 
     .shop-badge {
@@ -872,6 +876,31 @@
       return Number.isFinite(n) ? n : null;
     }
 
+    // Tags are stored in English (meta.json/products.json) since they're
+    // also used as internal filter keys — this only translates the
+    // DISPLAYED label, never the underlying value used for matching/URLs.
+    const TAG_LABELS_DE = {
+      therapy: "Therapie",
+      guide: "Ratgeber",
+      publishing: "Verlagswesen",
+      translation: "Übersetzung",
+      christian: "Christlich",
+      biography: "Biografie",
+      book: "Buch",
+      relationship: "Beziehung",
+      facereading: "Gesichtslesen",
+      politics: "Politik",
+      article: "Artikel",
+      libertarian: "Libertär",
+      activism: "Aktivismus",
+      fair: "Messe",
+      merch: "Merch"
+    };
+    function tagLabel(t) {
+      const key = String(t || "").toLowerCase().trim();
+      return TAG_LABELS_DE[key] || String(t || "");
+    }
+
     function formatEUR(n) {
       try {
         return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
@@ -1057,7 +1086,7 @@
 
         const badge = document.createElement("span");
         badge.className = "shop-badge";
-        badge.textContent = (p.tags && p.tags.length) ? String(p.tags[0]) : "Buch";
+        badge.textContent = (p.tags && p.tags.length) ? tagLabel(p.tags[0]) : "Buch";
 
 
         top.appendChild(h);
@@ -1285,7 +1314,7 @@ function openProductModal(p, opts = {}) {
   // tags
   if (modalTags) {
     const tags = Array.isArray(p.tags) ? p.tags : [];
-    modalTags.textContent = tags.length ? `Tags: ${tags.join(", ")}` : "";
+    modalTags.textContent = tags.length ? `Themen: ${tags.map(tagLabel).join(", ")}` : "";
   }
 
   // links: alsoPublished [{label,url}]
@@ -1798,8 +1827,8 @@ async function loadMerchProducts() {
       status.innerHTML =
         `<option value="">Alle</option>` +
         Array.from(allTags)
-          .sort((a, b) => a.localeCompare(b))
-          .map(t => `<option value="${t.replaceAll('"', "&quot;")}">${t}</option>`)
+          .sort((a, b) => tagLabel(a).localeCompare(tagLabel(b)))
+          .map(t => `<option value="${t.replaceAll('"', "&quot;")}">${tagLabel(t)}</option>`)
           .join("");
 
       if (current && Array.from(status.options).some(o => o.value === current)) status.value = current;

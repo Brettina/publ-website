@@ -682,8 +682,46 @@ rotate(Xdeg)` bedeutet "erst rotieren, dann spiegeln", nicht umgekehrt.
 Das ist eine häufige Fehlerquelle bei kombinierten CSS-Transforms und hat
 hier zu einem falsch berechneten Winkel geführt.
 
+5. Nutzer-Feedback zu Schritt 4 (Screenshot): Schärpe jetzt gut sichtbar,
+   aber oben abgeschnitten, Text sichtbar falsch gedreht ("nicht so weit
+   gedreht wie die Schärpe, obwohl beide gleich viel gedreht sind!"), und
+   generell zu weit rechts. **Zwei echte Fehler gefunden:**
+   - Der `top:-14px; left:-14px`-Trick aus Schritt 4 schob `.sale-ribbon`
+     selbst über seine eigenen Grenzen hinaus — aber `.shop-img`/
+     `.shop-card` haben `overflow:hidden` und schneiden daher alles ab, was
+     über `.sale-ribbon` hinausragt. Das war keine kontrollierte
+     Beschneidung, sondern hat den oberen Teil der Schärpe (die Spitze)
+     verschluckt. Fix: `.sale-ribbon` bleibt bei `top:0; left:0`, keine
+     negativen Versätze mehr auf dem Container.
+   - Die ~19°-Schätzung aus Schritt 4 war **falsch**, weil die
+     Grundannahme falsch war: die Schärpe im PNG wurde für "steigend
+     links→rechts" (`/`) gehalten, ist aber tatsächlich **fallend**
+     links→rechts (`\`). Das wurde diesmal nicht geschätzt, sondern direkt
+     aus den Pixeldaten gemessen (`python -c "from PIL import Image..."`,
+     pro Spalte den Pixel mit dem höchsten Alphawert gesucht und eine
+     Gerade durch alle Punkte gelegt): echter Winkel **~29°, fallend**.
+     Mit `scaleX(-1) rotate(13deg)` (rotate zuerst, siehe Lehre oben:
+     29°+13°=42°, immer noch fallend), dann erst gespiegelt → eine
+     fallende Linie wird beim Spiegeln zu einer **steigenden** — Endergebnis
+     also **~42° steigend**, nicht 19°. Text korrigiert auf
+     `rotate(-42deg)`. Zusätzlich das `top:-20px;left:-20px;width:130%;
+     height:130%`-Übergrößen-Cropping auf dem `<img>` wieder entfernt
+     (dasselbe Risiko wie beim Container: unvorhersagbar, welcher Teil der
+     Grafik verschwindet) — jetzt schlicht `inset:0; width:100%; height:100%;
+     object-fit:contain`, garantiert vollständig sichtbar, dafür Box auf
+     190×150px vergrößert, damit es trotzdem groß genug wirkt.
+
+**Lehre (Messen statt Schätzen):** Ab Schritt 5 wurde der tatsächliche
+Winkel direkt aus der PNG-Datei gemessen statt aus dem gerenderten
+Screenshot geschätzt — zwei Iterationen lang (Schritt 3 und 4) beruhte die
+gesamte Rechnung auf einer falsch eingeschätzten Richtung (steigend statt
+fallend), was trotz korrekter Formel ein falsches Ergebnis lieferte.
+Screenshots von gerendertem, bereits transformiertem Text/Bild sind zum
+Abschätzen einer Diagonale unzuverlässig; ein kurzes Pixel-Scan-Skript
+gegen die Originaldatei ist es nicht.
+
 Textwinkel steht in `webpages/webshop/index.html` in der Regel
-`.sale-ribbon span { transform: rotate(19deg); ... }` — dieser Wert kann
+`.sale-ribbon span { transform: rotate(-42deg); ... }` — dieser Wert kann
 von Hand nachjustiert werden, bis er optisch zur Schärpe passt.
 
 ### Seiten-Hintergrundbild (Startseite, Blog, Webshop)
@@ -796,6 +834,97 @@ Seiten):
   zurück (`color-mix(..., 95%, transparent)`). Der Hintergrund scheint hier
   also praktisch nicht mehr durch, nur noch in den größeren Zwischenräumen
   außen herum.
+
+**Weiteres Nutzer-Feedback (Screenshot der Startseite):** Der Sprung von
+`.section` (35%, "Neues") zu `.card` (kein Override, ~95%) war zu groß —
+sah wie zwei unzusammenhängende Looks aus statt eines Verlaufs. Zwei
+zusätzliche, konkrete Probleme dabei entdeckt und mitgefixt:
+
+- `.hero` (der "Willkommen in der Werkstatt"/Profil-Block mit "Info
+  vorab"/"Leistungsbereiche") hat in `assets/styles.css` einen eigenen,
+  fast blickdichten Verlaufshintergrund (`color-mix(..., 92%, ...)` je
+  Farbton) — dieselbe Beschwerde wie bei `.card`: wirkt komplett opak.
+  Gehört strukturell zur selben obersten Ebene wie `.section` (kein
+  Eltern-Panel, eigener Top-Level-Block), also jetzt genauso behandelt.
+- `.service-item` (die Akkordeon-Zeilen "15% Rabatt auf Ihre Meinung" etc.
+  innerhalb von "Rabattaktionen"/"Leistungen") hat in `assets/styles.css`
+  `background: rgba(0,0,0,0.02)` — praktisch unsichtbar, lässt fast 100%
+  Hintergrund durch, obwohl es (verschachtelt in `.section`) eigentlich der
+  undurchsichtigste Layer sein sollte. War vorher übersehen worden, weil
+  die generische `.card`-Regel diese Klasse gar nicht trifft.
+  (`.service-body .service-item` in `assets/styles.css` ist eine ANDERE,
+  spezifischere Regel für verschachtelte Akkordeons innerhalb eines bereits
+  geöffneten Items — betrifft nicht den Normalfall und wurde bewusst nicht
+  angefasst.)
+
+**Finale, gleichmäßig gestufte 4-Stufen-Skala** (`index.html`; Webshop und
+Blog nutzen dieselbe Idee mit den ersten/letzten drei Stufen, da sie kein
+`.service-item` haben) — jede Stufe ca. 13-15 Prozentpunkte von der
+nächsten entfernt, damit es wie ein Verlauf und nicht wie zwei feste
+Zustände wirkt:
+
+1. `.section`, `.hero` (oberste Ebene, größte Kästen): `50%`
+2. `.page-hero`, `.note-block` (direkt gelesener Einführungstext): `65%`
+3. `.service-item` (in `.section` verschachtelte Akkordeon-Zeilen): `80%`
+4. `.card` (Produkt-/Post-/Galerie-Boxen, innerste Ebene): `90%`
+
+**Lehre:** Bei einer "je verschachtelter, desto opaker"-Regel reicht es
+nicht, nur die naheliegenden Klassen (`.card`, `.section`) anzufassen —
+jede Komponente mit einem EIGENEN, unabhängig gesetzten Hintergrund
+(`.hero`, `.service-item`, beide mit eigenen Regeln in
+`assets/styles.css`) muss einzeln gefunden und in die Hierarchie
+eingeordnet werden, sonst entstehen genau die inkonsistenten Ausreißer,
+die hier zweimal gemeldet wurden.
+
+### Shop-Karten: Titel/Chip überlappten trotz `flex-wrap: wrap`
+
+Ein früherer Fix für "Titel und Tag-Chip passen nicht nebeneinander"
+(`.shop-topline { flex-wrap: wrap; }`) hat objektiv **nichts** bewirkt —
+sichtbar am Screenshot mit "Morphologische Geheimnisse..." und dem Chip
+"relati…", die weiterhin ineinander liefen. Ursache: `.shop-topline h3`
+hat `min-width: 0`, das erlaubt dem Titel, sich beliebig schmal zu machen
+und stattdessen intern (mehrzeilig) umzubrechen — für die Flexbox-
+Berechnung "passt" dadurch immer alles in eine Zeile (der Titel wird
+einfach immer schmaler/höher), `flex-wrap` hat also nie einen Grund
+einzugreifen. Fix: `.shop-topline` komplett auf `flex-direction: column`
+umgestellt — Titel und Chip stehen jetzt IMMER untereinander, unabhängig
+von Textlänge, keine Wrap-Bedingung mehr nötig.
+
+### Browser-Cache von `assets/styles.css` — Versions-Query eingeführt
+
+Zweimal in dieser Session hat der Nutzer eine CSS-Änderung gemeldet, die
+angeblich nicht ankam (Brand-Icon-Größe, jetzt die neue Papyrus-
+Schriftart) — beide Male stellte sich (beim ersten Mal bestätigt, beim
+zweiten Mal als wahrscheinlichste Ursache angenommen) heraus, dass der
+Browser die alte `styles.css` aus dem Cache zeigte, da der Link keine
+Versionierung hatte. Fix: `<link rel="stylesheet" href="/assets/styles.css">`
+auf allen Seiten (Startseite, Blog, Webshop, alle vier `regulation/*`-Seiten)
+auf `?v=2` umgestellt. **Das muss von Hand hochgezählt werden** (`?v=3`,
+`?v=4`, …) nach künftigen Änderungen an `assets/styles.css`, damit Besucher
+mit einer bereits gecachten Version die Änderung auch sehen — es gibt
+keinen Build-Schritt, der das automatisch erledigt.
+
+### Tags auf Deutsch anzeigen
+
+Tags in den `meta.json`-Dateien der Bücher (`therapy`, `christian`,
+`relationship`, `facereading`, `guide`, `publishing`, `translation`,
+`biography`, `book`) sind auf Englisch, weil sie ursprünglich auch als
+interne Filter-Schlüssel gedacht waren. Nutzerwunsch: auf der Website
+sollen Tags aber immer auf Deutsch erscheinen. Lösung: ein kleines
+Wörterbuch `TAG_LABELS_DE` + Hilfsfunktion `tagLabel(t)`, dupliziert in
+`webpages/webshop/index.html` und `index.html` (kein gemeinsames
+JS-Modul in diesem Projekt, andere kleine Helfer wie `formatDate` sind
+aus demselben Grund ebenfalls pro Seite dupliziert). **Wichtig:** nur die
+ANGEZEIGTE Bezeichnung wird übersetzt — der zugrunde liegende Tag-Wert
+(für Filter-Vergleiche, `<option value="...">`, Sortierung) bleibt
+Englisch/unverändert, damit Filterung und Verlinkung nicht bricht.
+Angewendet an allen Stellen, wo ein Tag sichtbar gerendert wird:
+Shop-Karten-Badge, Tag-Filter-Dropdown (Webshop), Produkt-Modal
+("Themen: …", vorher "Tags: …"), und die Tag-Chips im Homepage-Blog-Modal.
+Neuer Tag in einem `meta.json`? Muss zusätzlich in beide
+`TAG_LABELS_DE`-Wörterbücher eingetragen werden, sonst erscheint er
+unübersetzt (Fallback: das Original wird angezeigt, keine kaputte Anzeige,
+aber eben auf Englisch).
 
 ## Gefundene und behobene Bugs (mit Ursache, damit sie nicht wiederkommen)
 
