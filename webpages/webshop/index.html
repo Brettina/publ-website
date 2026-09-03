@@ -221,6 +221,31 @@
       z-index: 3;
     }
 
+    /* Availability ribbon — top-right corner, mirrors .sale-ribbon (same
+       size/shape/rotation, just flipped to the other side and blue) for
+       items that are marked unavailable or published in the future. Own
+       corner so it can't visually collide with a simultaneous sale ribbon. */
+    .availability-ribbon {
+      position: absolute;
+      top: 16px;
+      right: -38px;
+      width: 170px;
+      padding: 7px 0;
+      transform: rotate(42deg);
+      transform-origin: center center;
+      background: #2563a8;
+      clip-path: polygon(6% 0, 94% 0, 100% 50%, 94% 100%, 6% 100%, 0 50%);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-align: center;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 3;
+    }
+
     /* Sale badge — plain inline version for use in running text (modal
        price line), not the corner graphic. */
     .sale-badge {
@@ -1134,6 +1159,13 @@
           img.appendChild(ribbon);
         }
 
+        if (p.comingSoon) {
+          const availRibbon = document.createElement("div");
+          availRibbon.className = "availability-ribbon";
+          availRibbon.textContent = "Bald wieder verfügbar";
+          img.appendChild(availRibbon);
+        }
+
         const body = document.createElement("div");
         body.className = "shop-body";
 
@@ -1776,11 +1808,18 @@ async function loadBooksFromWorkIndex() {
     }
   }));
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+
   const built = (await Promise.all(metas.map(async ({ w, meta }) => {
     if (!meta) return null;
 
-    // show ONLY available books
-    if (!isAvailableFromMeta(meta)) return null;
+    // Was: hidden entirely if unavailable. Now shown, but flagged
+    // "comingSoon" (blue ribbon, see renderProducts) — either explicitly
+    // marked unavailable, or published in the future.
+    const isAvailable = isAvailableFromMeta(meta);
+    const publishedStr = String(meta.published || "").trim();
+    const isFuturePublished = publishedStr && publishedStr > todayStr;
+    const comingSoon = !isAvailable || isFuturePublished;
 
     const pricePrint = toNumber(meta["price-print"] ?? meta.pricePrint ?? meta.price_print ?? meta.price);
 const priceDigital = toNumber(meta["price-digital"] ?? meta.priceDigital ?? meta.price_digital);
@@ -1830,6 +1869,7 @@ return {
   updated: String(meta.updated || w.updated || meta.published?.date || meta.published || "").trim(),
 
   status: "verfügbar",
+  comingSoon,
   pickupRequired: false,
 
   metaUrl: w.metaUrl,

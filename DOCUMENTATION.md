@@ -1515,6 +1515,44 @@ Nutzer bestätigt: **5 €**. `price-digital` jetzt auf `5` gesetzt.
 Sonderfall für `0` → "Kostenlos" statt "0,00 €", falls das nochmal
 gebraucht wird (aktuell inaktiv, da der Preis jetzt > 0 ist).
 
+### "Bald wieder verfügbar" — blaue Ribbon für nicht verfügbare/zukünftige Artikel
+
+Neue Regel in `webpages/webshop/index.html`, analog zur bestehenden
+goldenen Sale-Ribbon (siehe "Sale-Ribbon — Verlauf der Korrekturen"), aber
+oben RECHTS statt links, blau (`#2563a8`) statt gold, Text "Bald wieder
+verfügbar" in Weiß. Zeigt sich für Bücher/Spiele aus
+`assets/work-index.json`, deren `meta.json` entweder `"available": "nein"`
+hat ODER deren `published`-Datum in der Zukunft liegt (String-Vergleich
+gegen das heutige Datum, `YYYY-MM-DD`-Format).
+
+**Wichtige strukturelle Änderung:** Bisher hat `loadBooksFromWorkIndex()`
+nicht verfügbare Artikel komplett aus der Anzeige gefiltert (`if
+(!isAvailableFromMeta(meta)) return null;`). Diese harte Ausblendung
+wurde entfernt — Artikel werden jetzt angezeigt, nur mit der Ribbon
+markiert, statt komplett zu verschwinden. Ein Preis ist weiterhin
+Voraussetzung fürs Anzeigen (`if (pricePrint == null && priceDigital ==
+null) return null;` blieb bestehen) — ein nicht verfügbares Buch OHNE
+jeden Preis taucht also weiterhin gar nicht auf. Kauf-/Warenkorb-Funktion
+selbst wurde NICHT angetastet (nicht angefragt) — die Ribbon ist rein
+visuell, der Kaufen-Button bleibt für diese Artikel technisch weiter
+klickbar.
+
+**Nur Bücher/Spiele, nicht Merch:** `assets/shop/products.json`
+(T-Shirts, Socken etc.) hat kein `published`-Datum und nutzt `status`
+statt `available` — die neue Logik wurde nur für `loadBooksFromWorkIndex()`
+gebaut, `loadMerchProducts()` unverändert gelassen. Falls Merch später
+dieselbe Markierung braucht, müsste dort eine äquivalente `comingSoon`-
+Berechnung ergänzt werden (z. B. über `status !== "verfügbar"`).
+
+**Sofort sichtbarer Testfall:** `reznik-debater` hat `"published":
+"2026-09-04"` — am 2026-09-03 (heute, zum Zeitpunkt dieser Änderung) ist
+das noch in der Zukunft, die blaue Ribbon zeigt sich also sofort ohne
+weiteres Zutun. Der Rabatt auf dasselbe Buch startet erst am 05.09.; bis
+dahin zeigt die Karte nur die blaue "Bald verfügbar"-Ribbon, danach (nach
+Erscheinen, vor Rabattstart) keine, ab dem 05.09. dann die goldene
+Sale-Ribbon — funktioniert wie ein natürlicher Live-Test der neuen
+Funktion mit echten Daten.
+
 ## Offene Punkte
 
 - **"Archiv"-Suche ist bewusst unangeschlossen.** `webpages/archiv/index.html`
