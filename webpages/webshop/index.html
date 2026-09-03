@@ -27,14 +27,13 @@
       background-attachment: fixed;
     }
 
-    /* Layered transparency: a GRADUAL scale, most transparent at the
-       outermost wrapping panel down to most opaque at the innermost boxes
-       — evenly spaced rather than one big jump straight from "mostly
-       see-through" to "solid" (see DOCUMENTATION.md, "Transparenz-Hierarchie").
-       - .section ("Bücher & Merch", wraps the whole grid): 50%.
-       - .page-hero ("Laden"), .note-block (pickup hint): directly-read
-         intro text: 65%.
-       - .card (individual product cards, the innermost boxes): 90%.
+    /* Layered transparency — TWO tiers (see DOCUMENTATION.md,
+       "Transparenz-Hierarchie" for the full rule and history):
+       - BRANCH: .section ("Bücher & Merch", wraps the whole grid of
+         cards): transparent, 50%.
+       - LEAF (holds content directly, nothing further nested inside):
+         .page-hero ("Laden"), .note-block (pickup hint), .card (individual
+         product cards): always almost fully opaque, ~0.1% lookthrough.
        Overrides the shared backgrounds from assets/styles.css — scoped to
        this page only via normal cascade order (this <style> loads after
        the shared stylesheet). */
@@ -42,11 +41,9 @@
       background: color-mix(in srgb, var(--panel) 50%, transparent);
     }
     .page-hero,
-    .note-block {
-      background: color-mix(in srgb, var(--panel) 65%, transparent);
-    }
+    .note-block,
     .card {
-      background: color-mix(in srgb, var(--panel) 90%, transparent);
+      background: color-mix(in srgb, var(--panel) 99.9%, transparent);
     }
 
     .shop-head {
@@ -189,6 +186,11 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
+      /* Anchor the visible artwork toward the box's top-left instead of
+         centering it — pulls the sash further up/left without risking the
+         old clipping bug (this only repositions within the box, contain
+         still guarantees the whole image stays visible). */
+      object-position: top left;
       transform: scaleX(-1) rotate(13deg);
       transform-origin: center center;
       display: block;
@@ -196,7 +198,14 @@
     }
     .sale-ribbon span {
       position: absolute;
-      inset: 0;
+      /* Shrunk to the box's top-left region (instead of inset:0, the full
+         box) so its own center — the rotation pivot below — sits shifted
+         toward the top-left, matching the image's object-position above,
+         instead of pivoting around the full box's center. */
+      top: 0;
+      left: 0;
+      width: 70%;
+      height: 70%;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -269,6 +278,15 @@
       opacity: 0.9;
       white-space: nowrap;
       flex-shrink: 0;
+    }
+
+    .shop-author {
+      /* Explicitly Arial, not the Papyrus heading font — sits right below
+         the (Papyrus) title as a plainer byline. */
+      font-family: Arial, sans-serif;
+      margin: 0;
+      opacity: 0.85;
+      font-size: 0.9rem;
     }
 
     /* Prominent cart area */
@@ -597,6 +615,7 @@
             <h3 id="modal-title" style="margin:0;"></h3>
             <button type="button" class="btn-mini" id="modal-close" aria-label="Schließen">✕</button>
           </div>
+          <p id="modal-author" class="shop-author" style="margin:2px 0 0;"></p>
 
           <div class="fineprint" id="modal-status"></div>
 
@@ -777,6 +796,7 @@
     const modalClose = $("#modal-close");
     const modalImg = $("#modal-img");
     const modalTitle = $("#modal-title");
+    const modalAuthor = $("#modal-author");
     const modalStatus = $("#modal-status");
     const modalPrice = $("#modal-price");
     const modalTags = $("#modal-tags");
@@ -1094,6 +1114,13 @@
 
         body.appendChild(top);
 
+        if (p.author) {
+          const author = document.createElement("p");
+          author.className = "shop-author";
+          author.textContent = `von ${p.author}`;
+          body.appendChild(author);
+        }
+
         const desc = document.createElement("p");
         desc.className = "fineprint";
         desc.style.margin = "0";
@@ -1305,6 +1332,7 @@ function openProductModal(p, opts = {}) {
   const meta = p._meta || {};
 
   modalTitle.textContent = p.name || p.id;
+  if (modalAuthor) modalAuthor.textContent = p.author ? `von ${p.author}` : "";
   modalImg.innerHTML = "";
   modalImg.appendChild(buildGallery(safeImages(p), p.name || p.id));
 
@@ -1734,6 +1762,7 @@ const displayPrice = Number.isFinite(priceMin) ? priceMin : null;
 const image = await resolveWorkImage({ slug: w.slug, category: w.category, meta, indexCover: w.cover });
 
 const title = String(meta.title || w.id);
+const author = String(meta.author || "");
 const excerpt = String(meta.excerpt || meta.description || "");
 const tags = Array.isArray(meta.tags) ? meta.tags : [];
 
@@ -1742,6 +1771,7 @@ return {
   slug: w.slug,
 
   name: title,
+  author,
   description: excerpt,
   longDescription: excerpt,
 

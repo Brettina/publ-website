@@ -9,7 +9,11 @@
   --bg: #0b0c0f;
   --panel: #12141a;
   --text: #e9eef6;
-  --muted: #b7c0cd;
+  /* Warm tan/gold, not the previous cool blue-grey — matches the site's
+     brown/gold look (bg.png texture, sale ribbon, brand icon) and reads
+     far better over the brown background than a blue-grey did, while
+     staying visibly more muted than --text. */
+  --muted: #c9b48f;
   --border: rgba(255,255,255,.12);
   --shadow: rgba(0,0,0,.35);
 
@@ -26,7 +30,9 @@
     --bg: #fafafa;
     --panel: #ffffff;
     --text: #111827;
-    --muted: #4b5563;
+    /* Same warm brown/gold family as the dark theme's --muted, just dark
+       enough to read on light panels. */
+    --muted: #6b5a3f;
     --border: rgba(17,24,39,.12);
     --shadow: rgba(17,24,39,.08);
   }
@@ -72,6 +78,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   backdrop-filter: blur(10px);
   background: color-mix(in srgb, var(--bg) 85%, transparent);
   border-bottom: 1px solid var(--border);
+  font-family: "Papyrus", Arial, sans-serif;
 }
 
 .nav{
@@ -155,7 +162,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   box-shadow: 0 10px 25px var(--shadow);
 }
 
-h1,h2,h3,h4{ line-height: 1.2; margin: 0 0 10px; font-family: "Papyrus", Arial, sans-serif; }
+h1,h2,h3,h4{ line-height: 1.45; margin: 0 0 10px; font-family: "Papyrus", Arial, sans-serif; }
 .lead{ font-size: 1.05rem; color: var(--text); opacity: .95; }
 p{ margin: 0 0 10px; color: var(--muted); }
 

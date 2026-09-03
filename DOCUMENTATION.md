@@ -109,7 +109,18 @@ ganz oben in `assets/styles.css` eingebunden und wird für `h1,h2,h3,h4`
 site-weit verwendet, mit Fallback auf `Arial, sans-serif` falls die Datei
 mal fehlt/nicht lädt: `font-family: "Papyrus", Arial, sans-serif;`. Zentral
 an einer Stelle (geteiltes Stylesheet) statt pro Seite, da keine Seite eine
-eigene `h1-h4`-Regel überschreibt.
+eigene `h1-h4`-Regel überschreibt. Zeilenabstand dieser Überschriften auf
+`line-height: 1.45` erhöht (war `1.2`, wirkte mit Papyrus zu gedrängt).
+
+Der Marken-Schriftzug "publish-Lohr" im Header ist aber ein `<a
+class="brand">`, keine Überschrift — die `h1-h4`-Regel griff dort also
+nicht. Extra `font-family: "Papyrus", Arial, sans-serif;` auf
+`.site-header` in `assets/styles.css` ergänzt, damit auch Marken-Link und
+Nav-Einträge Papyrus bekommen.
+
+**Papyrus zeigte sich zunächst gar nicht** — Ursache war (wahrscheinlich)
+derselbe Browser-Cache von `assets/styles.css` wie beim Brand-Icon-Bug
+weiter unten, siehe "Browser-Cache von `assets/styles.css`".
 
 ### Webshop: Merch in den Buchshop integriert statt neue "Hipster"-Seite gebaut
 
@@ -724,6 +735,25 @@ Textwinkel steht in `webpages/webshop/index.html` in der Regel
 `.sale-ribbon span { transform: rotate(-42deg); ... }` — dieser Wert kann
 von Hand nachjustiert werden, bis er optisch zur Schärpe passt.
 
+6. Nutzer-Feedback: Winkel jetzt gut, aber Schärpe und Text sollen weiter
+   nach oben links, sodass der Text vollständig auf dem sichtbaren
+   Schärpenband liegt statt teilweise daneben. Da der Container selbst
+   nicht mehr negativ verschoben werden darf (siehe Schritt 5 — sonst wieder
+   Beschneidung durch `.shop-img`/`.shop-card`), wird stattdessen NUR die
+   Position INNERHALB der Box verschoben:
+   - Bild: `object-position: top left` zusätzlich zu `object-fit: contain`
+     — verschiebt das sichtbare (vollständig unbeschnittene) Motiv
+     innerhalb seiner Box nach oben links, statt es wie bisher zu
+     zentrieren.
+   - Text: die `span`-Box selbst verkleinert von `inset:0` (volle Box) auf
+     `top:0; left:0; width:70%; height:70%` — dadurch liegt ihr eigener
+     Mittelpunkt (= `transform-origin: center center`, der Dreh-Angelpunkt)
+     automatisch weiter oben links statt in der Mitte der vollen Box. Bewusst
+     NICHT über `align-items/justify-content: flex-start` gelöst — das hätte
+     den Dreh-Angelpunkt selbst verschoben und das Rotationsergebnis
+     unvorhersehbar gemacht (der Angelpunkt bleibt so weiterhin die Mitte
+     einer Box, nur einer kleineren, statt an eine Ecke verlegt zu werden).
+
 ### Seiten-Hintergrundbild (Startseite, Blog, Webshop)
 
 Alle drei Seiten (`index.html`, `webpages/blog/index.html`,
@@ -813,68 +843,62 @@ Muster, das für `.modal-img` schon vorher galt (dort war der Kommentar
    explizit auf Bild (1) und Text (2) gesetzt, damit der Text garantiert
    über der Schärpe liegt statt sich nur auf DOM-Reihenfolge zu verlassen.
 
-### Transparenz-Hierarchie statt einheitlicher 30%
+### Transparenz-Hierarchie (aktueller, korrekter Stand: ZWEI Stufen)
 
-Nutzer-Feedback zu Punkt 2 oben: eine einzige Transparenzstufe für alle
-vier Klassen war falsch gedacht. Gewünscht ist eine **Abstufung nach
-Verschachtelungstiefe** — je "äußerer"/größer der umschließende Kasten,
-desto mehr Hintergrund scheint durch; je "innerer"/textlastiger der
-Inhalt, desto undurchsichtiger (Lesbarkeit). Konkret jetzt (alle drei
-Seiten):
+**Die Regel, aktuell gültig:** Es gibt genau zwei Kategorien, und die
+Einordnung richtet sich nach STRUKTUR, nicht nach Verschachtelungstiefe:
 
-- `.section` (der große Rahmen um eine ganze Karten-Gruppe, z. B. "Neues"
-  auf der Startseite, "Bücher & Merch" im Webshop): am transparentesten,
-  `color-mix(..., 35%, transparent)`.
-- `.page-hero` ("Laden"), `.note-block` (Abholhinweis): direkt gelesener
-  Einführungstext, war zu transparent zum Lesen → deutlich undurchsichtiger,
-  `color-mix(..., 85%, transparent)`.
-- `.card` (einzelne Produkt-/Post-Boxen, die innersten Kästen): komplett
-  zurückgesetzt auf **keine** eigene Transparenz-Regel mehr — fällt auf den
-  ursprünglichen, fast blickdichten Hintergrund aus `assets/styles.css`
-  zurück (`color-mix(..., 95%, transparent)`). Der Hintergrund scheint hier
-  also praktisch nicht mehr durch, nur noch in den größeren Zwischenräumen
-  außen herum.
+- **BRANCH** — ein Kasten, der eine ganze Gruppe/Gitter anderer Boxen
+  umschließt (z. B. `.section` in seiner normalen Verwendung: "Neues",
+  "Rabattaktionen", "Kontaktieren Sie mich!"): **transparent, 50%**. Der
+  Hintergrund soll in den Lücken um/hinter der Liste sichtbar sein.
+- **LEAF** — ein Kasten, der Inhalt direkt hält und nichts weiter
+  verschachtelt (egal wie tief er im DOM sitzt): `.card`, `.hero`
+  ("Willkommen in der Werkstatt"/Profiltext), `.page-hero`, `.note-block`,
+  `.service-item` (die Akkordeon-Zeilen), und die Ausnahme
+  `.section[aria-labelledby="contact"]` (dieser eine `.section` umschließt
+  KEINE Karten, sondern hält das Kontaktformular direkt — untypisch für
+  `.section`, deshalb eigens per Attribut-Selektor herausgenommen): **immer
+  fast vollständig opak, `color-mix(..., 99.9%, transparent)`** — nur
+  0,1 % Hintergrund-Durchschein. Lesbarkeit von dichtem/interaktivem
+  Inhalt zählt hier mehr als der Textur-Effekt.
 
-**Weiteres Nutzer-Feedback (Screenshot der Startseite):** Der Sprung von
-`.section` (35%, "Neues") zu `.card` (kein Override, ~95%) war zu groß —
-sah wie zwei unzusammenhängende Looks aus statt eines Verlaufs. Zwei
-zusätzliche, konkrete Probleme dabei entdeckt und mitgefixt:
+Umgesetzt identisch auf allen drei Seiten (Startseite, Blog, Webshop) —
+Blog/Webshop haben kein `.service-item` und keine "contact"-Ausnahme, sonst
+dieselbe Zwei-Stufen-Logik.
 
-- `.hero` (der "Willkommen in der Werkstatt"/Profil-Block mit "Info
-  vorab"/"Leistungsbereiche") hat in `assets/styles.css` einen eigenen,
-  fast blickdichten Verlaufshintergrund (`color-mix(..., 92%, ...)` je
-  Farbton) — dieselbe Beschwerde wie bei `.card`: wirkt komplett opak.
-  Gehört strukturell zur selben obersten Ebene wie `.section` (kein
-  Eltern-Panel, eigener Top-Level-Block), also jetzt genauso behandelt.
-- `.service-item` (die Akkordeon-Zeilen "15% Rabatt auf Ihre Meinung" etc.
-  innerhalb von "Rabattaktionen"/"Leistungen") hat in `assets/styles.css`
-  `background: rgba(0,0,0,0.02)` — praktisch unsichtbar, lässt fast 100%
-  Hintergrund durch, obwohl es (verschachtelt in `.section`) eigentlich der
-  undurchsichtigste Layer sein sollte. War vorher übersehen worden, weil
-  die generische `.card`-Regel diese Klasse gar nicht trifft.
-  (`.service-body .service-item` in `assets/styles.css` ist eine ANDERE,
-  spezifischere Regel für verschachtelte Akkordeons innerhalb eines bereits
-  geöffneten Items — betrifft nicht den Normalfall und wurde bewusst nicht
-  angefasst.)
+**Warum nicht mehr Stufen (Verlauf der Korrekturen):** Ursprünglich gab es
+eine einzige 30%-Stufe für alles (zu inkonsistent), dann eine 4-stufige,
+gleichmäßig gestaffelte Skala nach Verschachtelungstiefe (50/65/80/90%).
+Der Nutzer korrigierte das mehrfach anhand konkreter Screenshots:
 
-**Finale, gleichmäßig gestufte 4-Stufen-Skala** (`index.html`; Webshop und
-Blog nutzen dieselbe Idee mit den ersten/letzten drei Stufen, da sie kein
-`.service-item` haben) — jede Stufe ca. 13-15 Prozentpunkte von der
-nächsten entfernt, damit es wie ein Verlauf und nicht wie zwei feste
-Zustände wirkt:
+- `.hero` und `.service-item` hatten jeweils eigene, unabhängig gesetzte
+  Hintergründe in `assets/styles.css` (`.hero`: fast blickdichter
+  Verlauf; `.service-item`: `rgba(0,0,0,0.02)`, praktisch unsichtbar) —
+  beide wurden von der generischen `.card`/`.section`-Regel gar nicht
+  getroffen und blieben so lange als Ausreißer unbemerkt.
+- Entscheidender Moment: der Nutzer stellte klar, dass `.hero` **kein**
+  Wrapper wie `.section` ist (es umschließt keine Karten, sondern hält
+  Fließtext direkt) — es ist strukturell ein LEAF, gehört also NICHT in
+  dieselbe Stufe wie `.section`, auch wenn beide "oberste Ebene" sind.
+  Dieselbe Logik traf dann auch auf die "... oder klassisch per Mail."-
+  `.section` zu (hält das Formular direkt, keine Karten) und auf
+  `.note-block`/`.page-hero`/`.service-item` (alles Leaf-Inhalte).
+- Daraus die entscheidende Vereinfachung: die Zwischenstufen (65%, 80%)
+  waren unnötig — sobald man nach "wrapt dieser Kasten andere Boxen, oder
+  hält er Inhalt direkt" statt nach Tiefe sortiert, bleiben nur zwei
+  echte Kategorien übrig, s.o.
 
-1. `.section`, `.hero` (oberste Ebene, größte Kästen): `50%`
-2. `.page-hero`, `.note-block` (direkt gelesener Einführungstext): `65%`
-3. `.service-item` (in `.section` verschachtelte Akkordeon-Zeilen): `80%`
-4. `.card` (Produkt-/Post-/Galerie-Boxen, innerste Ebene): `90%`
-
-**Lehre:** Bei einer "je verschachtelter, desto opaker"-Regel reicht es
-nicht, nur die naheliegenden Klassen (`.card`, `.section`) anzufassen —
-jede Komponente mit einem EIGENEN, unabhängig gesetzten Hintergrund
-(`.hero`, `.service-item`, beide mit eigenen Regeln in
-`assets/styles.css`) muss einzeln gefunden und in die Hierarchie
-eingeordnet werden, sonst entstehen genau die inkonsistenten Ausreißer,
-die hier zweimal gemeldet wurden.
+**Lehre:** Bei einer "innen opaker als außen"-Regel ist die relevante
+Frage nicht "wie tief ist dieses Element verschachtelt", sondern "wrapt
+es andere Boxen, oder hält es Inhalt direkt". Ein einzelnes, unverschach-
+teltes Element (wie `.hero`) kann trotzdem ein LEAF sein und gehört dann
+zur opaken Stufe — nicht automatisch zur transparenten Stufe, nur weil es
+"ganz oben" auf der Seite sitzt. Und: jede Komponente mit einem EIGENEN,
+unabhängig gesetzten Hintergrund (`.hero`, `.service-item`, beide mit
+eigenen Regeln in `assets/styles.css`) muss einzeln gefunden und
+eingeordnet werden — generische `.card`/`.section`-Regeln treffen sie
+nicht automatisch.
 
 ### Shop-Karten: Titel/Chip überlappten trotz `flex-wrap: wrap`
 
@@ -925,6 +949,44 @@ Neuer Tag in einem `meta.json`? Muss zusätzlich in beide
 `TAG_LABELS_DE`-Wörterbücher eingetragen werden, sonst erscheint er
 unübersetzt (Fallback: das Original wird angezeigt, keine kaputte Anzeige,
 aber eben auf Englisch).
+
+### Autor als eigene Zeile statt Teil des Buchtitels
+
+Bisher stand der Autor als Suffix im `title`-Feld selbst ("Den Zweifler in
+uns zähmen - von Peter S. Reznik"). Der Nutzer entfernt diesen Suffix jetzt
+händisch aus allen Buch-`title`-Feldern und trägt stattdessen ein eigenes
+`"author"`-Feld in die jeweilige `meta.json` ein (z. B.
+`assets/work/books/reznik-debater/meta.json`) — bei allen drei
+existierenden Büchern zum Zeitpunkt dieses Eintrags bereits erledigt.
+
+`webpages/webshop/index.html` liest `meta.author` jetzt in
+`loadBooksFromWorkIndex()` und zeigt ihn an zwei Stellen als eigene Zeile
+unter dem (Papyrus-)Titel an, bewusst in **Arial statt Papyrus** (neue
+Klasse `.shop-author { font-family: Arial, sans-serif; ... }`), damit der
+Autorenname als schlichte, gut lesbare Nebeninformation von der
+dekorativen Überschrift abgesetzt bleibt:
+- Karten-Ansicht (`renderProducts()`): `<p class="shop-author">von …</p>`
+  direkt unter `.shop-topline`.
+- Produkt-Modal: neues, fest im Markup stehendes `<p id="modal-author"
+  class="shop-author">` unter `#modal-title`, befüllt in
+  `openProductModal()`.
+
+Merch-Produkte haben kein `author`-Feld → die Zeile wird für sie einfach
+nicht gerendert (leere/undefinierte `p.author` wird geprüft, bevor das
+Element überhaupt erzeugt wird).
+
+### Farbe für gedämpften/sekundären Text (`--muted`) ans Corporate Design angepasst
+
+`--muted` war ein kühles Blaugrau (`#b7c0cd` dunkel / `#4b5563` hell) —
+schlecht lesbar über der neuen braun-goldenen `bg.png`-Textur und passte
+farblich nicht zum sonstigen Erscheinungsbild (goldene Schärpe,
+"moldy"-Icon, Papyrus-Look). Geändert in `assets/styles.css` auf ein
+warmes Braun/Gold aus derselben Familie: `#c9b48f` (dunkles Theme),
+`#6b5a3f` (helles Theme) — deutlich besser lesbar auf dem braunen
+Hintergrund und zugleich klar vom normalen `--text` unterscheidbar,
+bewusst nicht das gleiche Blaugrau-Konzept wie vorher. Zentral in der
+CSS-Variable geändert, betrifft site-weit jeden Text, der `--muted`
+referenziert (u. a. `p`, `.fineprint`).
 
 ## Gefundene und behobene Bugs (mit Ursache, damit sie nicht wiederkommen)
 

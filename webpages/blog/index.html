@@ -26,13 +26,12 @@
       background-attachment: fixed;
     }
 
-    /* Layered transparency: a GRADUAL scale, most transparent at the
-       outermost wrapping panel down to most opaque at the innermost boxes
-       — evenly spaced rather than one big jump straight from "mostly
-       see-through" to "solid" (see DOCUMENTATION.md, "Transparenz-Hierarchie").
-       - .section (wraps the whole post list): 50%.
-       - .page-hero, .note-block: directly-read intro text: 65%.
-       - .card/.post (individual blog posts, the innermost boxes): 90%.
+    /* Layered transparency — TWO tiers (see DOCUMENTATION.md,
+       "Transparenz-Hierarchie" for the full rule and history):
+       - BRANCH: .section (wraps the whole post list): transparent, 50%.
+       - LEAF (holds content directly, nothing further nested inside):
+         .page-hero, .note-block, .card/.post (individual blog posts):
+         always almost fully opaque, ~0.1% lookthrough.
        Overrides the shared backgrounds from assets/styles.css — scoped to
        this page only via normal cascade order (this <style> loads after
        the shared stylesheet). */
@@ -40,11 +39,9 @@
       background: color-mix(in srgb, var(--panel) 50%, transparent);
     }
     .page-hero,
-    .note-block {
-      background: color-mix(in srgb, var(--panel) 65%, transparent);
-    }
+    .note-block,
     .card {
-      background: color-mix(in srgb, var(--panel) 90%, transparent);
+      background: color-mix(in srgb, var(--panel) 99.9%, transparent);
     }
 
     /* Blog-local: simple accordion layout */

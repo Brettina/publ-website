@@ -29,35 +29,37 @@
       background-attachment: fixed;
     }
 
-    /* Layered transparency: a GRADUAL 4-step scale, most transparent at the
-       outermost wrapping panel down to most opaque at the innermost boxes
-       — evenly spaced (~13-15 points apart) rather than one big jump
-       straight from "mostly see-through" to "solid", which read as two
-       disconnected looks rather than a gradient.
-       1. .section (e.g. "Neues", "Rabattaktionen", wraps a whole
-          grid/group), .hero (the "Willkommen"/profile block — same tier,
-          a big top-level block, not nested in anything else): 50%.
-       2. .page-hero, .note-block: directly-read intro text: 65%.
-       3. .service-item (the accordion rows nested inside .section, e.g.
-          each "Rabatt..."/"Leistung..." row): 80%.
-       4. .card (individual item boxes — blog-card gallery figures,
-          product/post cards — the innermost boxes): 90%.
+    /* Layered transparency — TWO tiers, not a fine gradient (see
+       DOCUMENTATION.md, "Transparenz-Hierarchie" for the full history of
+       why this settled here):
+       - BRANCH containers, that wrap a whole grid/list of other boxes
+         (.section, in its general/normal use — "Neues", "Rabattaktionen",
+         "Kontaktieren Sie mich!"): transparent, 50%. The background is
+         meant to show through the gaps around/behind that list.
+       - LEAF containers, that hold real content directly with nothing
+         further nested inside (.card, .hero, .page-hero, .note-block,
+         .service-item — plus the "contact"/mail .section below, which
+         holds a form directly rather than wrapping cards, unlike a normal
+         .section): always ALMOST FULLY OPAQUE, ~0.1% lookthrough —
+         readability of dense/interactive content matters more than the
+         background showing through.
+       The classification is about STRUCTURE (does this element wrap other
+       boxes, or hold content itself?), not about how deep it happens to be
+       nested — that's why .service-item (one level inside .section) gets
+       the SAME near-opaque treatment as .card, not something in between.
        Overrides the shared backgrounds from assets/styles.css — scoped to
        this page only via normal cascade order (this <style> loads after
        the shared stylesheet). */
-    .section,
-    .hero {
+    .section {
       background: color-mix(in srgb, var(--panel) 50%, transparent);
     }
+    .card,
+    .hero,
     .page-hero,
-    .note-block {
-      background: color-mix(in srgb, var(--panel) 65%, transparent);
-    }
-    .service-item {
-      background: color-mix(in srgb, var(--panel) 80%, transparent);
-    }
-    .card {
-      background: color-mix(in srgb, var(--panel) 90%, transparent);
+    .note-block,
+    .service-item,
+    .section[aria-labelledby="contact"] {
+      background: color-mix(in srgb, var(--panel) 99.9%, transparent);
     }
 
     /* --- Saftladen header replacement + hero image --- */
@@ -485,6 +487,7 @@
        <h2>
           Lässt sich Ihr Werk nicht klar in etablierte Genres einordnen, ist das klassische Verlagsmodell nichts für Sie, oder suchen Sie eine individuelle Vertragslösung?
         </h2>
+      </br>
        <h1> Dann kommen Sie zu uns!</h1>
 
        </br></br>
