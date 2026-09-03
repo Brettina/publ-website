@@ -27,12 +27,25 @@
       background-attachment: fixed;
     }
 
-    /* So the background shows through the cards sitting on top of it.
-       Overrides the shared .card background (assets/styles.css) — scoped
-       to this page only via normal cascade order (this <style> loads after
+    /* Layered transparency: the further "out" (the bigger the wrapping
+       panel), the more the background shows through; the further "in"
+       (dense, text-heavy content), the more opaque, for readability.
+       - .section ("Bücher & Merch", wraps the whole grid): most transparent.
+       - .page-hero ("Laden"), .note-block (pickup hint): mostly opaque,
+         directly-read intro text — too transparent to read comfortably
+         otherwise.
+       - .card (individual product cards, the innermost boxes): back to
+         fully opaque — no override, falls back to the shared near-solid
+         background from assets/styles.css.
+       Overrides the shared backgrounds from assets/styles.css — scoped to
+       this page only via normal cascade order (this <style> loads after
        the shared stylesheet). */
-    .card {
-      background: color-mix(in srgb, var(--panel) 30%, transparent);
+    .section {
+      background: color-mix(in srgb, var(--panel) 35%, transparent);
+    }
+    .page-hero,
+    .note-block {
+      background: color-mix(in srgb, var(--panel) 85%, transparent);
     }
 
     .shop-head {
@@ -141,38 +154,38 @@
     .gallery-dot.is-active { background: #fff; }
 
     /* Sale ribbon — corner sash on discounted items, overlapping the TOP-LEFT
-       corner. Uses schaerpe.png, which is already drawn as a thin diagonal
-       sash (rising left-to-right, transparent canvas). Mirrored horizontally
-       (scaleX(-1)) so it falls the other way for the left corner. NOTE: CSS
-       applies the rightmost transform function first, so `scaleX(-1)
-       rotate(13deg)` actually rotates the artwork's own ~32° diagonal down
-       to ~19° *before* mirroring it (rotate happens first, flip second) —
-       not a clean 45° as originally intended, but this is the look the user
-       confirmed looks good, so it's kept as-is. The text's rotate below is
-       matched to that same ~19° so it tracks the sash instead of the
-       originally-planned 45°. Image and text are independent siblings, both
-       rotated around the same box center, rather than nested — a nested
-       rotated wrapper previously left the text under-rotated relative to
-       the image. */
+       corner. Uses schaerpe.png, already drawn as a thin diagonal sash
+       (rising left-to-right, transparent canvas). Mirrored horizontally
+       (scaleX(-1)) so it falls the other way for the left corner.
+       IMPORTANT: the outer .sale-ribbon box must stay fully INSIDE .shop-img
+       (no negative top/left on it) — .shop-img/.shop-card both clip
+       overflow, so anything pushed outside this box's own bounds via a
+       negative offset gets cropped off entirely (that was cutting the top
+       of the sash off). To still pull the visible sash tight into the
+       actual corner, the oversized/offset trick is applied to the <img>
+       itself instead, which is safely clipped by this box's own
+       overflow:hidden — a clip boundary we control, not an accidental one. */
     .sale-ribbon {
       position: absolute;
-      top: -14px;
-      left: -14px;
-      width: 190px;
-      height: 145px;
+      top: 0;
+      left: 0;
+      width: 170px;
+      height: 130px;
       overflow: hidden;
       pointer-events: none;
       z-index: 3;
     }
     .sale-ribbon img {
       position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+      top: -20px;
+      left: -20px;
+      width: 130%;
+      height: 130%;
       object-fit: contain;
       transform: scaleX(-1) rotate(13deg);
       transform-origin: center center;
       display: block;
+      z-index: 1;
     }
     .sale-ribbon span {
       position: absolute;
@@ -180,7 +193,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transform: rotate(19deg);
+      transform: rotate(-19deg);
       transform-origin: center center;
       color: #fff;
       font-weight: 700;
@@ -188,6 +201,7 @@
       text-align: center;
       text-shadow: 0 1px 3px rgba(0,0,0,0.7);
       white-space: nowrap;
+      z-index: 2;
     }
 
     /* Sale badge — plain inline version for use in running text (modal
@@ -226,6 +240,7 @@
 
     .shop-topline {
       display: flex;
+      flex-wrap: wrap;
       align-items: baseline;
       justify-content: space-between;
       gap: 10px;

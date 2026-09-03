@@ -1,3 +1,9 @@
+@font-face {
+  font-family: "Papyrus";
+  src: url("/assets/PAPYRUS.TTF") format("truetype");
+  font-display: swap;
+}
+
 /* ===== Base (accessible, consistent) ===== */
 :root{
   --bg: #0b0c0f;
@@ -149,7 +155,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   box-shadow: 0 10px 25px var(--shadow);
 }
 
-h1,h2,h3,h4{ line-height: 1.2; margin: 0 0 10px; }
+h1,h2,h3,h4{ line-height: 1.2; margin: 0 0 10px; font-family: "Papyrus", Arial, sans-serif; }
 .lead{ font-size: 1.05rem; color: var(--text); opacity: .95; }
 p{ margin: 0 0 10px; color: var(--muted); }
 

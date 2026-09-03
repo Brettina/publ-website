@@ -102,6 +102,15 @@ waren, wurden nach `assets/work/articles/<slug>/` migriert (siehe unten).
 
 ## Design-Entscheidungen dieser Session
 
+### Überschriften-Schriftart: Papyrus
+
+`assets/PAPYRUS.TTF` (vom Nutzer selbst hinzugefügt) ist als `@font-face`
+ganz oben in `assets/styles.css` eingebunden und wird für `h1,h2,h3,h4`
+site-weit verwendet, mit Fallback auf `Arial, sans-serif` falls die Datei
+mal fehlt/nicht lädt: `font-family: "Papyrus", Arial, sans-serif;`. Zentral
+an einer Stelle (geteiltes Stylesheet) statt pro Seite, da keine Seite eine
+eigene `h1-h4`-Regel überschreibt.
+
 ### Webshop: Merch in den Buchshop integriert statt neue "Hipster"-Seite gebaut
 
 `assets/products.json` (Bademantel, Socken, T-Shirt — Pfad seither geändert,
@@ -731,6 +740,62 @@ als Füllung für den entstehenden Leerraum) — das Bild wird vollständig
 angezeigt, zuerst nach Breite eingepasst, kein Zuschneiden mehr. Genau das
 Muster, das für `.modal-img` schon vorher galt (dort war der Kommentar
 "looks cleaner with contain" bereits vorhanden).
+
+### Weitere Runde Nutzer-Feedback (Screenshot) — vier Probleme auf einmal
+
+1. **Schärpen-Text weiterhin falsch gedreht.** Vorheriger Wert
+   `rotate(19deg)` hatte offenbar das falsche Vorzeichen — auf `rotate(-19deg)`
+   umgedreht. (Ohne Browser-Zugriff bleibt das eine Schätzung; Wert steht in
+   `.sale-ribbon span` in `webpages/webshop/index.html`.)
+2. **"Opacity hinter Bücher & Merch ist noch 0%".** Die vorherige
+   `.card`-Transparenz-Regel griff nur bei Produktkarten — die "Laden"-
+   Kopfzeile (`.page-hero`), der Abholhinweis (`.note-block`) und der
+   "Bücher & Merch"-Rahmen (`.section`) sind **eigene** CSS-Klassen, keine
+   `.card`. Fix: dieselbe `color-mix(..., 30%, transparent)`-Regel greift
+   jetzt für alle vier Klassen zusammen (`.card, .page-hero, .note-block,
+   .section`), auf allen drei Seiten (Startseite, Blog, Webshop).
+3. **Karten-Titel/Chip überlappen ins nächste Element** (z. B. bei
+   "Morphologische Geheimnisse..." mit Tag "relationship"). Ursache:
+   `.shop-topline` hatte kein `flex-wrap`, und `.shop-badge` darf laut
+   `flex-shrink: 0` nie schrumpfen — wenn Titel *und* Badge zusammen nicht
+   in die Kartenbreite passen, gibt es dadurch keinen Ausweg außer
+   Überlaufen (von `.shop-card`s `overflow:hidden` dann hart abgeschnitten,
+   sichtbar als "cut off"). Fix: `.shop-topline { flex-wrap: wrap; }` —
+   der Badge rutscht bei Bedarf einfach in eine eigene Zeile.
+4. **Schärpe oben abgeschnitten, Text nicht sichtbar über der Schärpe.**
+   Ursache: `.sale-ribbon` hatte `top:-14px; left:-14px`, um die Grafik
+   näher an die echte Ecke zu ziehen — aber `.shop-img`/`.shop-card` haben
+   selbst `overflow:hidden`, also wurde genau der Teil, der über den
+   `.sale-ribbon`-Rahmen hinausragte, von der **Eltern**-Box weggeschnitten
+   (nicht beabsichtigt). Fix: `.sale-ribbon` selbst bleibt jetzt bei
+   `top:0; left:0`, komplett innerhalb von `.shop-img`. Der "näher an die
+   Ecke ziehen"-Trick (überdimensioniert + negativ verschoben) sitzt
+   stattdessen auf dem `<img>` selbst, das nur vom eigenen (gewollten)
+   `.sale-ribbon`-`overflow:hidden` beschnitten wird. Zusätzlich `z-index`
+   explizit auf Bild (1) und Text (2) gesetzt, damit der Text garantiert
+   über der Schärpe liegt statt sich nur auf DOM-Reihenfolge zu verlassen.
+
+### Transparenz-Hierarchie statt einheitlicher 30%
+
+Nutzer-Feedback zu Punkt 2 oben: eine einzige Transparenzstufe für alle
+vier Klassen war falsch gedacht. Gewünscht ist eine **Abstufung nach
+Verschachtelungstiefe** — je "äußerer"/größer der umschließende Kasten,
+desto mehr Hintergrund scheint durch; je "innerer"/textlastiger der
+Inhalt, desto undurchsichtiger (Lesbarkeit). Konkret jetzt (alle drei
+Seiten):
+
+- `.section` (der große Rahmen um eine ganze Karten-Gruppe, z. B. "Neues"
+  auf der Startseite, "Bücher & Merch" im Webshop): am transparentesten,
+  `color-mix(..., 35%, transparent)`.
+- `.page-hero` ("Laden"), `.note-block` (Abholhinweis): direkt gelesener
+  Einführungstext, war zu transparent zum Lesen → deutlich undurchsichtiger,
+  `color-mix(..., 85%, transparent)`.
+- `.card` (einzelne Produkt-/Post-Boxen, die innersten Kästen): komplett
+  zurückgesetzt auf **keine** eigene Transparenz-Regel mehr — fällt auf den
+  ursprünglichen, fast blickdichten Hintergrund aus `assets/styles.css`
+  zurück (`color-mix(..., 95%, transparent)`). Der Hintergrund scheint hier
+  also praktisch nicht mehr durch, nur noch in den größeren Zwischenräumen
+  außen herum.
 
 ## Gefundene und behobene Bugs (mit Ursache, damit sie nicht wiederkommen)
 

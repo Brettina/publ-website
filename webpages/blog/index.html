@@ -26,12 +26,24 @@
       background-attachment: fixed;
     }
 
-    /* So the background shows through the panels sitting on top of it.
-       Overrides the shared .card background (assets/styles.css) — scoped
-       to this page only via normal cascade order (this <style> loads after
+    /* Layered transparency: the further "out" (the bigger the wrapping
+       panel), the more the background shows through; the further "in"
+       (dense, text-heavy content), the more opaque, for readability.
+       - .section (wraps the whole post list): most transparent.
+       - .page-hero, .note-block: mostly opaque, directly-read intro text —
+         too transparent to read comfortably otherwise.
+       - .card/.post (individual blog posts, the innermost boxes): back to
+         fully opaque — no override, falls back to the shared near-solid
+         background from assets/styles.css.
+       Overrides the shared backgrounds from assets/styles.css — scoped to
+       this page only via normal cascade order (this <style> loads after
        the shared stylesheet). */
-    .card {
-      background: color-mix(in srgb, var(--panel) 30%, transparent);
+    .section {
+      background: color-mix(in srgb, var(--panel) 35%, transparent);
+    }
+    .page-hero,
+    .note-block {
+      background: color-mix(in srgb, var(--panel) 85%, transparent);
     }
 
     /* Blog-local: simple accordion layout */
