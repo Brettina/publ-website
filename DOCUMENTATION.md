@@ -1327,6 +1327,56 @@ vom Bild. `background-size` von 600% auf 350% reduziert, damit etwas mehr
 von der tatsächlichen Gold-Textur (Maserung/Glanz) sichtbar bleibt statt
 einer fast einfarbigen Fläche.
 
+### "Kontaktieren Sie mich!" — doch wieder zwei Karten, aber nebeneinander
+
+Der EIN-Kasten-Merge (siehe oben, `<hr>`-Trenner in einer Karte) war eine
+Fehlinterpretation von "in einem Abschnitt/Div zusammen" — der Nutzer
+wollte tatsächlich weiterhin zwei separate Karten (LinkedIn, Mail), nur
+NEBENEINANDER statt gestapelt mit Lücke dazwischen. Zurückgebaut auf zwei
+`<article class="card">`, dafür `.section[aria-labelledby="profiles"]
+.cards` responsive auf zwei Spalten gestellt
+(`grid-template-columns: 1fr 1fr` ab `min-width:700px`, darunter weiter
+eine Spalte/gestapelt). **Lehre:** "in einem Kasten/Abschnitt
+zusammenführen" kann heißen "zu einer Karte verschmelzen" ODER "im
+selben Bereich nebeneinander anordnen" — bei Layout-Wünschen im Zweifel
+eher zur weniger einschneidenden Interpretation (Anordnung ändern) statt
+zur strukturellen (Elemente verschmelzen) tendieren, oder nachfragen.
+
+### Produkt-Modal-Bild: der eigentliche Grund für das Zuschneiden gefunden
+
+Die Erhöhung von `.modal-img`s Höhe (`clamp(240px, 55vh, 520px)`, siehe
+oben) hat das Problem NICHT gelöst — der Nutzer bestätigte per Screenshot,
+dass weiterhin unten abgeschnitten wird. Tatsächliche Ursache: `.modal`
+ist `display:flex; flex-direction:column` mit einer Obergrenze
+(`max-height: calc(100dvh - 32px)`). `.modal-img` ist darin ein Flex-Kind
+OHNE `flex-shrink:0` — passt der Gesamtinhalt (Bild + der gesamte Text/
+Formular-Bereich in `.modal-body` darunter) nicht in die Höhenobergrenze,
+darf Flexbox `.modal-img` per Voreinstellung (`flex-shrink:1`) unter seine
+eigentliche `height` zusammendrücken. Da `.modal-img` zusätzlich
+`overflow:hidden` hat, wird dieses Zusammendrücken zu sichtbarem
+Abschneiden am unteren Rand — obwohl `object-fit:contain` selbst rechnerisch
+nie zuschneidet und die eigentlich vorgesehene Höhe stimmte. Fix:
+`flex-shrink:0` auf `.modal-img`, damit es immer seine volle Höhe behält;
+`.modal-body` hat bereits `flex:1 1 auto; overflow-y:auto` und wird jetzt
+zum alleinigen Element, das bei Platzmangel schrumpft/scrollt — das
+korrekte Muster für "fester Kopfbereich + scrollbarer Rest". **Lehre:**
+Bei "wird trotz korrektem `object-fit` zugeschnitten" auch die
+Eltern-Flexbox prüfen — ein Flex-Kind mit fester Höhe UND
+`overflow:hidden`, aber ohne `flex-shrink:0`, kann optisch genau wie
+Zuschneiden aussehen, obwohl die Bild-eigene CSS korrekt ist.
+
+### Sale-Ribbon: Stopgap zurück auf einfarbig Gold
+
+Nutzer-Feedback nach dem `clip-path` + reduziertem `background-size`-
+Versuch: "ribbon is false" — weiterhin nicht zufriedenstellend. Auf
+expliziten Wunsch ("as a stopgap measure dont use schaerpe.png, just make
+it one color golden") zurück auf eine einfache Flächenfarbe
+(`background: #c79a3e;`, kein Bild, kein Gradient) — die eingekerbte
+Bandform per `clip-path` bleibt erhalten (die betraf nicht die
+Beschwerde). `schaerpe.png` ist damit erneut nicht in Verwendung, siehe
+"Sale-Ribbon — Verlauf der Korrekturen" für die volle Historie; explizit
+als Stopgap markiert, kein endgültiger Rückzieher.
+
 ## Offene Punkte
 
 - **Anreicherung ist noch kein Automatismus.** `pending-enrichment.json`

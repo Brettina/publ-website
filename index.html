@@ -138,11 +138,19 @@
       gap: 12px;
       margin-top: 12px;
     }
-/* Ensure the cards container uses full width and the single card spans */
+/* LinkedIn and Mail sit side by side as two separate cards on wider
+   screens, stacked on narrow ones — was forced to a single column, which
+   with two cards just meant "one on top of the other with a gap between
+   them" instead of "aligned horizontally". */
 .section[aria-labelledby="profiles"] .cards {
   width: 100%;
   max-width: none;
-  grid-template-columns: 1fr;   /* if .cards is a grid */
+  grid-template-columns: 1fr;
+}
+@media (min-width: 700px) {
+  .section[aria-labelledby="profiles"] .cards {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .section[aria-labelledby="profiles"] .cards > .card {
@@ -960,10 +968,9 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
       <h2 id="profiles"> Kontaktieren Sie mich!</h2>
 
       <div class="cards">
-        <!-- ONE card holding both LinkedIn and Mail — previously two
-             separate .card elements (looked like two disconnected boxes
-             with a gap between them); a single <hr> divider now separates
-             the two groups of content within one shared card instead. -->
+        <!-- Two cards, side by side (see the grid-template-columns rule
+             above) — LinkedIn and Mail each stay their own box, just
+             aligned horizontally instead of stacked with a gap. -->
         <article class="card">
           <h3>LinkedIn</h3>
           <p class="fineprint">Berufliches Profil, Laufbahn, Kontakt.</p>
@@ -978,9 +985,9 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
             loading="lazy"
             style="max-width:180px; margin-top:10px;"
           />
+        </article>
 
-          <hr style="margin:20px 0; border:none; border-top:1px solid var(--border);" />
-
+        <article class="card">
           <h3 id="contact">... oder klassisch per Mail.</h3>
 
           <p class="fineprint">

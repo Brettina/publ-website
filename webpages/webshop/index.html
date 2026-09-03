@@ -204,14 +204,11 @@
       padding: 7px 0;
       transform: rotate(-42deg);
       transform-origin: center center;
-      background-color: #a3791c;
-      background-image: url("/img/schaerpe.png");
-      background-size: 350% auto;
-      background-position: 48.8% 52.2%;
-      /* Notched tail on both ends, like a proper cloth ribbon/banner, since
-         using schaerpe.png only as a flat texture (needed to keep image
-         and text rotating together as one piece) lost its own drawn
-         pointed-end shape. */
+      /* Stopgap per user request: schaerpe.png (even just as a zoomed-in
+         texture) still looked wrong — back to a single flat gold color
+         until this gets revisited. */
+      background: #c79a3e;
+      /* Notched tail on both ends, like a proper cloth ribbon/banner. */
       clip-path: polygon(6% 0, 94% 0, 100% 50%, 94% 100%, 6% 100%, 0 50%);
       box-shadow: 0 2px 6px rgba(0,0,0,0.45);
       color: #fff;
@@ -346,6 +343,20 @@
      Raised the cap substantially so portrait images actually get to show
      at a reasonable size here. */
   height: clamp(240px, 55vh, 520px);
+  /* Found the real bug: .modal is display:flex; flex-direction:column
+     with a capped max-height (see .modal rule below). Without this,
+     .modal-img is a flex child with a normal height but default
+     flex-shrink:1 — when the modal's content (image + all the text/form
+     below it in .modal-body) doesn't fit the capped height, flexbox
+     shrinks THIS box below the height set above, and since it also has
+     overflow:hidden, that shrinking silently clips the bottom of the
+     (correctly, fully-sized-for-contain) image. That's what was still
+     reading as "cropped" even after raising the height above.
+     flex-shrink:0 keeps this box at its full intended size always;
+     .modal-body already has flex:1 1 auto + overflow-y:auto, so IT
+     becomes the thing that shrinks/scrolls instead — the correct pattern
+     for a fixed-size header + scrollable body. */
+  flex-shrink: 0;
   position: relative;
   overflow: hidden;
   background: rgba(0,0,0,0.08);      /* optional: looks cleaner with contain */
