@@ -41,6 +41,41 @@ diese Website geschrieben wird: nochmal an diese Regel denken, besonders bei
 generierten Blog-Teasern (`generate-blog-feed.mjs`) und bei künftigen
 Recherche-Einfügungen — diese Regel gilt auch dort.
 
+## Sprachstil: IMMER Siezen, nie Duzen
+
+Ausdrückliche Anweisung des Nutzers, gilt ebenfalls für JEDEN Text auf
+dieser Website, der Website-Besucher direkt anspricht: **immer "Sie"**,
+nie "Du"/"dein" — auch nicht in informellen Abschnitten (Blog-Teaser,
+Handlungsaufforderungen wie Buttons/CTAs, Formular-Hinweise). Betrifft
+Fließtext ebenso wie einzelne UI-Strings ("Schreiben Sie mir eine Mail"
+statt "Schreib mir eine Mail", "Ihre Auswahl" statt "Deine Auswahl", usw.).
+
+Konkreter Anlass: derselbe Hero-Text-Überarbeitungsauftrag wie oben bei der
+Gendern-Regel — der Nutzer bat ausdrücklich "bitte Websitebesucher nicht
+duzen sondern siezen". **War an mehreren, in dieser Session neu
+entstandenen Stellen nicht eingehalten** — beim Dokumentieren dieser Regel
+direkt gefunden und behoben: "Deine Auswahl" im Webshop-Warenkorb
+(`#cart`/`.cart-hero`, jetzt "Ihre Auswahl"), "kannst du kaufen" im
+Warenkorb-Hinweistext (jetzt "können Sie kaufen"), "Schreib mir eine Mail"
+auf der Login-Seite und in der "Mitglied werden"-Sektion der Startseite
+(jetzt "Schreiben Sie mir eine Mail"), "für dich" im Archiv-Suchhinweis
+(jetzt "für Sie"). Dabei auch einen Tippfehler im Kalender-Hinweistext
+gefunden und mitkorrigiert ("Klick en Sie" → "Klicken Sie").
+
+**Bewusst NICHT angefasst:** `webpages/verein/index.html` — eine
+umfangreiche, durchgehend geduzte Seite, aber nirgends in der aktuellen
+Hauptnavigation verlinkt (kein Treffer in `assets/partials/header.html`
+oder in den Seiten-eigenen Kopfzeilen). Da unklar ist, ob das eine noch
+aktive, bewusst anders positionierte Unterseite (z. B. ein separater
+Vereins-Auftritt mit eigenem, informellerem Ton) oder totes/archiviertes
+Material ist, wurde sie nicht pauschal umgeschrieben — falls diese Seite
+noch relevant ist und ebenfalls gesiezt werden soll, bitte gesondert
+anfragen. Ebenfalls unangetastet: wörtliche Zitate in
+`assets/work/articles/ef-konferenz-2026/article.html` ("Du musst doch nur
+einen Anwalt nehmen…") — das ist zitierte Fremdrede innerhalb des
+Artikeltexts, keine direkte Ansprache der Website durch den eigenen
+Autoren-Ton, und darf beim Zitieren nicht verändert werden.
+
 ## `assets/work/` — Kategorie-Ordner, generiert vs. von Hand
 
 `assets/work/` ist nach Kategorien unterteilt:
