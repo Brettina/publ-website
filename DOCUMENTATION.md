@@ -1183,6 +1183,96 @@ Entscheidungen, damit niemand sie versehentlich "repariert":
   hat zwei Optionen: (a) echte Seiten dafür bauen, die `data-page` setzen,
   oder (b) den Code ersatzlos entfernen.
 
+### Seiten mit `bg.png` erzwingen jetzt IMMER das dunkle Theme
+
+Die drei Seiten mit dem `bg.png`-Hintergrund (Startseite, Blog, Webshop)
+setzen jetzt am Anfang ihres eigenen `<style>`-Blocks alle Theme-Variablen
+(`--bg`, `--panel`, `--text`, `--muted`, `--border`, `--shadow`) fest auf
+die dunklen Werte, unabhängig von `prefers-color-scheme`. Grund: die
+geteilte `assets/styles.css` schaltet unter `prefers-color-scheme: light`
+auf ein helles Theme mit fast schwarzer Schrift (`--text: #111827`) um —
+das ist für eine WEISSE Seite gedacht. Läuft der Besucher mit
+System-Einstellung "hell", würde diese fast-schwarze Schrift jetzt über
+Panels sitzen, die (transparent) das dunkle `bg.png`-Foto durchscheinen
+lassen: dunkle Schrift auf dunklem Foto, quasi unlesbar — eine
+Lesbarkeits-Regression, die die helle Theme-Farbpalette nie berücksichtigen
+musste, weil es "bg.png hinter allem" vorher nicht gab. Die Redeklaration
+in jeder Seiten-eigenen `<style>`-Regel (kein `@media`, also bedingungslos)
+gewinnt gegen die geteilte, media-query-bedingte Regel unabhängig von der
+System-Einstellung, weil sie bei gleicher Spezifität später im Quelltext
+lädt (lokales `<style>` kommt nach dem externen `<link>`).
+
+### "Kontaktieren Sie mich!" — LinkedIn und Mail in einem Abschnitt zusammengeführt
+
+Waren zwei separate `<section class="section">`-Blöcke (`profiles` für
+LinkedIn, `contact` für das Mail-Formular). Nutzer-Wunsch: beides soll im
+selben Abschnitt/Div sitzen. Zusammengeführt zu EINEM
+`<section aria-labelledby="profiles">` mit `.cards`-Grid, das jetzt ZWEI
+`.card`-Kinder enthält: "LinkedIn" und "... oder klassisch per Mail."
+(Mail-Inhalt jetzt in ein eigenes `<article class="card">` gewrappt statt
+direkt im `.section` zu stehen). Dadurch entfällt die vorherige Sonder-
+Ausnahme `.section[aria-labelledby="contact"]` in der Transparenz-
+Hierarchie-Regel (dieser `.section` hielt vorher das Formular direkt statt
+Karten zu umschließen — jetzt ist es ein ganz normaler, Karten
+umschließender `.section`, keine Ausnahme mehr nötig). Die `id="contact"`
+lebt weiter (jetzt auf einem `<h3>` statt `<h2>`, da es eine Unterüberschrift
+innerhalb der zusammengeführten Section ist) — keine internen Links
+referenzieren `#contact`, also unkritisch.
+
+### `.form`/`.field` hatten überhaupt kein CSS — jetzt in `assets/styles.css`
+
+Das Kontaktformular sah unausgerichtet aus (schmales "Name"-Feld inline
+neben dem Label, "Nachricht"-Label scheinbar an der falschen Stelle). Bei
+der Fehlersuche: **`.form` und `.field` hatten in der gesamten Codebase
+keine einzige CSS-Regel** — weder in `assets/styles.css` noch in einem
+Seiten-`<style>`-Block. Jedes Formular auf der Seite (Startseite-Kontakt,
+Webshop-Checkout, Blog-Suche/Filter) fiel deshalb auf reine Browser-
+Standarddarstellung zurück: `<label>` und `<input>` sitzen als Inline-
+Elemente nebeneinander in ihrer intrinsischen Breite (ein `<input>` ist von
+Haus aus nur ~20 Zeichen breit), während ein `<textarea>` eine andere,
+breitere Standardbreite hat — daher der optische Bruch zwischen den
+Feldern. Fix: `.form`/`.field`-Grundregeln zentral in
+`assets/styles.css` ergänzt (Label über volle Breite, Eingabefelder auf
+`width:100%` vereinheitlicht, `.field.checkbox` als eigene Variante für
+die Checkbox-Zeile, die weiterhin nebeneinander stehen soll). Zentral statt
+pro Seite, weil alle drei Seiten dieselben Klassen ohne eigene Überschreibung
+verwenden.
+
+### Kalender-Projektlinks erneut kaputt (dieselbe Regression wie früher in der Session)
+
+Klick auf einen Termin-Projektlink (z. B. "reznik-debater") führte ins
+Leere und landete zurück auf der Startseite ("scrollt nach oben" — in
+Wahrheit ein Neuladen von `/`, da der falsche Pfad zu einem 404 führte
+und der Static-Host unbekannte Pfade auf `/` umleitet). Ursache: `openPanel()`
+baute den Link weiterhin selbst zusammen (`/assets/work/${id}/article.html`),
+ohne die Kategorie (`books/`, `articles/`, …) im Pfad — genau der Bug, der
+laut früheren Notizen in dieser Doku schon einmal behoben war, aber
+offenbar erneut in diesem Code-Pfad auftauchte (vermutlich beim
+Zurücksetzen von `index.html` auf einen älteren Stand mitten in der
+Session, siehe "index.html reverted to an old snapshot" in der
+Fehler-Historie). Fix: `workTitles` (nur Titel) ersetzt durch
+`workItemsBySlug` (das komplette `work-index.json`-Item pro Slug), damit
+`openPanel()` den echten `contentUrl` und den echten `title` verwenden
+kann, mit demselben alten Pfad-Rateversuch nur als Fallback, falls ein
+Slug einmal nicht im Index steht. **Lehre:** Konsumenten sollten immer die
+fertigen `contentUrl`/`title`-Felder aus `work-index.json` nutzen statt
+Pfade aus einem rohen Slug zu raten — das war schon einmal die Lehre aus
+einem früheren Bug in dieser Session, ist aber offenbar durch eine
+externe Bearbeitung wieder zurückgekommen.
+
+### Mobil: Tap auf das mittlere Karussell-Bild scrollte statt zu öffnen
+
+Der Galerie-Container (`[data-blog-gallery]`) hat `touch-action: pan-y`,
+damit vertikales Scrollen durch die Galerie hindurch funktioniert, während
+JS selbst horizontales Wischen für Vor/Zurück auswertet. Für das MITTLERE
+Bild (`is-center`) ist aber gar kein Wisch-Gesture vorgesehen, nur ein
+einfacher Tap zum Öffnen des Artikels — durch das geerbte `pan-y` konnte
+der Browser aber schon bei minimaler Finger-Bewegung während des Tippens
+in einen nativen Scroll wechseln, bevor der Klick-Handler zum Zug kam.
+Fix: `.blog-card.is-center { touch-action: manipulation; }` — erlaubt
+Tap/Pinch-Zoom, unterdrückt aber die Scroll-Mehrdeutigkeit nur für dieses
+eine Element; der Rest der Galerie behält `pan-y`.
+
 ## Offene Punkte
 
 - **Anreicherung ist noch kein Automatismus.** `pending-enrichment.json`

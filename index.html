@@ -16,6 +16,28 @@
   <meta name="color-scheme" content="light dark" />
 
   <style>
+    /* This page always uses the DARK theme's colors, regardless of the
+       visitor's system light/dark preference — the bg.png texture below
+       is a dark, brown/gold photo. The shared assets/styles.css normally
+       switches --text/--muted/--panel to a light-theme, near-black-on-
+       white palette under `prefers-color-scheme: light`; combined with a
+       system set to light mode, that would put dark text (correct for a
+       white background) over panels now showing this dark photo through
+       them — a readability regression the light-theme text colors were
+       never designed for. Redeclaring the dark values here, unconditionally
+       (no media query), wins the cascade over that light-theme override
+       (equal specificity, later in source order) regardless of system
+       preference. See DOCUMENTATION.md, "Seiten-Hintergrundbild". */
+    :root {
+      --bg: #0b0c0f;
+      --panel: #12141a;
+      --text: #e9eef6;
+      --muted: #c9b48f;
+      --border: rgba(255,255,255,.12);
+      --shadow: rgba(0,0,0,.35);
+    }
+    body { color-scheme: dark; }
+
     /* Page background — only on this page, not site-wide (webshop and blog
        have the matching rule in their own <style> blocks). Fixed so it
        doesn't stretch oddly on tall pages; dark fallback color in case the
@@ -40,12 +62,14 @@
          show through the gaps around/behind that content.
        - LEAF elements, the actual smallest/deepest content units (.card,
          .page-hero, .note-block, .service-item, .leistungs-chips .chip,
-         the calendar day-cell buttons (inline style, see renderMonth()) —
-         plus the "contact"/mail .section, which holds a form directly
-         rather than wrapping cards, unlike a normal .section): always
-         ALMOST FULLY OPAQUE, ~0.1% lookthrough — readability of
+         the calendar day-cell buttons (inline style, see renderMonth())):
+         always ALMOST FULLY OPAQUE, ~0.1% lookthrough — readability of
          dense/interactive content matters more than the background
-         showing through.
+         showing through. (The Mail block used to be its own .section that
+         held a form directly instead of wrapping cards, needing a special
+         `.section[aria-labelledby="contact"]` exception here — since
+         merged into the "Kontaktieren Sie mich!" section as a plain .card
+         alongside LinkedIn, so that exception no longer applies.)
        The classification is about STRUCTURE (is this the deepest/smallest
        content unit, or does it wrap several of those?), not about a fixed
        "depth number" — .hero looked like it should be a leaf (nothing
@@ -64,8 +88,7 @@
     .page-hero,
     .note-block,
     .service-item,
-    .leistungs-chips .chip,
-    .section[aria-labelledby="contact"] {
+    .leistungs-chips .chip {
       background: color-mix(in srgb, var(--panel) 99.9%, transparent) !important;
     }
 
@@ -226,6 +249,14 @@
   cursor: pointer;
   transform: scale(1.02);
   opacity: 1;
+  /* The gallery root sets touch-action: pan-y (lets vertical page scroll
+     pass through, JS handles horizontal swipe) — but for THIS figure the
+     only intended gesture is a plain tap-to-open, not a swipe. Inheriting
+     pan-y let the browser eagerly commit to a scroll on the slightest
+     vertical finger jitter during a tap on mobile, swallowing the click
+     before it reached centerFig's listener. manipulation here disables
+     that ambiguity for just this element (tap/pinch-zoom only). */
+  touch-action: manipulation;
 }
 
 @media (min-width: 900px) {
@@ -419,7 +450,7 @@
 <section class="section" aria-labelledby="blog-gallery-title">
   <div class="section-head">
     <h2 id="blog-gallery-title" style="margin:0;">Neues</h2>
-    <p class="fineprint" style="margin:0;">Ein paar visuelle Eindrücke aus dem Blog. Klick auf das mittlere Bild → Artikel.</p>
+    <p class="fineprint" style="margin:0;">Ein paar visuelle Eindrücke aus dem Blog. Klicken Sie auf das mittlere Bild um etwas darüber zu lesen.</p>
   </div>
 
   <div class="blog-gallery" data-blog-gallery>
@@ -453,10 +484,6 @@
 
       <button class="blog-arrow" type="button" data-blog-next aria-label="Nächstes Blogbild">→</button>
     </div>
-
-    <p class="fineprint" style="margin-top:10px;">
-      Desktop: Pfeile oder Tastatur (←/→). Mobil: Wischen.
-    </p>
   </div>
 </section>
 
@@ -500,7 +527,7 @@
       </br>
        <h1> Dann kommen Sie zu uns!</h1>
 
-       </br></br>
+       </br>
       <h3> Sie sind bei uns richtig</h3> wenn Sie eine Idee haben und Unterstützung bei ihrer Umsetzung suchen, wenn Sie neue oder ungewöhnliche Perspektiven vertreten oder wenn Sie für Ihr Werk eine individuelle Lösung in Gestaltung, Produktion und Vertrieb suchen.
       
         </p>
@@ -744,7 +771,7 @@
     <section class="section" aria-labelledby="calendar-title">
       <div class="section-head" style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;">
         <h2 id="calendar-title" style="margin:0;">Kalender</h2>
-        <p class="fineprint" style="margin:0;">Klick auf ein Datum → relevante Projekte / Termine</p>
+        <p class="fineprint" style="margin:0;">Klick en Sie auf ein Datum für genauere Infos.</p>
       </div>
 
       <div class="card" style="padding: 16px;">
@@ -959,53 +986,52 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
           />
         </article>
 
-        
+        <!-- Kontakt (was its own separate .section — merged in here so
+             LinkedIn and Mail sit in the same section/div). -->
+        <article class="card">
+          <h3 id="contact">... oder klassisch per Mail.</h3>
+
+          <p class="fineprint">
+            E-Mail: <a data-email-link href="#">anfrage[[at]]publish-lohr.com</a>
+          </p>
+
+          <form class="form" data-contact-form>
+            <div class="field" style="position:absolute; left:-9999px;" aria-hidden="true">
+              <label for="company-home-contact">Company</label>
+              <input id="company-home-contact" name="company" autocomplete="off" tabindex="-1" />
+            </div>
+
+            <div class="field">
+              <label for="contact-name">Name</label>
+              <input id="contact-name" name="name" autocomplete="name" required />
+            </div>
+
+            <div class="field">
+              <label for="contact-message">Nachricht</label>
+              <textarea
+                id="contact-message"
+                name="message"
+                rows="6"
+                required
+                placeholder="Worum geht’s?"
+              ></textarea>
+            </div>
+
+            <div class="field checkbox">
+              <input id="contact-consent" name="consent" type="checkbox" required />
+              <label for="contact-consent">Ich stimme zu, dass meine Daten zur Beantwortung meiner Anfrage verwendet werden.</label>
+            </div>
+
+            <p class="fineprint">
+              Siehe <a href="/regulation/privacy/">Datenschutz</a>, <a href="/regulation/cookies/">Cookies</a>, <a href="/regulation/imprint/">Impressum</a>.
+            </p>
+
+            <button class="button" type="submit">E-Mail-Entwurf öffnen</button>
+
+            <p class="fineprint" data-contact-hint style="margin-top:10px; opacity:0.9;"></p>
+          </form>
+        </article>
       </div>
-    </section>
-
-    <!-- Kontakt (kept) -->
-    <section class="section" aria-labelledby="contact">
-      <h2 id="contact">... oder klassisch per Mail.</h2>
-
-      <p class="fineprint">
-        E-Mail: <a data-email-link href="#">anfrage[[at]]publish-lohr.com</a>
-      </p>
-
-      <form class="form" data-contact-form>
-        <div class="field" style="position:absolute; left:-9999px;" aria-hidden="true">
-          <label for="company-home-contact">Company</label>
-          <input id="company-home-contact" name="company" autocomplete="off" tabindex="-1" />
-        </div>
-
-        <div class="field">
-          <label for="contact-name">Name</label>
-          <input id="contact-name" name="name" autocomplete="name" required />
-        </div>
-
-        <div class="field">
-          <label for="contact-message">Nachricht</label>
-          <textarea
-            id="contact-message"
-            name="message"
-            rows="6"
-            required
-            placeholder="Worum geht’s?"
-          ></textarea>
-        </div>
-
-        <div class="field checkbox">
-          <input id="contact-consent" name="consent" type="checkbox" required />
-          <label for="contact-consent">Ich stimme zu, dass meine Daten zur Beantwortung meiner Anfrage verwendet werden.</label>
-        </div>
-
-        <p class="fineprint">
-          Siehe <a href="/regulation/privacy/">Datenschutz</a>, <a href="/regulation/cookies/">Cookies</a>, <a href="/regulation/imprint/">Impressum</a>.
-        </p>
-
-        <button class="button" type="submit">E-Mail-Entwurf öffnen</button>
-
-        <p class="fineprint" data-contact-hint style="margin-top:10px; opacity:0.9;"></p>
-      </form>
     </section>
 
 
@@ -1077,7 +1103,7 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
 
   let events = [];
   let cursor = new Date();
-  let workTitles = {};
+  let workItemsBySlug = {};
 
   try {
     const res = await fetch("/assets/calendar/calendar-index.json", { cache: "no-store" });
@@ -1095,7 +1121,7 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
     if (wRes.ok) {
       const wData = await wRes.json();
       (wData.items || []).forEach(x => {
-        if (x && x.slug) workTitles[x.slug] = x.title || x.slug;
+        if (x && x.slug) workItemsBySlug[x.slug] = x;
       });
     }
   } catch {}
@@ -1121,8 +1147,16 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
     const html = list.map(ev => {
       const projects = Array.isArray(ev.projects) ? ev.projects : [];
       const projectLinks = projects.map(id => {
-        const href = `/assets/work/${encodeURIComponent(id)}/article.html`;
-        return `<a href="${href}">${escapeHtml(id)}</a>`;
+        const item = workItemsBySlug[id];
+        // Fall back to the old flat guess only if the slug isn't in
+        // work-index.json at all — normally contentUrl is the real,
+        // category-aware path (e.g. /assets/work/books/<slug>/article.html),
+        // which the flat guess below never was, and that mismatch is what
+        // made these links 404 (the static host's not-found fallback then
+        // lands back on "/", which looked like "scrolled to top").
+        const href = item?.contentUrl || `/assets/work/${encodeURIComponent(id)}/article.html`;
+        const label = item?.title || id;
+        return `<a href="${href}">${escapeHtml(label)}</a>`;
       }).join(", ");
 
 

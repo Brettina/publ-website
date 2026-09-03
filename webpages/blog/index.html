@@ -13,6 +13,21 @@
   <meta name="color-scheme" content="light dark" />
 
   <style>
+    /* This page always uses the DARK theme's colors, regardless of the
+       visitor's system light/dark preference — see index.html for the
+       full explanation (same rule, same reasoning: bg.png is a dark photo,
+       the light theme's near-black text was never designed to sit over
+       panels showing it through). */
+    :root {
+      --bg: #0b0c0f;
+      --panel: #12141a;
+      --text: #e9eef6;
+      --muted: #c9b48f;
+      --border: rgba(255,255,255,.12);
+      --shadow: rgba(0,0,0,.35);
+    }
+    body { color-scheme: dark; }
+
     /* Page background — only on this page, not site-wide (homepage and
        webshop have the matching rule in their own <style> blocks). Fixed so
        it doesn't stretch oddly on a long, infinite-scroll post list; dark

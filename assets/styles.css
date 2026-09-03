@@ -168,6 +168,44 @@ p{ margin: 0 0 10px; color: var(--muted); }
 
 .cta-row{ display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
 
+/* .form/.field had no styling at all anywhere in the project — every form
+   (homepage contact, webshop checkout, blog search/filter) fell back to
+   raw browser defaults: labels and inputs sitting inline at their
+   intrinsic width (an <input> defaults to ~20 characters, a <textarea> to
+   its own wider default), which is why fields looked misaligned/randomly
+   sized relative to each other. */
+.form{
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+.field{
+  display: grid;
+  gap: 6px;
+}
+.field label{
+  font-weight: 650;
+}
+.field input,
+.field textarea,
+.field select{
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  color: var(--text);
+  font: inherit;
+}
+.field textarea{ resize: vertical; }
+.field.checkbox{
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+}
+.field.checkbox input{ width: auto; margin-top: 3px; }
+
 .button{
   display: inline-block;
   text-decoration: none;

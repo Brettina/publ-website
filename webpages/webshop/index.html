@@ -14,6 +14,21 @@
   <style>
     /* Webshop-local layout (keeps your global styles intact) */
 
+    /* This page always uses the DARK theme's colors, regardless of the
+       visitor's system light/dark preference — see index.html for the
+       full explanation (same rule, same reasoning: bg.png is a dark photo,
+       the light theme's near-black text was never designed to sit over
+       panels showing it through). */
+    :root {
+      --bg: #0b0c0f;
+      --panel: #12141a;
+      --text: #e9eef6;
+      --muted: #c9b48f;
+      --border: rgba(255,255,255,.12);
+      --shadow: rgba(0,0,0,.35);
+    }
+    body { color-scheme: dark; }
+
     /* Page background — only on this page, not site-wide. Fixed so it
        doesn't scroll with the (potentially long) product list; cover so it
        fills any viewport. Dark fallback color matches this page's own
@@ -173,12 +188,14 @@
        previous version (schaerpe.png at its own baked diagonal, mirrored,
        plus an independently-computed matching angle for a separate text
        element — three past iterations went into just getting those two
-       numbers to visually agree). Uses a plain gold gradient instead of
-       schaerpe.png for the same reason: that PNG is a big, mostly-
-       transparent canvas with the sash drawn at its own fixed diagonal —
-       fine as a full corner graphic, but fighting its baked-in angle to
-       reuse as a flat rotated strip is exactly what caused the repeated
-       mismatches. */
+       numbers to visually agree).
+       schaerpe.png IS used again, but only as a TEXTURE, not for its
+       shape: a huge `background-size` zooms into one small, bright,
+       fully-opaque gold patch of the artwork (measured via a pixel scan —
+       brightest opaque spot found at ~48.8%/52.2% of the image), avoiding
+       both its transparent margins and its own baked-in diagonal — the
+       thing that caused the repeated angle mismatches before. This ribbon
+       still has just ONE rotation, applied to this one element. */
     .sale-ribbon {
       position: absolute;
       top: 16px;
@@ -187,7 +204,10 @@
       padding: 5px 0;
       transform: rotate(-42deg);
       transform-origin: center center;
-      background: linear-gradient(135deg, #d9b23c, #a3791c);
+      background-color: #a3791c;
+      background-image: url("/img/schaerpe.png");
+      background-size: 600% auto;
+      background-position: 48.8% 52.2%;
       box-shadow: 0 2px 6px rgba(0,0,0,0.45);
       color: #fff;
       font-weight: 700;
@@ -518,7 +538,7 @@
     <header class="page-hero shop-head">
       <h1>Laden</h1>
       <p class="lead" style="margin:0;">
-        Bücher auswählen. Keine Zahlung auf der Website — du stellst hier eine Auswahl zusammen und sendest eine Anfrage per E-Mail.
+        Hier können Sie Artikel auswählen und mir Ihre Zusammenstellung per E-Mail zukommen lassen. Es erfolgt keine Bezahlung auf dieser Internetseite.
       </p>
 
       <div class="note-block" style="margin-top:12px;">
