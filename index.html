@@ -12,7 +12,7 @@
     name="description"
     content="publish-Lohr — Bücher und Artikel verlegen."
   />
-  <link rel="stylesheet" href="/assets/styles.css?v=2" />
+  <link rel="stylesheet" href="/assets/styles.css?v=3" />
   <meta name="color-scheme" content="light dark" />
 
   <style>
@@ -484,16 +484,6 @@
 
       <button class="blog-arrow" type="button" data-blog-next aria-label="Nächstes Blogbild">→</button>
     </div>
-  </div>
-</section>
-
-<section class="card" style="margin:12px 0 0; padding:14px;">
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-    <div>
-      <strong>Laden</strong>
-      <div class="fineprint">Bücher auswählen und Anfrage per E-Mail senden.</div>
-    </div>
-    <a class="button" href="/webpages/webshop/">Zum Laden</a>
   </div>
 </section>
 
@@ -970,6 +960,10 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
       <h2 id="profiles"> Kontaktieren Sie mich!</h2>
 
       <div class="cards">
+        <!-- ONE card holding both LinkedIn and Mail — previously two
+             separate .card elements (looked like two disconnected boxes
+             with a gap between them); a single <hr> divider now separates
+             the two groups of content within one shared card instead. -->
         <article class="card">
           <h3>LinkedIn</h3>
           <p class="fineprint">Berufliches Profil, Laufbahn, Kontakt.</p>
@@ -984,11 +978,9 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
             loading="lazy"
             style="max-width:180px; margin-top:10px;"
           />
-        </article>
 
-        <!-- Kontakt (was its own separate .section — merged in here so
-             LinkedIn and Mail sit in the same section/div). -->
-        <article class="card">
+          <hr style="margin:20px 0; border:none; border-top:1px solid var(--border);" />
+
           <h3 id="contact">... oder klassisch per Mail.</h3>
 
           <p class="fineprint">

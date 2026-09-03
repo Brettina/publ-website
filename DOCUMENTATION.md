@@ -1273,6 +1273,60 @@ Fix: `.blog-card.is-center { touch-action: manipulation; }` — erlaubt
 Tap/Pinch-Zoom, unterdrückt aber die Scroll-Mehrdeutigkeit nur für dieses
 eine Element; der Rest der Galerie behält `pan-y`.
 
+### "Kontaktieren Sie mich!" — wirklich EIN Kasten statt zwei mit Lücke
+
+Der vorherige Merge (siehe oben) hatte technisch bereits EINEN `.section`
+um LinkedIn und Mail gelegt, aber beide waren weiterhin je ein eigenes
+`.card` — sichtbares Ergebnis: zwei separate Kästen mit Lücke dazwischen,
+optisch nicht als "ein Kasten" erkennbar (der Nutzer wollte genau das
+vermeiden). Fix: nur noch EIN `<article class="card">` für beides, mit
+einem einfachen `<hr>`-Trenner zwischen "LinkedIn" und "... oder klassisch
+per Mail." statt zwei Karten.
+
+### `assets/styles.css?v=` vergessen hochzuzählen — `.form`/`.field` kamen nie an
+
+Die neuen `.form`/`.field`-Regeln (siehe oben) landeten in
+`assets/styles.css`, aber die `?v=2`-Versionsnummer im `<link>` wurde
+seit dem Papyrus-Fix nicht mehr hochgezählt — obwohl zwischen `?v=2` und
+jetzt noch mehrere weitere Änderungen an `assets/styles.css` gemacht
+wurden (`--muted`-Farbe, `.site-header` Papyrus, jetzt `.form`/`.field`).
+Browser, die `styles.css?v=2` schon einmal geladen hatten, bekamen keine
+davon zu sehen. Auf `?v=3` erhöht. **Lehre, erneut:** Nach JEDER Änderung
+an `assets/styles.css` muss die `?v=`-Nummer auf allen sieben Seiten
+hochgezählt werden — das ist inzwischen der zweite Vorfall dieser Art in
+dieser Session (erster: Papyrus selbst).
+
+### Produkt-Modal-Bild: kein echtes Zuschneiden, aber viel zu klein für eine "Detailansicht"
+
+`.modal-img` hatte `height: clamp(180px, 22vh, 280px)`. `object-fit:
+contain` kann rechnerisch nicht zuschneiden — aber ein Hochformat-Bild
+(z. B. `assets/shop/partner/partner.png`, 332×431px) in diese knappe,
+max. 280px hohe, aber volle Breite nutzende Box gepresst, wird auf eine
+sehr schmale, kleine Spalte herunterskaliert (bei 280px Höhe nur
+~216px breit) — das liest sich in der "Detailansicht" wie Zuschneiden/
+Detailverlust, obwohl technisch das ganze Bild sichtbar bleibt. Höhe
+deutlich angehoben auf `clamp(240px, 55vh, 520px)`, damit Hochformat-Bilder
+in der Detailansicht tatsächlich groß und deutlich zu sehen sind.
+Zusätzlich `object-fit: contain` mit `!important` abgesichert (aus
+Vorsicht, siehe wiederkehrendes Muster "meine Regel scheint nicht
+anzukommen" in dieser Doku — konnte hier keine konkrete konkurrierende
+Regel finden, aber die Absicherung kostet nichts).
+
+### Sale-Ribbon: Banner-Form per `clip-path` zurückgeholt
+
+Nutzer-Feedback nach dem erneuten Einbau von `schaerpe.png` als reine
+Textur (siehe "Sale-Ribbon — Verlauf der Korrekturen"): "der Ribbon ist
+kaputt". Wahrscheinlichste Ursache: die Textur-Lösung macht die Schärpe
+zu einem schlichten geraden Rechteck — die eigentliche, hübsche
+Bandform (spitz zulaufende, eingekerbte Enden) der Original-Grafik ging
+dabei verloren, da genau diese Form (ihre feste Diagonale) der Grund war,
+warum sie NICHT mehr direkt verwendet wird. Fix: `clip-path: polygon(6% 0,
+94% 0, 100% 50%, 94% 100%, 6% 100%, 0 50%)` auf `.sale-ribbon` ergänzt —
+erzeugt beidseitig eingekerbte, spitz zulaufende Enden per CSS, unabhängig
+vom Bild. `background-size` von 600% auf 350% reduziert, damit etwas mehr
+von der tatsächlichen Gold-Textur (Maserung/Glanz) sichtbar bleibt statt
+einer fast einfarbigen Fläche.
+
 ## Offene Punkte
 
 - **Anreicherung ist noch kein Automatismus.** `pending-enrichment.json`

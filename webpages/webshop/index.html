@@ -6,7 +6,7 @@
   <title>Laden - publish-Lohr</title>
 
   <meta name="description" content="Laden. Anfrage per E-Mail." />
-  <link rel="stylesheet" href="/assets/styles.css?v=2" />
+  <link rel="stylesheet" href="/assets/styles.css?v=3" />
   <link rel="icon" href="/img/webicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="/img/webicon.png" />
   <meta name="color-scheme" content="light dark" />
@@ -200,14 +200,19 @@
       position: absolute;
       top: 16px;
       left: -38px;
-      width: 160px;
-      padding: 5px 0;
+      width: 170px;
+      padding: 7px 0;
       transform: rotate(-42deg);
       transform-origin: center center;
       background-color: #a3791c;
       background-image: url("/img/schaerpe.png");
-      background-size: 600% auto;
+      background-size: 350% auto;
       background-position: 48.8% 52.2%;
+      /* Notched tail on both ends, like a proper cloth ribbon/banner, since
+         using schaerpe.png only as a flat texture (needed to keep image
+         and text rotating together as one piece) lost its own drawn
+         pointed-end shape. */
+      clip-path: polygon(6% 0, 94% 0, 100% 50%, 94% 100%, 6% 100%, 0 50%);
       box-shadow: 0 2px 6px rgba(0,0,0,0.45);
       color: #fff;
       font-weight: 700;
@@ -333,7 +338,14 @@
     }
     .modal-img {
   width: 100%;
-  height: clamp(180px, 22vh, 280px); /* responsive: small phones -> smaller image */
+  /* Was clamp(180px, 22vh, 280px) — far too short for a portrait product
+     photo (many covers/mockups here are taller than wide): object-fit:
+     contain never literally crops, but squeezing a tall image into a
+     280px-max box shrinks it down to a small, pillarboxed sliver, which
+     for a "details view" reads as if the picture got cropped/lost detail.
+     Raised the cap substantially so portrait images actually get to show
+     at a reasonable size here. */
+  height: clamp(240px, 55vh, 520px);
   position: relative;
   overflow: hidden;
   background: rgba(0,0,0,0.08);      /* optional: looks cleaner with contain */
@@ -341,7 +353,7 @@
 .modal-img .gallery-img {
   width: 100%;
   height: 100%;
-  object-fit: contain;               /* show full cover, no cropping */
+  object-fit: contain !important;    /* show full cover, no cropping */
   display: block;
 }
 
@@ -602,13 +614,13 @@
 
 
           <p class="fineprint" style="margin-top:6px;">
-            Klick auf ein Buch → Details → Variante/Menge → in Auswahl.
+            Klicken Sie auf ein Buch → Details → Variante/Menge → in Auswahl.
           </p>
 
           <div id="cart-items" class="cart-items"></div>
 
           <div id="cart-empty" class="card empty" style="margin-top:12px;">
-            <p class="fineprint" style="margin:0;">Noch nichts ausgewählt. Klicke auf einen Artikel und füge ihn hinzu.</p>
+            <p class="fineprint" style="margin:0;">Noch nichts ausgewählt. Klicken Sie auf einen Artikel und füge ihn hinzu.</p>
           </div>
         </aside>
       </div>
@@ -1291,7 +1303,7 @@
       const needsPickup = cart.some(x => x.pickupRequired);
       if (buyHint) buyHint.textContent = needsPickup
         ? "Hinweis: Mindestens ein Artikel erfordert Abholung (steht in der Auswahl)."
-        : "Klicke auf „Kaufen“, um die E-Mail zu öffnen.";
+        : "Klicken Sie auf „Kaufen“, um die E-Mail zu öffnen.";
     }
 function getUnitPriceForVariant(p, variant) {
   const v = String(variant || "").toLowerCase();
