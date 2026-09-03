@@ -1868,6 +1868,31 @@ Impressum, passend zur Reihenfolge im geteilten Partial. Webshop hat
 ebenfalls einen eigenen, separaten Footer — dort war der Link bereits
 vorhanden, keine Änderung nötig.
 
+### Orangenes Aufmerksamkeits-Blinken nach "Abonnieren"
+
+Nutzerwunsch: nach dem Vorausfüllen soll die "... oder klassisch per
+Mail"-Karte UND ihr "E-Mail-Entwurf öffnen"-Button für 2 Sekunden orange
+aufblinken, damit der Klick auf diesen Button nicht übersehen wird.
+
+Umgesetzt per `@keyframes attention-blink` (`0%/100%: background-color:
+transparent`, `50%: #f59e0b`) + Klasse `.attention-blink` mit
+`animation: attention-blink 2s ease-in-out`. Technischer Kniff: CSS-
+Animationen gewinnen für die Dauer der Animation automatisch gegen
+`!important`-Regeln auf derselben Eigenschaft (hier: die `background`-
+Shorthand-Regel, die `.card` normalerweise fast blickdicht hält, siehe
+"Transparenz-Hierarchie") — dadurch reicht `background-color` zu
+animieren, ohne die bestehende `!important`-Regel anfassen zu müssen, und
+nach Ablauf der Animation greift sie automatisch wieder (kein JS nötig,
+um die Originalfarbe "zurückzusetzen").
+
+Beide Ziel-Elemente bekamen dafür feste IDs (`#contact-card` auf dem
+`<article class="card">`, `#contact-submit` auf dem Button — beide gab es
+vorher nicht). Beim Abonnieren-Klick wird die Klasse per JS entfernt,
+ein Reflow erzwungen (`void el.offsetWidth`) und dann neu hinzugefügt —
+sonst würde ein zweiter Klick auf "Abonnieren" die Animation nicht erneut
+abspielen, da eine bereits vorhandene CSS-Klasse allein keinen Neustart
+auslöst.
+
 ## Offene Punkte
 
 - **`GAME_PASSWORD_MORPHOLOGY` muss noch im Cloudflare-Dashboard gesetzt

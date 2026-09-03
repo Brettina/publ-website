@@ -92,6 +92,22 @@
       background: color-mix(in srgb, var(--panel) 99.9%, transparent) !important;
     }
 
+    /* Draws attention to the "... oder klassisch per Mail" card + its
+       submit button after "Abonnieren" prefills them, so people actually
+       notice they still need to click through. Animating background-color
+       (not the `background` shorthand) wins over the !important rule
+       above for the duration of the animation — CSS animations always take
+       priority over !important static declarations for the properties
+       they touch — and reverts to that rule's color once the animation
+       ends, no JS needed to "restore" anything. */
+    @keyframes attention-blink {
+      0%, 100% { background-color: transparent; }
+      50% { background-color: #f59e0b; }
+    }
+    .attention-blink {
+      animation: attention-blink 2s ease-in-out;
+    }
+
     /* --- Saftladen header replacement + hero image --- */
     .saftladen-top {
       margin: 18px 0 10px;
@@ -1033,7 +1049,7 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
           </form>
         </article>
 
-        <article class="card">
+        <article class="card" id="contact-card">
           <h3 id="contact">... oder klassisch per Mail.</h3>
 
           <p class="fineprint">
@@ -1121,6 +1137,15 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
           if (contactMessage) contactMessage.value = message;
 
           document.getElementById("contact")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+          // Draw attention to the card + its submit button so people
+          // actually notice they still need to click through.
+          [document.getElementById("contact-card"), document.getElementById("contact-submit")].forEach(el => {
+            if (!el) return;
+            el.classList.remove("attention-blink");
+            void el.offsetWidth; // reflow, so re-clicking Abonnieren restarts the animation
+            el.classList.add("attention-blink");
+          });
         });
       })();
     </script>
@@ -1423,7 +1448,7 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
         openMailto(mail);
 
         if (hint) {
-          hint.textContent = "E-Mail-Entwurf sollte geöffnet sein. Falls nicht: Mail-App/Handler (mailto:) im System/Browser einrichten.";
+          hint.textContent = "Sollte der Button nicht funktionieren, schreiben Sie uns einfach eine Mail.";
         }
 
         form.reset();
