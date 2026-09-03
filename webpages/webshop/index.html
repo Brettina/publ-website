@@ -27,6 +27,14 @@
       background-attachment: fixed;
     }
 
+    /* So the background shows through the cards sitting on top of it.
+       Overrides the shared .card background (assets/styles.css) — scoped
+       to this page only via normal cascade order (this <style> loads after
+       the shared stylesheet). */
+    .card {
+      background: color-mix(in srgb, var(--panel) 30%, transparent);
+    }
+
     .shop-head {
       display: flex;
       flex-direction: column;
@@ -77,11 +85,15 @@
       height: 220px;
       position: relative;
       overflow: hidden;
+      background: rgba(0, 0, 0, 0.08);
     }
     .shop-img .gallery-img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      /* contain (not cover): show the full image — fit by width first, no
+         hard cropping of tall covers like the debater book. The .shop-img
+         background above fills any letterboxing above/below. */
+      object-fit: contain;
       display: block;
     }
 

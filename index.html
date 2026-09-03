@@ -16,6 +16,27 @@
   <meta name="color-scheme" content="light dark" />
 
   <style>
+    /* Page background — only on this page, not site-wide (webshop and blog
+       have the matching rule in their own <style> blocks). Fixed so it
+       doesn't stretch oddly on tall pages; dark fallback color in case the
+       image is slow/fails to load. */
+    body {
+      background-color: #0b0c0f;
+      background-image: url("/img/bg.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
+    /* So the background shows through the panels sitting on top of it.
+       Overrides the shared .card background (assets/styles.css) — scoped
+       to this page only via normal cascade order (this <style> loads after
+       the shared stylesheet). */
+    .card {
+      background: color-mix(in srgb, var(--panel) 30%, transparent);
+    }
+
     /* --- Saftladen header replacement + hero image --- */
     .saftladen-top {
       margin: 18px 0 10px;

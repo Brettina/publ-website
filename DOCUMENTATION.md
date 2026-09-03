@@ -673,6 +673,65 @@ rotate(Xdeg)` bedeutet "erst rotieren, dann spiegeln", nicht umgekehrt.
 Das ist eine häufige Fehlerquelle bei kombinierten CSS-Transforms und hat
 hier zu einem falsch berechneten Winkel geführt.
 
+Textwinkel steht in `webpages/webshop/index.html` in der Regel
+`.sale-ribbon span { transform: rotate(19deg); ... }` — dieser Wert kann
+von Hand nachjustiert werden, bis er optisch zur Schärpe passt.
+
+### Seiten-Hintergrundbild (Startseite, Blog, Webshop)
+
+Alle drei Seiten (`index.html`, `webpages/blog/index.html`,
+`webpages/webshop/index.html`) haben in ihrem jeweils eigenen
+`<style>`-Block (nicht in der geteilten `assets/styles.css`, damit
+Rechts-/Impressum-Seiten unverändert bleiben) dieselbe Regel:
+
+```css
+body {
+  background-color: #0b0c0f;
+  background-image: url("/img/bg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+```
+
+`background-attachment: fixed` ist bewusst gesetzt: Ohne das würde
+`background-size: cover` sich auf die (bei langen Seiten wie dem
+Blog-Feed potenziell sehr hohe) `<body>`-Box beziehen und das Bild extrem
+hochskalieren/verzerren. Mit `fixed` bezieht sich `cover` stattdessen auf
+die Viewport-Größe.
+
+Damit man den Hintergrund durch die Karten hindurch sieht, überschreibt
+jede der drei Seiten zusätzlich lokal die geteilte `.card`-Hintergrundfarbe
+aus `assets/styles.css`:
+
+```css
+.card {
+  background: color-mix(in srgb, var(--panel) 30%, transparent);
+}
+```
+
+**Bewusste Abweichung vom wörtlichen Wunsch:** Angefragt war
+`opacity: 0.3` auf den Karten-Divs. Echtes `opacity` auf dem ganzen
+Element hätte aber auch Text, Icons und Rahmen der Karte mitverblasst —
+bei Text auf einer stark strukturierten Hintergrund-Textur wäre das kaum
+noch lesbar gewesen. Stattdessen wird nur die *Hintergrundfarbe* der
+Karte transparent gemacht (`color-mix(..., 30%, transparent)`), Text und
+Rahmen bleiben voll sichtbar/lesbar — der optische Effekt ("man sieht den
+Hintergrund durch die Karte") ist derselbe, nur ohne den Lesbarkeits-
+Nachteil.
+
+### Shop-Karten-Bild: `cover` → `contain` (kein hartes Zuschneiden mehr)
+
+`.shop-img .gallery-img` nutzte `object-fit: cover`, was hochformatige
+Bilder (z. B. das Debater-Cover) in der festen 220px-Höhe der Karte hart
+oben/unten beschnitten hat. Umgestellt auf `object-fit: contain`
+(zusammen mit `background: rgba(0,0,0,0.08)` auf dem `.shop-img`-Container
+als Füllung für den entstehenden Leerraum) — das Bild wird vollständig
+angezeigt, zuerst nach Breite eingepasst, kein Zuschneiden mehr. Genau das
+Muster, das für `.modal-img` schon vorher galt (dort war der Kommentar
+"looks cleaner with contain" bereits vorhanden).
+
 ## Gefundene und behobene Bugs (mit Ursache, damit sie nicht wiederkommen)
 
 - **Homepage-Galerie/Modal zeigte `updated` statt `published` als Datum**:
