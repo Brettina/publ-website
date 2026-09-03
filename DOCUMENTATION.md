@@ -1377,8 +1377,155 @@ Beschwerde). `schaerpe.png` ist damit erneut nicht in Verwendung, siehe
 "Sale-Ribbon — Verlauf der Korrekturen" für die volle Historie; explizit
 als Stopgap markiert, kein endgültiger Rückzieher.
 
+### Produkt-Modal-Bild — endgültiger Fix (Cache/Deploy ausgeschlossen)
+
+Der Nutzer bestätigte per Screenshot aus einem **Inkognito-Tab** auf der
+**live deployten** Seite (publish-lohr.com, nicht lokal), dass weiterhin
+zugeschnitten wird — das schließt sowohl Browser-Cache als auch einen
+nicht gepushten/nicht deployten Stand aus (`git status`/`git log` zum
+Zeitpunkt bestätigten: alles committed, `origin/master` auf demselben
+Stand). Also ein echter Bug, kein Cache-Problem. Nach genauer Analyse:
+das gerenderte Bild erschien breiter als hoch, obwohl die Quelldatei
+(`engl.png`, 502×653px) hochformatig ist — mit `object-fit: contain`
+mathematisch unmöglich (contain erhält das Seitenverhältnis exakt; ein
+Hochformat-Bild kann darüber nie querformatig aussehen). `object-fit`
+selbst war also aus einem nicht abschließend gefundenen Grund nicht
+wirksam. Fix: `object-fit` komplett vermieden, stattdessen natürliche
+Bildgrößung (`max-width:100%; max-height:100%; width:auto; height:auto;`
+auf `.modal-img .gallery-img`) plus `.modal-img` selbst als
+Flex-Container (`display:flex; align-items:center; justify-content:center;`)
+für Zentrierung. Diese Technik ist unabhängig von `object-fit` und damit
+robust gegen das (nicht restlos verstandene) ursprüngliche Problem.
+
+### Blog: Titel/Datum/Chip in Gold, Vorschautext in Weiß
+
+`.post-title`, `.post-meta` (Datum + Kategorie-Chip) jetzt explizit auf
+`#d9b23c` (dieselbe Gold-Farbe wie die Sale-Ribbon-Verlaufsfarbe) gesetzt.
+`.post-content`/`.post-content p` (der eigentliche Vorschautext/Exzerpt)
+explizit auf `var(--text)` (Standard-Weiß) gesetzt — ohne das hätte der
+Text die Basis-`p`-Farbe `var(--muted)` geerbt, die seit dem CD-Farbfix
+weiter oben in dieser Doku selbst schon golden ist, wodurch Metadaten und
+Vorschautext optisch nicht mehr unterscheidbar gewesen wären.
+
+### Leseproben-Abo (postalisch, vierteljährlich) unter dem LinkedIn-QR-Code
+
+Neuer Abschnitt in der LinkedIn-Karte (`index.html`, "Kontaktieren Sie
+mich!"): Name/Straße/PLZ/Ort-Felder + "Abonnieren"-Button. Der Button ist
+per `disabled` + `form.checkValidity()`-Check (bei jedem `input`-Event neu
+geprüft) erst klickbar, wenn alle Pflichtfelder ausgefüllt sind. Beim
+Absenden wird — wie beim bestehenden Kontaktformular — kein Request
+gesendet, sondern ein `mailto:`-Entwurf geöffnet (`CONTACT_EMAIL` aus
+`assets/site.js`, falls das globale Script geladen ist; sonst Fallback auf
+`anfrage@publish-lohr.com`), mit der eingegebenen Adresse im Text.
+
+Zusätzliche Checkbox "Am langfristigen Bewertungsprogramm teilnehmen" —
+verlinkt auf `#rabatt-meinung-title` (die bestehende "50% Rabatt für
+dauerhafte Bewertungen"-Sektion unter "Rabattaktionen", siehe weiter oben
+in dieser Doku) statt die Erklärung zu duplizieren. Der Haken fließt in
+den E-Mail-Text mit ein (ein Satz, je nachdem ob angehakt oder nicht) —
+so hat auch die verlegende Person beim Lesen der Mail sofort den Kontext,
+ohne im Formular selbst nachschauen zu müssen.
+
+### Neue Nav-Seite "Archiv" (vormals Platzhalter "Entdecken")
+
+Auf Nutzerwunsch zwischen Blog und Webshop in die Hauptnavigation
+eingefügt — sowohl in `assets/partials/header.html` (die von allen Seiten
+außer dem Webshop genutzte geteilte Kopfzeile) als auch im Webshop selbst
+(der hat wegen eines `CONTACT_EMAIL`-Namenskonflikts mit `site.js` eine
+eigene, nicht über das Partial geladene Kopie der Kopfzeile — siehe
+"Header/Footer-Unifizierung" weiter oben). Ursprünglich als reiner
+Platzhalter unter dem Namen "Entdecken" gebaut, dann umbenannt: der Tab
+ist als künftige **KI-gestützte Volltextsuche** über alle
+`assets/work/`-Inhalte gedacht (Bücher, Artikel, Termine, Spiele) — "Suche"
+und "Entdecken" waren dem Nutzer beide nicht die richtige Bezeichnung dafür,
+zur Wahl gestellt wurden "Orakel"/"Katalog"/"Archiv"/"Kompass", gewählt:
+**"Archiv"**. Seite + Route komplett umbenannt:
+`webpages/entdecken/` → `webpages/archiv/`, überall verlinkt als
+`/webpages/archiv/`.
+
+**Aktueller Stand der Seite** (`webpages/archiv/index.html`): echtes
+Suchfeld + "Suchen"-Button, aber **bewusst keine funktionierende Suche
+dahinter** — eine erste Version hatte einen einfachen client-seitigen
+Stichwortabgleich über `assets/work-index.json` (`title`/`excerpt`/`tags`)
+als Übergangslösung, die der Nutzer explizit wieder entfernt haben wollte:
+"remove the keyword search - its just a dummy for now". Kein Dummy-Ergebnis
+mehr, stattdessen zeigt die Suche unmissverständlich "noch nicht
+angeschlossen" an (`search()` gibt `null` zurück, `render()` unterscheidet
+das explizit von "keine Treffer" — ein leeres Array `[]`).
+
+Die zukünftige Suche wird an ein **LLM angebunden, das mit den
+Website-Inhalten ausgestattet ist** — in welchem Format (strukturiertes
+JSON aus `assets/work/`, Embeddings, Klartext, o. ä.) ist bewusst noch
+offen und wird erst entschieden, wenn die Anbindung tatsächlich gebaut
+wird ("okf oder was auch immer zu dem Zeitpunkt am besten passt"). Die
+`search(query)`-Funktion in `webpages/archiv/index.html` ist der einzige
+Ort, der später ersetzt werden muss — mit einem `TODO (backend hook)`-
+Kommentar direkt im Code, das die erwartete Rückgabeform vorgibt (Array
+von `{ title, excerpt, contentUrl, ... }`-Objekten), damit `render()`
+unverändert bleiben kann, unabhängig davon, welches Format/welcher
+Such-Mechanismus später tatsächlich dahintersteckt. Kein echtes Backend in
+dieser Session gebaut — nur UI + sauberer Anschlusspunkt, wie vom Nutzer
+angefragt.
+
+**Korrektur:** Ursprünglich hier fälschlich behauptet, das Projekt sei
+"rein statisch" ohne Backend-Möglichkeit. Stimmt nicht — es gibt bereits
+`functions/api/` mit echten Cloudflare-Pages-Functions
+(`contact.js`, `hipster-mail.js`, `test-mail.js`), das Projekt ist also
+technisch bereits ans Cloudflare-Pages-Functions-Modell angebunden. Ein
+künftiger `functions/api/archiv-search.js`-Endpunkt für die KI-Suche wäre
+also ohne komplett neue Infrastruktur möglich, nur die eigentliche
+LLM-Anbindung fehlt noch.
+
+### Archiv: zwei Sektionen — Suche (Hinweis) + kuratiertes Raster
+
+Zweite Sektion auf `webpages/archiv/index.html` ergänzt:
+
+1. **"Suche"** (bestehend): jetzt mit explizitem deutschem Hinweistext
+   direkt über dem Suchfeld — "Wir arbeiten an einem neuen Feature für
+   dich: einer KI-gestützten Suche durch alles, was publish-Lohr
+   veröffentlicht hat." Funktion bleibt wie zuvor beschrieben nicht
+   angeschlossen (`search()` gibt `null` zurück).
+2. **"Übersicht"** (neu): ein Karten-Raster (Bild + Titel, verlinkt) für
+   alles, was in `assets/archiv.json` steht — eine neue, **von Hand
+   gepflegte** Datei (wie `assets/shop/products.json`), kein Generator.
+   Jeder Eintrag: `{ "title", "image", "link", "excerpt" }`. Mit acht
+   Einträgen vorbefüllt (alle aktuellen Bücher/Artikel/Events/Spiele aus
+   `assets/work-index.json`, händisch übernommen) als Startpunkt — Einträge
+   hinzufügen/entfernen/bearbeiten direkt in `assets/archiv.json`, kein
+   Codeänderung nötig. `excerpt` wird aktuell nicht angezeigt, ist aber
+   bewusst mit im Schema: laut Nutzer der richtige Ort, um zusätzlichen
+   Kontext zu hinterlegen, den die künftige KI-Suche einmal nutzen soll
+   ("alles, was die LLM einschließen soll").
+
+### Morphologie-Werkzeug (Spiel) in den Webshop aufgenommen
+
+Neuer Spiel-Ordner `assets/work/games/morphology/` (vom Nutzer selbst
+angelegt) war noch nicht in `assets/work-index.json` — `convert_articles.py`
+einmal ausgeführt (`PYTHONIOENCODING=utf-8 python convert_articles.py`,
+ohne das Encoding-Flag bricht das Skript unter Windows an einem
+Unicode-Häkchen im Log-Output ab — reines Cmd-Codepage-Problem, nicht der
+eigentliche Fehler), Index jetzt aktuell.
+
+`meta.json` hatte `"available": "nein"` und keinerlei Preisfeld — der
+Webshop zeigt grundsätzlich nur Artikel, die BEIDES haben (verfügbar UND
+mit Preis). Erst mit `"price-digital": 0` ("Kostenlos") als Verlegenheits-
+lösung überbrückt (keine klare Preisangabe zu dem Zeitpunkt), dann vom
+Nutzer bestätigt: **5 €**. `price-digital` jetzt auf `5` gesetzt.
+`formatEUR()` (`webpages/webshop/index.html`) hat trotzdem einen bleibenden
+Sonderfall für `0` → "Kostenlos" statt "0,00 €", falls das nochmal
+gebraucht wird (aktuell inaktiv, da der Preis jetzt > 0 ist).
+
 ## Offene Punkte
 
+- **"Archiv"-Suche ist bewusst unangeschlossen.** `webpages/archiv/index.html`
+  (umbenannt von "Entdecken", siehe "Neue Nav-Seite Archiv") hat nur
+  Suchfeld + Button, keine funktionierende Suche dahinter (eine erste
+  Stichwort-Dummy-Version wurde auf Nutzerwunsch wieder entfernt). Geplant:
+  Anbindung an ein LLM, das mit den Website-Inhalten ausgestattet ist —
+  Format der Inhalte (JSON/Embeddings/Klartext/…) noch offen, wird erst
+  beim tatsächlichen Anschließen entschieden. Hook-Punkt (`search()`-
+  Funktion in `webpages/archiv/index.html`, TODO-Kommentar mit erwarteter
+  Rückgabeform) ist vorbereitet und muss nur ausgetauscht werden.
 - **Anreicherung ist noch kein Automatismus.** `pending-enrichment.json`
   wird zwar automatisch von `generate-blog-feed.mjs` gesetzt, aber jemand
   (aktuell: ich, in einer Claude-Code-Session) muss die eigentliche

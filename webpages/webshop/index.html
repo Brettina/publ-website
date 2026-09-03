@@ -360,12 +360,25 @@
   position: relative;
   overflow: hidden;
   background: rgba(0,0,0,0.08);      /* optional: looks cleaner with contain */
+  /* Centers the naturally-sized image below both horizontally AND
+     vertically (margin:auto alone only centers horizontally). */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .modal-img .gallery-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain !important;    /* show full cover, no cropping */
+  /* Switched from width:100%/height:100%/object-fit:contain to natural
+     sizing (max-width/max-height with width/height:auto). Both approaches
+     are supposed to be equivalent, but the object-fit version kept
+     rendering as if it were `cover` for portrait product photos (visible
+     even in a fresh incognito tab, so not a caching issue) — this avoids
+     object-fit entirely as a more robust way to guarantee the full image
+     is always shown, never cropped, letterboxed within the box instead. */
   display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
 }
 
 
@@ -546,6 +559,7 @@
       <ul class="nav-list">
         <li><a href="/">Startseite</a></li>
         <li><a href="/webpages/blog/">Blog</a></li>
+        <li><a href="/webpages/archiv/">Archiv</a></li>
         <li><a href="/webpages/webshop/" aria-current="page">Webshop</a></li>
         <li>
           <a href="#cart" class="cart-link" aria-label="Zum Warenkorb">
@@ -956,6 +970,7 @@
     }
 
     function formatEUR(n) {
+      if (n === 0) return "Kostenlos";
       try {
         return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
       } catch {

@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Archiv - publish-Lohr</title>
+  <script src="/assets/site.js" defer></script>
+
+  <meta name="description" content="Archiv - Volltextsuche durch alle Bücher, Artikel, Termine und Spiele." />
+  <link rel="stylesheet" href="/assets/styles.css?v=3" />
+  <link rel="icon" href="/img/webicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/img/webicon.png" />
+  <meta name="color-scheme" content="light dark" />
+
+  <style>
+    /* This page always uses the DARK theme's colors, regardless of the
+       visitor's system light/dark preference — see index.html for the
+       full explanation (same rule, same reasoning: bg.png is a dark photo,
+       the light theme's near-black text was never designed to sit over
+       panels showing it through). */
+    :root {
+      --bg: #0b0c0f;
+      --panel: #12141a;
+      --text: #e9eef6;
+      --muted: #c9b48f;
+      --border: rgba(255,255,255,.12);
+      --shadow: rgba(0,0,0,.35);
+    }
+    body { color-scheme: dark; }
+
+    /* Page background, matching Startseite/Blog/Webshop. */
+    body {
+      background-color: #0b0c0f;
+      background-image: url("/img/bg.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
+    /* Same transparency rule as the other bg.png pages: .section
+       transparent, .page-hero/.card near-opaque. */
+    .section {
+      background: color-mix(in srgb, var(--panel) 50%, transparent) !important;
+    }
+    .page-hero,
+    .card {
+      background: color-mix(in srgb, var(--panel) 99.9%, transparent) !important;
+    }
+
+    .archiv-search {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+    .archiv-search .field { flex: 1 1 260px; }
+
+    .archiv-results {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .archiv-hit {
+      display: block;
+      text-decoration: none;
+    }
+    .archiv-hit .fineprint { margin: 4px 0 0; }
+
+    .archiv-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 16px;
+    }
+    @media (min-width: 640px) {
+      .archiv-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (min-width: 960px) {
+      .archiv-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .archiv-item {
+      display: block;
+      text-decoration: none;
+      overflow: hidden;
+      padding: 0;
+    }
+    .archiv-item img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+    }
+    .archiv-item .archiv-item-body {
+      padding: 10px;
+    }
+    .archiv-item strong {
+      display: block;
+      font-size: 0.95rem;
+      line-height: 1.3;
+    }
+  </style>
+</head>
+<body class="page-archiv">
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <div id="header-slot"></div>
+
+  <main id="main" class="container">
+    <header class="page-hero">
+      <h1>Archiv</h1>
+      <p class="lead" style="margin:0;">
+        Durchsuche alle Bücher, Artikel, Termine und Spiele von publish-Lohr.
+      </p>
+    </header>
+
+    <section class="section" aria-labelledby="archiv-search-title">
+      <h2 id="archiv-search-title">Suche</h2>
+
+      <p class="fineprint" data-archiv-hint style="margin:0 0 12px;">
+        Wir arbeiten an einem neuen Feature für dich: einer KI-gestützten Suche durch alles, was publish-Lohr veröffentlicht hat.
+      </p>
+
+      <form class="archiv-search" data-archiv-search>
+        <div class="field">
+          <label for="archiv-q">Suchbegriff</label>
+          <input id="archiv-q" type="search" placeholder="z. B. Beziehungen, Faucher-Medaille, Übersetzung …" autocomplete="off" />
+        </div>
+        <button class="button" type="submit">Suchen</button>
+      </form>
+
+      <div class="archiv-results" id="archiv-results" aria-live="polite"></div>
+    </section>
+
+    <section class="section" aria-labelledby="archiv-grid-title">
+      <h2 id="archiv-grid-title">Übersicht</h2>
+      <p class="fineprint" style="margin:0;">Zum Stöbern, bis die Suche fertig ist.</p>
+
+      <div class="archiv-grid" id="archiv-grid"></div>
+    </section>
+  </main>
+
+  <div id="footer-slot"></div>
+
+  <script>
+    (function () {
+      const form = document.querySelector("[data-archiv-search]");
+      const input = document.getElementById("archiv-q");
+      const resultsEl = document.getElementById("archiv-results");
+
+      function escapeHtml(s) {
+        return (s || "").toString()
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;");
+      }
+
+      // NOT IMPLEMENTED YET — intentionally. This tab is meant to become an
+      // LLM-powered search once there's an actual LLM set up with the
+      // site's content (format TBD at that point — whatever's easiest to
+      // feed it then: structured JSON export of assets/work/, embeddings,
+      // plain text, etc. — see DOCUMENTATION.md, "Archiv-Suche"). No dummy
+      // keyword matching in the meantime; the UI/hook below is ready for
+      // whenever that backend exists.
+      //
+      // TODO (backend hook): replace this function's body with the real
+      // call once it exists, e.g.:
+      //   const res = await fetch("/api/archiv-search", {
+      //     method: "POST",
+      //     headers: { "Content-Type": "application/json" },
+      //     body: JSON.stringify({ query })
+      //   });
+      //   return (await res.json()).results; // [{ title, excerpt, contentUrl, ... }]
+      async function search(query) {
+        return null; // null = "not implemented", distinct from [] ("no hits")
+      }
+
+      function render(hits, query) {
+        if (!query) {
+          resultsEl.innerHTML = "";
+          return;
+        }
+        if (hits === null) {
+          resultsEl.innerHTML = `<p class="fineprint">Die Suche ist noch nicht angeschlossen — kommt, sobald hier eine KI-gestützte Suche läuft.</p>`;
+          return;
+        }
+        if (!hits.length) {
+          resultsEl.innerHTML = `<p class="fineprint">Keine Treffer für "${escapeHtml(query)}".</p>`;
+          return;
+        }
+        resultsEl.innerHTML = hits.map(it => `
+          <a class="card archiv-hit" href="${it.contentUrl || "#"}">
+            <strong>${escapeHtml(it.title || it.slug)}</strong>
+            <p class="fineprint">${escapeHtml(it.excerpt || "")}</p>
+          </a>
+        `).join("");
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const query = input.value;
+        const hits = await search(query);
+        render(hits, query);
+      });
+
+      // Hand-curated grid (assets/archiv.json) — separate from the future
+      // search above. Add/edit entries there (title, image, link, excerpt)
+      // to change what shows here; also the natural place to note
+      // anything extra the future LLM search should know about an item.
+      async function loadArchivGrid() {
+        const gridEl = document.getElementById("archiv-grid");
+        if (!gridEl) return;
+        try {
+          const res = await fetch("/assets/archiv.json", { cache: "no-store" });
+          if (!res.ok) throw new Error("archiv.json missing");
+          const data = await res.json();
+          const gridItems = Array.isArray(data?.items) ? data.items : [];
+          gridEl.innerHTML = gridItems.map(it => `
+            <a class="card archiv-item" href="${it.link || "#"}">
+              <img src="${it.image || "/img/webicon.png"}" alt="" loading="lazy" />
+              <div class="archiv-item-body">
+                <strong>${escapeHtml(it.title || "")}</strong>
+              </div>
+            </a>
+          `).join("");
+        } catch {
+          gridEl.innerHTML = `<p class="fineprint">Übersicht konnte nicht geladen werden.</p>`;
+        }
+      }
+      loadArchivGrid();
+    })();
+  </script>
+</body>
+</html>

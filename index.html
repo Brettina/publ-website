@@ -519,7 +519,7 @@
         Wir entwickeln gemeinsam mit Autoren, Experten und Künstlern maßgeschneiderte Publikationen;<strong> vom ersten Konzept bis zu druckfertigen Daten, sowie bringen Werke in kleiner Auflage heraus. </strong>
        Wir beraten, lektorieren, gestalten und produzieren, einschließlich anspruchsvoller Farb- und Bildgestaltung, und unterstützen auch bei Marketing und Vertrieb. Prototypen können wir vorab entwickeln und auf Messen erproben.
        <br></br>       
-       </br> 
+        
        <h2>
           Lässt sich Ihr Werk nicht klar in etablierte Genres einordnen, ist das klassische Verlagsmodell nichts für Sie, oder suchen Sie eine individuelle Vertragslösung?
         </h2>
@@ -986,6 +986,42 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
             loading="lazy"
             style="max-width:180px; margin-top:10px;"
           />
+
+          <hr style="margin:20px 0; border:none; border-top:1px solid var(--border);" />
+
+          <h3>Leseproben abonnieren</h3>
+          <p class="fineprint">
+            Kostenlose Leseproben und Werbung, vierteljährlich in den Briefkasten.
+          </p>
+
+          <form class="form" data-subscribe-form>
+            <div class="field">
+              <label for="sub-name">Name</label>
+              <input id="sub-name" name="name" autocomplete="name" required />
+            </div>
+            <div class="field">
+              <label for="sub-street">Straße &amp; Hausnummer</label>
+              <input id="sub-street" name="street" autocomplete="street-address" required />
+            </div>
+            <div class="field">
+              <label for="sub-zip">PLZ</label>
+              <input id="sub-zip" name="zip" autocomplete="postal-code" required />
+            </div>
+            <div class="field">
+              <label for="sub-city">Ort</label>
+              <input id="sub-city" name="city" autocomplete="address-level2" required />
+            </div>
+
+            <div class="field checkbox">
+              <input id="sub-review-program" name="reviewProgram" type="checkbox" />
+              <label for="sub-review-program">
+                Am <a href="#rabatt-meinung-title" target="_blank">langfristigen Bewertungsprogramm</a> teilnehmen
+                (neue Werke vor Verkaufsstart 50&nbsp;% reduziert, gegen dauerhafte Bewertungen).
+              </label>
+            </div>
+
+            <button class="button" type="submit" id="sub-submit" disabled>Abonnieren</button>
+          </form>
         </article>
 
         <article class="card">
@@ -1033,6 +1069,47 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
         </article>
       </div>
     </section>
+
+    <script>
+      (function () {
+        const form = document.querySelector("[data-subscribe-form]");
+        if (!form) return;
+        const submitBtn = document.getElementById("sub-submit");
+
+        function updateEnabled() {
+          submitBtn.disabled = !form.checkValidity();
+        }
+        form.addEventListener("input", updateEnabled);
+        updateEnabled();
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          if (!form.checkValidity()) return;
+
+          const name = form.querySelector("#sub-name").value.trim();
+          const street = form.querySelector("#sub-street").value.trim();
+          const zip = form.querySelector("#sub-zip").value.trim();
+          const city = form.querySelector("#sub-city").value.trim();
+          const address = `${name}, ${street}, ${zip} ${city}`;
+          const wantsReviewProgram = form.querySelector("#sub-review-program").checked;
+
+          const subject = "Leseproben-Abo";
+          const body =
+            "Ich möchte den kostenlosen Leseproben und Werbung abonnieren - meine Adresse ist die:\n\n" +
+            address + "\n\n" +
+            (wantsReviewProgram
+              ? "Ich möchte außerdem am langfristigen Bewertungsprogramm teilnehmen (neue Werke vor Verkaufsstart 50% reduziert, gegen dauerhafte Bewertungen)."
+              : "Am langfristigen Bewertungsprogramm möchte ich nicht teilnehmen.");
+
+          const url =
+            `mailto:${typeof CONTACT_EMAIL !== "undefined" ? CONTACT_EMAIL : "anfrage@publish-lohr.com"}` +
+            `?subject=${encodeURIComponent(subject)}` +
+            `&body=${encodeURIComponent(body)}`;
+
+          window.location.href = url;
+        });
+      })();
+    </script>
 
 
 

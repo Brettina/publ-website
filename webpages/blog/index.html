@@ -93,10 +93,17 @@
       padding: 14px 14px 0;
     }
 
+    /* Title, date and the category pill in the gold accent color; the
+       teaser/excerpt text (.post-content below) stays the normal white
+       --text color instead of inheriting the (now gold-toned, see
+       assets/styles.css --muted) default <p> color, so the two read as
+       clearly distinct — accent for metadata, standard for the actual
+       preview text. */
     .post-title {
       margin: 0;
       font-size: 1.05rem;
       line-height: 1.25;
+      color: #d9b23c;
     }
 
     .post-meta {
@@ -106,6 +113,7 @@
       align-items: center;
       opacity: 0.9;
       margin-top: 6px;
+      color: #d9b23c;
     }
 
     .post-pill {
@@ -138,6 +146,10 @@
     .post-content {
       border-radius: 14px;
       padding: 14px;
+      color: var(--text);
+    }
+    .post-content p {
+      color: var(--text);
     }
 
     .post-content .prose > *:first-child { margin-top: 0; }
