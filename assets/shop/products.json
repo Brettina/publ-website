@@ -15,10 +15,7 @@
       ],
       "status": "verfügbar",
       "variants": [
-        "S",
-        "M",
-        "L",
-        "XL"
+        "L"
       ],
       "unit": "Stück",
       "price": 20,
@@ -38,13 +35,12 @@
       ],
       "status": "verfügbar",
       "variants": [
-        "S",
-        "M",
-        "L",
-        "XL"
+
+        "L"
+
       ],
       "unit": "Stück",
-      "price": 25,
+      "price": 15,
       "pickupRequired": false,
       "decorateJuice": false
     },
@@ -52,7 +48,7 @@
       "id": "socken",
       "page": "webshop",
       "name": "kurze und lange Socken",
-      "description": "für Untentschiedene und Schizophrene.",
+      "description": "auch gern links und rechts mit unterschiedlichem Motiv.",
       "material": "Materialzusammensetzung: idR Baumwolle, bitte erfragen",
       "image": "/assets/shop/socken/odin black.png",
       "images": [
@@ -66,10 +62,9 @@
       ],
       "status": "verfügbar",
       "variants": [
-        "S",
-        "M",
-        "L",
-        "XL"
+        "klein (Frauen)",
+        "mittel (Männer)",
+        "kurz (Frauen)"
       ],
       "unit": "Stück",
       "price": 10,
