@@ -1929,6 +1929,90 @@ wenn irgendwo "ID" auftaucht, so gut wie immer der **Ordner-Slug**, nicht
 ein Feld namens `"id"` innerhalb einer `meta.json` — letzteres sieht so
 aus, als müsste es die maßgebliche Kennung sein, ist es aber nicht.
 
+### Mehrwertsteuer-Ausweis im Webshop (PAngV)
+
+Nutzerfrage: ist in Deutschland ein MwSt.-Ausweis Pflicht? Ja — nach der
+Preisangabenverordnung (PAngV) müssen gegenüber Verbrauchern gezeigte
+Preise der tatsächliche Endpreis sein (inkl. MwSt. und aller
+Pflichtbestandteile), UND es muss angegeben werden, dass das der Fall
+ist. Wichtige Weiche dabei: ob der Verlag umsatzsteuerpflichtig
+("regelbesteuert") ist oder unter die Kleinunternehmerregelung (§19
+UStG, gar keine MwSt.) fällt — komplett unterschiedliche Pflichttexte,
+konnte ich nicht raten, per Rückfrage geklärt: **regelbesteuert**.
+
+**Umgesetzt** (`webpages/webshop/index.html`):
+
+- Neues Feld `vatRate` pro Produkt: Bücher (`w.category === "books"`)
+  = **7 %** (ermäßigter Satz, gilt für Print UND E-Book gleichermaßen seit
+  der Angleichung 2020); alles andere, das hier verkauft wird (Spiele/
+  Werkzeuge, Merch/Textilien) = **19 %** (Regelsatz) — auch wenn ein
+  Werkzeug wie das Morphologie-Werkzeug in `assets/work/books/` läge, wäre
+  es steuerlich KEIN Buch; hier liegt es ohnehin unter `games/`.
+- Neue Hilfsfunktion `vatNote(rate)` → `"(inkl. 7% MwSt.)"` bzw.
+  `"(inkl. 19% MwSt.)"`, angehängt an JEDEN angezeigten Preis: Karten-
+  Preiszeile UND Modal-Preiszeile.
+- **Rabatt-Fall (Nutzer-Hinweis: "der sich ergebende Wert für Steuern ist
+  anders, wenn das Produkt im Sale ist — dann müssen beide ausgewiesen
+  sein"):** Bei aktivem Rabatt zeigen JETZT sowohl der durchgestrichene
+  Originalpreis als auch der reduzierte Preis JEWEILS ihre eigene
+  `vatNote()` — derselbe Steuersatz, aber unterschiedlicher enthaltener
+  Steuerbetrag in Euro, da sich die Bemessungsgrundlage (der Preis selbst)
+  ändert. Betrifft Karten-Preiszeile UND Modal-Preiszeile gleichermaßen.
+- Zusätzlich ein allgemeiner Hinweissatz im Checkout-Formular: "Alle
+  Preise inkl. der gesetzlichen Mehrwertsteuer, ggf. zzgl. Versand-/
+  Abholkosten nach Absprache."
+
+**Bewusst nicht angefasst:** Warenkorb-Zusammenfassung/Bestell-Mailtext
+zeigt die MwSt.-Angabe nicht zusätzlich — die für PAngV relevanten,
+"beworbenen" Preise (Karte, Modal) sind abgedeckt; eine Wiederholung im
+internen Anfrage-Text wäre nicht schädlich, aber auch nicht zwingend
+vorgeschrieben, also aus Gründen der Übersichtlichkeit weggelassen.
+Versandkosten-Detailangabe (§1 Abs. 2 PAngV) ebenfalls nur als
+allgemeiner Hinweis behandelt, nicht im Detail — das bestehende
+"Bestellung = Reservierung zur Abholung"-Modell dieser Seite (siehe
+`order.pickupHint` in `products.json`) macht klassische Versandkosten
+ohnehin meist gegenstandslos, da hauptsächlich Abholung/individuelle
+Absprache.
+
+**Hinweis, kein Ersatz für Steuerberatung:** Diese Umsetzung ist eine
+allgemeine, informative Einschätzung, keine verbindliche Rechts- oder
+Steuerberatung — bei Unsicherheit einen Steuerberater konsultieren,
+insbesondere zur Bestätigung der 7%/19%-Einordnung im Einzelfall.
+
+### "Bald wieder verfügbar"-Ribbon: manueller Override ergänzt, jetzt auch für Merch
+
+Der Nutzer meldete, die blaue Ribbon sei für "Den Zweifler" verschwunden
+und solle auch bei "Überziehmode" (Merch) und "Morphologie-Werkzeug"
+erscheinen.
+
+- **Zweifler:** Die bisherige Logik (`!isAvailable || isFuturePublished`)
+  hat automatisch funktioniert wie dokumentiert — das Buch ist am
+  2026-09-04 "erschienen" (heutiges Datum zum Zeitpunkt dieser Änderung),
+  die Ribbon verschwand also genau plangemäß, kein Bug. Da der Nutzer sie
+  trotzdem sichtbar haben wollte, jetzt per manuellem Override gelöst
+  (siehe unten), statt die automatische Datums-Logik selbst zu ändern.
+- **Neuer manueller Override:** `"comingSoon": true` direkt in einem
+  Buch-/Spiel-`meta.json` erzwingt die Ribbon jetzt UNABHÄNGIG von
+  `available`/`published` — `comingSoon = !isAvailable ||
+  isFuturePublished || meta.comingSoon === true`. Gesetzt bei
+  `reznik-debater` und `morphology`.
+- **Merch bekommt die Ribbon jetzt auch:** `loadMerchProducts()` hatte
+  dafür bisher gar keine Logik (bewusste Einschränkung, siehe früherer
+  Abschnitt "Bald wieder verfügbar" weiter oben). Jetzt ergänzt:
+  `comingSoon: p.comingSoon === true || (p.status || "verfügbar") !==
+  "verfügbar"` — entweder manueller Override in `products.json` (analog zu
+  Büchern/Spielen) oder automatisch, wenn `status` von `"verfügbar"`
+  abweicht. `"comingSoon": true` bei `bademantel` gesetzt.
+
+### Tag-Übersetzung: `morphology` fehlte
+
+Der Tag `morphology` (auf dem Morphologie-Werkzeug) wurde bisher nicht im
+`TAG_LABELS_DE`-Wörterbuch geführt und erschien deshalb unübersetzt als
+"morphology" statt auf Deutsch. Ergänzt in beiden Wörterbuch-Kopien
+(`index.html`, `webpages/webshop/index.html`): `morphology: "Gesichtslesen"`
+— derselbe deutsche Begriff wie bereits für `facereading`, da beide
+dasselbe Konzept meinen.
+
 ## Offene Punkte
 
 - **`GAME_PASSWORD_MORPHOLOGY` muss noch im Cloudflare-Dashboard gesetzt

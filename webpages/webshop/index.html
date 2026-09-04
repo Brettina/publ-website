@@ -804,6 +804,9 @@
         </div>
 
         <p class="fineprint">
+          Alle Preise inkl. der gesetzlichen Mehrwertsteuer, ggf. zzgl. Versand-/Abholkosten nach Absprache.
+        </p>
+        <p class="fineprint">
           Siehe <a href="/regulation/privacy/">Datenschutz</a>, <a href="/regulation/cookies/">Cookies</a>, <a href="/regulation/withdrawal/">Widerrufsbelehrung</a>, <a href="/regulation/imprint/">Impressum</a>.
         </p>
 
@@ -985,6 +988,7 @@
       book: "Buch",
       relationship: "Beziehung",
       facereading: "Gesichtslesen",
+      morphology: "Gesichtslesen",
       politics: "Politik",
       article: "Artikel",
       libertarian: "Libertär",
@@ -1004,6 +1008,18 @@
       } catch {
         return `${n} EUR`;
       }
+    }
+
+    // Preisangabenverordnung (PAngV): displayed consumer prices must state
+    // that they're the final price including VAT, at the applicable rate.
+    // Used next to every price shown (card, modal) — including BOTH the
+    // struck-through original and the reduced price when a sale is
+    // active, since the actual VAT amount differs between the two even
+    // though the rate itself doesn't.
+    function vatNote(rate) {
+      const r = Number(rate);
+      if (!Number.isFinite(r) || r <= 0) return "";
+      return `(inkl. ${r}% MwSt.)`;
     }
 
     function formatDateDE(iso) {
@@ -1208,12 +1224,13 @@
           priceLine.style.margin = "0";
 
           const salePrice = applySale(p.price, p.sale);
+          const vat = vatNote(p.vatRate);
           if (salePrice !== p.price) {
             priceLine.innerHTML =
-              `<span style="text-decoration:line-through; opacity:0.6;">${formatEUR(p.price)}</span> ` +
-              `Preis: ${formatEUR(salePrice)}`;
+              `<span style="text-decoration:line-through; opacity:0.6;">${formatEUR(p.price)} ${vat}</span> ` +
+              `Preis: ${formatEUR(salePrice)} ${vat}`;
           } else {
-            priceLine.textContent = `Preis: ${formatEUR(p.price)}`;
+            priceLine.textContent = `Preis: ${formatEUR(p.price)} ${vat}`;
           }
           body.appendChild(priceLine);
         }
@@ -1378,15 +1395,16 @@ function renderModalPriceForVariant(p) {
   const salePrice = applySale(basePrice, p.sale);
   const onSale = basePrice != null && salePrice !== basePrice;
 
+  const vat = vatNote(p.vatRate);
   if (modalPrice) {
     if (basePrice == null) {
       modalPrice.textContent = "";
     } else if (onSale) {
       modalPrice.innerHTML =
-        `<span style="text-decoration:line-through; opacity:0.6; font-weight:400; font-size:0.75em;">${formatEUR(basePrice)}</span> ` +
-        `Preis: ${formatEUR(salePrice)} <span class="sale-badge" style="margin-left:6px;">${escapeHtmlAttr(saleRibbonLabel(p.sale))}</span>`;
+        `<span style="text-decoration:line-through; opacity:0.6; font-weight:400; font-size:0.75em;">${formatEUR(basePrice)} ${vat}</span> ` +
+        `Preis: ${formatEUR(salePrice)} ${vat} <span class="sale-badge" style="margin-left:6px;">${escapeHtmlAttr(saleRibbonLabel(p.sale))}</span>`;
     } else {
-      modalPrice.textContent = `Preis: ${formatEUR(basePrice)}`;
+      modalPrice.textContent = `Preis: ${formatEUR(basePrice)} ${vat}`;
     }
   }
 
@@ -1817,12 +1835,16 @@ async function loadBooksFromWorkIndex() {
     if (!meta) return null;
 
     // Was: hidden entirely if unavailable. Now shown, but flagged
-    // "comingSoon" (blue ribbon, see renderProducts) — either explicitly
-    // marked unavailable, or published in the future.
+    // "comingSoon" (blue ribbon, see renderProducts) — auto-detected
+    // (explicitly marked unavailable, or published in the future) OR
+    // manually forced via `"comingSoon": true` in the item's own
+    // meta.json, for cases where you want the ribbon regardless of the
+    // available/published auto-logic (e.g. a book whose published date
+    // has already passed but isn't really orderable yet).
     const isAvailable = isAvailableFromMeta(meta);
     const publishedStr = String(meta.published || "").trim();
     const isFuturePublished = publishedStr && publishedStr > todayStr;
-    const comingSoon = !isAvailable || isFuturePublished;
+    const comingSoon = !isAvailable || isFuturePublished || meta.comingSoon === true;
 
     const pricePrint = toNumber(meta["price-print"] ?? meta.pricePrint ?? meta.price_print ?? meta.price);
 const priceDigital = toNumber(meta["price-digital"] ?? meta.priceDigital ?? meta.price_digital);
@@ -1864,6 +1886,11 @@ return {
   priceDigital,
   sale: salesById.get(String(w.id)) || null,
   currency: "EUR",
+  // German reduced VAT rate (7%) applies to books (print + e-book) —
+  // everything else sold here (games/tools, event/article items, if ever
+  // priced) is a digital service/other good at the standard rate (19%),
+  // not a "book" in the tax-law sense even if published under books/.
+  vatRate: w.category === "books" ? 7 : 19,
 
   unit: String(meta.unit || "Buch"),
   variants,
@@ -1916,6 +1943,7 @@ async function loadMerchProducts() {
       price: toNumber(p.price),
       sale: salesById.get(String(p.id)) || null,
       currency: "EUR",
+      vatRate: 19, // textiles/merch: German standard VAT rate
 
       material: p.material || "",
 
@@ -1925,6 +1953,10 @@ async function loadMerchProducts() {
 
       updated: "",
       status: p.status || "verfügbar",
+      // Same "Bald wieder verfügbar" ribbon as books/games (see
+      // loadBooksFromWorkIndex) — merch has no published date, so it's
+      // just status-based or an explicit manual override.
+      comingSoon: p.comingSoon === true || (p.status || "verfügbar") !== "verfügbar",
       pickupRequired: Boolean(p.pickupRequired)
     }));
 }

@@ -767,7 +767,7 @@
     <summary class="service-summary">
       <div>
         <strong>Merch &amp; Werbung</strong>
-        <p class="fineprint">Artikel, Video, Podcast, Print-Design, Game-Design — sichtbar machen.</p>
+        <p class="fineprint">Artikel, Video, Podcast, Print-Design, Game-Design, ... sichtbar machen.</p>
       </div>
       <span class="service-chevron" aria-hidden="true">⌄</span>
     </summary>
@@ -937,8 +937,8 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
       </summary>
       <div class="service-body">
         <p class="fineprint">
-          Das Urheberrecht und Veröffentlichungsrechte verbleiben beim Autor. Das heißt, anders als bei anderen Verlagen, dass Sie das Rechte Ihr Werk zu verlegen nicht exklusiv an publish-lohr übertragen, sondern es auch zusätzlich bei anderen Verlagen in Auftrag geben können. Die genaue Rechtevereinbarung
-          (z.B. Nutzungsrechte für Druck und digitale Ausgaben, Weiterverarbeitung für Filme/Games) richtet sich nach dem jeweiligen Werk und wird gemeinsam mit dem Autor festgelegt.
+          Das Urheberrecht und Veröffentlichungsrechte verbleiben beim Autor. Das heißt, anders als bei anderen Verlagen, dass Sie das Recht Ihr Werk zu verlegen nicht exklusiv an publish-lohr übertragen, sondern es auch zusätzlich bei anderen Verlagen in Auftrag geben können. Die genaue Rechtevereinbarung
+          (z.B. Nutzungsrechte für Druck und digitale Ausgaben, Weiterverarbeitung für Filme/Games) richtet sich nach dem jeweiligen Werk und wird gemeinsam mit dem Autor erarbeitet.
         </p>
       </div>
     </details>
@@ -968,7 +968,7 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
       </summary>
       <div class="service-body">
         <p class="fineprint">
-          Autorenexemplare bieten dem Autoren die Möglichkeit sein Werk zum regulären Verkaufspreis weiterzuverkaufen, ohne draufzuzahlen. Dazu erhält er die Bücher vom Verlag zu Sonderkonditionen.
+          Autorenexemplare bieten dem Autoren die Möglichkeit sein Werk zum regulären Verkaufspreis selsbt weiterzuverkaufen, ohne draufzuzahlen. Dazu erhält er die Bücher vom Verlag zu Sonderkonditionen.
           Bei uns besteht prinzipiell die Möglichkeit Autorenexemplare verbilligt zu erhalten. Die genaue Anzahl wird individuell mit dem Autor festgelegt.
         </p>
       </div>
@@ -983,9 +983,9 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
       </summary>
       <div class="service-body">
         <p class="fineprint">
-          Weil wir individuelle Vertragslösungen anbieten, die sich für jeden Geldbeutel lohnen und ein breites Spektrum an Marketinglösungen anbieten und technologieoffen ständig neue Wege mit Ihnen erkunden, Ihr Werk erfolgreich zu machen.
-          Weil wir ein internationales Netzwerk nutzen und pflegen, das sich über die unterschiedlichsten Bereiche erstreckt, und Ihr Buch dort bekannt machen
-          Weil wir faire Tantiemen bieten und partnerschaftlich mit Ihnen umgehen. Statt 10% geben wir mindestens 40%.
+          Weil wir individuelle Vertragslösungen anbieten, die sich für jeden Geldbeutel lohnen, sowie ein breites Spektrum an Marketinglösungen und technologieoffen ständig neue Wege mit Ihnen erkunden, Ihr Werk erfolgreich zu machen.
+          Weil wir ein internationales Netzwerk nutzen und pflegen, das sich über die unterschiedlichsten Bereiche erstreckt.
+          Und nicht zuletzt, weil wir faire Tantiemen bieten und partnerschaftlich mit Ihnen umgehen.
         </p>
       </div>
     </details>
@@ -1227,7 +1227,7 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
     if (!res.ok) throw new Error("calendar-index.json missing");
     const data = await res.json();
     events = Array.isArray(data.items) ? data.items : [];
-    hint.textContent = events.length ? "Markierte Tage haben Termine." : "Keine Termine eingetragen.";
+    hint.textContent = events.length ? "" : "Keine Termine eingetragen.";
   } catch {
     events = [];
     hint.textContent = "Keine Termine eingetragen.";
@@ -1473,6 +1473,7 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
     book: "Buch",
     relationship: "Beziehung",
     facereading: "Gesichtslesen",
+    morphology: "Gesichtslesen",
     politics: "Politik",
     article: "Artikel",
     libertarian: "Libertär",
