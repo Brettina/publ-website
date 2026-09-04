@@ -1893,6 +1893,42 @@ sonst würde ein zweiter Klick auf "Abonnieren" die Animation nicht erneut
 abspielen, da eine bereits vorhandene CSS-Klasse allein keinen Neustart
 auslöst.
 
+### `meta.json`-`"id"` vs. Ordner-Slug — beide jetzt überall gleich, aber unterschiedliche Rolle
+
+Der Nutzer bemerkte, dass ein Rabatt in `assets/shop/products.json`
+(`"sales"`-Liste) ins Leere lief: `{ "id": "reznik-morphology", ... }`
+traf auf kein Produkt. Ursache beim Nachverfolgen gefunden: das
+`"id"`-Feld INNERHALB eines `meta.json` wird vom Code **nirgends
+gelesen** (geprüft per `grep` über `index.html`/`webpages/*/index.html`)
+— es ist rein dekorativ/für Menschen. Die tatsächlich für
+`products.json`-`sales`-Zuordnung, Verlinkung usw. verwendete Kennung ist
+immer der **Ordner-Slug** aus `assets/work-index.json` (z. B.
+`reznik-relationships` für `assets/work/books/reznik-relationships/`),
+unabhängig davon, was `meta.json` selbst als `"id"` einträgt.
+
+Auf Nutzerwunsch ("make folder slug and id in meta file of books, games
+and articles and whatever match") trotzdem bereinigt — beide sollen ab
+jetzt immer übereinstimmen, auch wenn der Code das `"id"`-Feld selbst
+nicht braucht, damit es beim Lesen nicht wieder verwirrt. Gefundene und
+behobene Abweichungen (per Skript über alle
+`assets/work/{articles,books,events,games}/*/meta.json` verglichen):
+
+| Datei | vorher `"id"` | jetzt |
+|---|---|---|
+| `books/jung-lichtstrahl/meta.json` | `jung-lichsttrahl` (Tippfehler) | `jung-lichtstrahl` |
+| `books/reznik-relationships/meta.json` | `reznik-morphology` (der eigentliche Bug) | `reznik-relationships` |
+| `events/julius-faucher-medaille/meta.json` | `medaille` | `julius-faucher-medaille` |
+| `games/morphology/meta.json` | `morph-tool` | `morphology` |
+
+`assets/work-index.json` musste nicht neu generiert werden — es übernimmt
+das `meta.json`-`"id"`-Feld ohnehin nie, seine eigenen Einträge basieren
+direkt auf dem Ordnernamen.
+
+**Lehre:** Bei diesem Projekt ist die Kennung, nach der man suchen muss,
+wenn irgendwo "ID" auftaucht, so gut wie immer der **Ordner-Slug**, nicht
+ein Feld namens `"id"` innerhalb einer `meta.json` — letzteres sieht so
+aus, als müsste es die maßgebliche Kennung sein, ist es aber nicht.
+
 ## Offene Punkte
 
 - **`GAME_PASSWORD_MORPHOLOGY` muss noch im Cloudflare-Dashboard gesetzt

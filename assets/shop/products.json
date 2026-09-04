@@ -1,6 +1,7 @@
 {
   "sales": [
-    { "id": "reznik-debater", "percent": 10, "from": "2026-09-02", "until": "2026-09-08" }
+    { "id": "reznik-debater", "percent": 10, "from": "2026-09-02", "until": "2026-09-08" },
+    { "id": "reznik-relationships", "percent": 15, "from": "2026-09-02", "until": "2026-09-08" }
   ],
   "products": [
     {
