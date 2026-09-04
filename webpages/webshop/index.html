@@ -223,27 +223,29 @@
       z-index: 3;
     }
 
-    /* Availability ribbon — top-right corner, mirrors .sale-ribbon (same
-       size/shape/rotation, just flipped to the other side and blue) for
-       items that are marked unavailable or published in the future. Own
-       corner so it can't visually collide with a simultaneous sale ribbon. */
-    .availability-ribbon {
+    /* "Coming soon" treatment — replaced the old blue corner ribbon.
+       filter:grayscale(1) on the whole card desaturates the image, the
+       panel background AND the text all in one rule (no need to hardcode
+       a separate grey background color — whatever color is there just
+       loses its saturation). The label itself is a big, semi-transparent
+       overlay centered on the image instead of a ribbon. */
+    .shop-card.coming-soon {
+      filter: grayscale(1);
+    }
+    .coming-soon-overlay {
       position: absolute;
-      top: 16px;
-      right: -38px;
-      width: 170px;
-      padding: 7px 0;
-      transform: rotate(42deg);
-      transform-origin: center center;
-      background: #2563a8;
-      clip-path: polygon(6% 0, 94% 0, 100% 50%, 94% 100%, 6% 100%, 0 50%);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.45);
-      color: #fff;
-      font-weight: 700;
-      font-size: 0.72rem;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-      white-space: nowrap;
+      padding: 12px;
+      font-size: 1.4rem;
+      font-weight: 800;
+      line-height: 1.2;
+      color: rgba(255, 255, 255, 0.7);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+      background: rgba(0, 0, 0, 0.25);
       pointer-events: none;
       z-index: 3;
     }
@@ -1162,7 +1164,7 @@
 
       list.forEach(p => {
         const card = document.createElement("article");
-        card.className = "card shop-card";
+        card.className = "card shop-card" + (p.comingSoon ? " coming-soon" : "");
         card.tabIndex = 0;
         card.setAttribute("role", "button");
         card.setAttribute("aria-label", `${p.name || p.id} öffnen`);
@@ -1179,10 +1181,10 @@
         }
 
         if (p.comingSoon) {
-          const availRibbon = document.createElement("div");
-          availRibbon.className = "availability-ribbon";
-          availRibbon.textContent = "Bald wieder verfügbar";
-          img.appendChild(availRibbon);
+          const overlay = document.createElement("div");
+          overlay.className = "coming-soon-overlay";
+          overlay.textContent = "Bald wieder verfügbar";
+          img.appendChild(overlay);
         }
 
         const body = document.createElement("div");

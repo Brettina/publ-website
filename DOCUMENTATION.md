@@ -2013,6 +2013,34 @@ Der Tag `morphology` (auf dem Morphologie-Werkzeug) wurde bisher nicht im
 — derselbe deutsche Begriff wie bereits für `facereading`, da beide
 dasselbe Konzept meinen.
 
+### "Bald wieder verfügbar": Ribbon durch Graustufen-Karte + Bild-Overlay ersetzt
+
+Der Nutzer wollte die blaue Ecken-Ribbon nicht mehr — stattdessen soll
+die ganze Karte grau werden (Bild UND Text), und der Hinweistext soll
+groß, halbtransparent über dem Bild liegen statt als Ribbon.
+
+Umgesetzt in `webpages/webshop/index.html`:
+
+- **`.shop-card.coming-soon { filter: grayscale(1); }`** — EIN einziges
+  CSS-Filter auf die ganze Karte entsättigt Bild, Panel-Hintergrund UND
+  Textfarben gleichzeitig, ohne einen eigenen grauen Hintergrundwert
+  hart zu codieren (welche Farbe da auch immer aktuell steht — golden,
+  dunkel, was auch immer aus der Transparenz-Hierarchie kommt — verliert
+  einfach ihre Sättigung).
+- **`.coming-soon-overlay`** ersetzt `.availability-ribbon`: zentriert
+  über dem gesamten Bildbereich (`position:absolute; inset:0; display:flex;
+  align-items:center; justify-content:center;`), großer, fetter Text
+  (`1.4rem`, `font-weight:800`), halbtransparentes Weiß
+  (`rgba(255,255,255,0.7)`) mit kräftigem Text-Schatten für Lesbarkeit auf
+  wechselnden Bildern, plus ein leichtes dunkles Scrim
+  (`rgba(0,0,0,0.25)`) über dem ganzen Bild als zusätzlicher Kontrast-Puffer.
+- JS entsprechend angepasst: `renderProducts()` fügt der Karte jetzt die
+  Klasse `coming-soon` hinzu (statt eine Ribbon-Div zu erzeugen) und legt
+  `.coming-soon-overlay` mit dem Text direkt ins Bild.
+- Nur die Karten-Ansicht betroffen (wie schon die alte Ribbon) — das
+  Produkt-Modal hatte nie eine "Bald verfügbar"-Kennzeichnung und bekommt
+  hier ebenfalls keine, um den Scope nicht ungefragt zu erweitern.
+
 ## Offene Punkte
 
 - **`GAME_PASSWORD_MORPHOLOGY` muss noch im Cloudflare-Dashboard gesetzt
