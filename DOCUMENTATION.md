@@ -17,6 +17,205 @@ von Hand gepflegt oder von Skripten generiert werden (Node unter
 vermutlich über Cloudflare Pages (siehe `functions/api/hipster-mail.js`).
 Das GitHub-Repo ist `Brettina/publ-website`.
 
+## Buchpreisbindung — WICHTIG, vor jedem Rabatt-/Preis-Feature prüfen
+
+**Standing-Anweisung des Nutzers:** "sag mir wenn ich Regeln übertrete,
+sodass wir ein Feature erst auf Rechtskräftigkeit testen, bevor ich etwas
+anbiete." — Bevor irgendein neues Preis-, Rabatt-, Bonus- oder
+Mitgliedschafts-Feature für BÜCHER live geht, muss es gegen diesen
+Abschnitt geprüft werden. Kein Ersatz für echte Rechtsberatung (kein
+Anwalt/Steuerberater) — im Zweifel beim Börsenverein des Deutschen
+Buchhandels oder einem Anwalt für Verlagsrecht nachfragen, bevor etwas
+live geht.
+
+### Geltungsbereich — NICHT der ganze DACH-Raum
+
+- **Deutschland:** Buchpreisbindungsgesetz (BuchPrG) gilt.
+- **Österreich:** eigenes, ähnliches Buchpreisbindungsgesetz gilt.
+- **Schweiz:** **KEINE gesetzliche Buchpreisbindung.** 2012 wurde die
+  Wiedereinführung per Volksabstimmung abgelehnt; höchstens freiwillige,
+  für einen externen Verlag nicht bindende Branchenabsprachen. Falls
+  jemals in die Schweiz verkauft/geliefert wird, gilt dort keine
+  Preisbindungspflicht (andere Themen wie Zoll/Mehrwertsteuer bei
+  Schweiz-Versand bleiben davon unberührt, hier nicht behandelt).
+
+### Wer ist gebunden — auch der Verlag selbst
+
+Wichtiger, leicht zu übersehender Punkt: publish-Lohr ist hier nicht nur
+Verkäufer, sondern selbst der **Verlag**, der den gebundenen Preis nach
+§5 BuchPrG festsetzt. Ein Verlag, der eigene Bücher auch DIREKT an
+Endkunden verkauft (wie hier über den eigenen Webshop), ist an genau
+diesen selbst gesetzten Preis GENAUSO gebunden wie jeder externe
+Buchhändler (§3 BuchPrG bindet "wer Bücher... verkauft", ohne den Verlag
+auszunehmen, wenn er selbst als Letztverkäufer auftritt). "Es ist doch
+mein eigenes Buch, ich darf doch meinen eigenen Preis machen" greift
+hier NICHT unbegrenzt — nach Festsetzung gilt der Preis bindend, bis der
+Verlag ihn regulär (dauerhaft, nicht als befristete "Aktion") ändert oder
+eine der unten stehenden Ausnahmen einschlägig ist.
+
+### Was grundsätzlich NICHT erlaubt ist
+
+Rabatte, Zugaben, Cashback/Rückerstattungen, Bonusprogramme oder sonstige
+verdeckte Preisnachlässe auf ein preisgebundenes (neues, aktuelles) Buch
+sind **grundsätzlich untersagt** — auch wenn sie nicht "Rabatt" heißen,
+sondern z. B. als Rückerstattung nach Bewertung, Vorbestellrabatt,
+zeitlich befristete "Sale"-Aktion oder Bundle-Ermäßigung daherkommen. Eine
+befristete "-10% bis 08.09." wirkt wie eine klassische Rabattaktion, nicht
+wie eine reguläre, dauerhafte Preisänderung — genau die Form, die das
+Gesetz verhindern soll.
+
+### Anerkannte Ausnahmen (grob, im Zweifel im Einzelfall prüfen)
+
+- Bücher, die der Verlag ausdrücklich aus der Preisbindung entlässt,
+  regulär frühestens **18 Monate nach Erscheinen** (Remittenden/Modernes
+  Antiquariat) — muss vom Verlag aktiv erklärt werden, passiert nicht von
+  selbst.
+- Gebrauchte/antiquarische Exemplare (nicht das Neuware-Geschäft).
+  Beschädigte Mängelexemplare, entsprechend gekennzeichnet.
+- Bestimmte institutionelle Mengenrabatte (z. B. Bibliotheken,
+  Schulbuch-Sammelbestellungen) unter engen gesetzlichen Voraussetzungen.
+- Der Verlag ändert den festgesetzten Preis regulär/dauerhaft (kein
+  befristetes "Sale"-Framing, sondern eine echte, an den Handel
+  kommunizierte Preisänderung).
+
+### Konkret in diesem Projekt: ZWEI Features mit hohem Risiko, wahrscheinlich nicht rechtskonform
+
+1. **Das `sales`-Rabattsystem in `assets/shop/products.json`**
+   (`{ "id", "percent"/"amount", "from", "until" }`, siehe "Rabatt-/Sale-
+   System" weiter unten) — aktuell live für `reznik-debater` (10%) und
+   `reznik-relationships` (15%), beides aktuelle, kürzlich erschienene
+   Bücher (keine 18 Monate am Markt). Ein zeitlich befristeter
+   Prozent-Rabatt auf ein noch preisgebundenes Buch ist nach den obigen
+   Kriterien wahrscheinlich NICHT zulässig. **Empfehlung: vor
+   Live-Schaltung mit einem Fachanwalt/Börsenverein klären**, oder auf
+   Merch (nicht preisgebunden) beschränken.
+2. **"Rabattaktionen" auf der Startseite** ("15% Rabatt auf Ihre
+   Meinung" — Kauf + öffentliche Bewertung → Rückerstattung; "50% Rabatt
+   für dauerhafte Bewertungen" — Neuerscheinungen dauerhaft reduziert
+   gegen fortlaufende Bewertungen) — beides sind Rückerstattungs-/
+   Cashback-Modelle, die faktisch den Endpreis eines gebundenen Buchs
+   senken. Fällt in dieselbe "verdeckter Rabatt"-Kategorie wie oben,
+   selbst wenn es nicht "Rabatt auf den Kaufpreis direkt an der Kasse"
+   heißt. **Auch hier: vor weiterer Bewerbung/Nutzung rechtlich prüfen
+   lassen.**
+
+Nicht betroffen von dieser Einschränkung: Merch (T-Shirts, Socken —
+unterliegt keiner Preisbindung), das Morphologie-Werkzeug (kein Buch,
+digitales Werkzeug/Spiel), und die geplante Mitgliedschaft/Leseproben
+(kostenlose AUSZÜGE sind unproblematisch — kritisch würde es erst, wenn
+ganze gebundene Bücher im Rahmen einer Pauschal-Mitgliedschaft faktisch
+verbilligt "inklusive" wären).
+
+### Werkstattexemplare (rechtlich: Mängelexemplare) — die tatsächlich implementierte, rechtskonforme Alternative zu einem Rabatt
+
+Statt eines Prozent-Rabatts auf ein noch gebundenes Buch (siehe oben,
+Risiko-Feature 1) nutzt der Webshop die anerkannte Ausnahme "beschädigte/
+gebrauchte Exemplare, entsprechend gekennzeichnet": pro Buch lässt sich in
+dessen `meta.json` hinterlegen, ob und zu welchem Preis so ein Exemplar
+(second-hand, Prototyp oder mit Schönheitsfehler) angeboten wird.
+
+**Namensgebung:** "Mängelexemplar" ist der rechtliche Begriff aus dem
+BuchPrG-Ausnahmenkatalog (siehe oben) und bleibt deshalb im Kleingedruckten
+(Checkout-Fineprint, Werkstattexemplar-Popup) ausdrücklich stehen — er
+begründet, warum das Buch günstiger sein darf. Kundenseitig sichtbar
+(Ribbon, Checkbox, Preiszeile, Warenkorb) heißt die Sache **"Werkstatt-
+exemplar"**, ein bewusst gewählter, positiver Markenname (10 Alternativen
+wurden vorgeschlagen: Sonderexemplar, Werkstattexemplar, Unikatexemplar,
+Vorabexemplar, Editionsexemplar, Archivexemplar, Charakterexemplar,
+Manufakturexemplar, Kleinserienexemplar, Zweite-Wahl-Exemplar — der
+Nutzer hat sich für "Werkstattexemplar" entschieden).
+
+**Popup beim Auswählen:** Sobald die Checkbox im Produkt-Modal aktiviert
+wird, erscheint zusätzlich zum permanenten Fineprint-Hinweis ein
+`alert()`-Popup (`WERKSTATTEXEMPLAR_HINWEIS` in
+`webpages/webshop/index.html`) mit der vollen Erklärung: frühere Version,
+Text vollständig lesbar aber ggf. fehlerhaft, kein reguläres fertiges
+Exemplar, ggf. optisch weniger schön oder ein Experiment/Prototyp, sowie
+der Hinweis auf den rechtlichen Mängelexemplar-Status.
+
+Der Preis wird nicht frei gewählt, sondern automatisch so berechnet, dass
+dem Verlag nach Abzug seiner Kosten noch 10% des Gewinns bleiben, den er
+bei einem regulären Verkauf gehabt hätte:
+
+```
+Kostenbasis          = Autorenexemplarpreis (netto) × (1 + USt%/100)
+regulärer Gewinn      = regulärer Print-Preis − Kostenbasis
+Mängelexemplar-Preis  = Kostenbasis + Versandkosten + 10% × regulärer Gewinn
+```
+
+Der Verlag trägt den Versand bei Mängelexemplaren selbst (anders als beim
+regulären Verkauf, wo Versand separat mit dem Kunden abgerechnet wird) —
+das fließt deshalb hier explizit als Kostenposten mit ein.
+
+**Datenfelder pro Buch**, in `assets/work/books/<slug>/meta.json`:
+
+```json
+"mangelexemplar": {
+  "verfuegbar": true,
+  "autorenexemplarPreis": 7.90,
+  "autorenexemplarUstProzent": 7,
+  "gewichtGramm": 500,
+  "masseCm": { "laenge": 20.32, "breite": 1.27, "hoehe": 25.4 }
+}
+```
+
+(Feldname im JSON bleibt `mangelexemplar` — nur die angezeigten Texte
+heißen "Werkstattexemplar", siehe Namensgebung oben.)
+
+- `verfuegbar` steuert, ob das "Werkstattexemplar verfügbar"-Banner
+  (`.mangel-ribbon`, Webshop-Kartenansicht) überhaupt erscheint — fehlt
+  das Feld, steht es auf `false`, oder fehlt `autorenexemplarPreis` (siehe
+  unten), wird für dieses Buch nichts Reduziertes angezeigt oder
+  berechnet.
+- `autorenexemplarPreis` ist der NETTO-Preis, den der Verlag zahlt, um ein
+  Autorenexemplar zu beziehen (nicht der Bruttopreis von der Rechnung).
+- `autorenexemplarUstProzent`: Der Mehrwertsteuersatz, den der Verlag beim
+  Bezug des Autorenexemplars gezahlt hat — **länderabhängig**: Deutschland
+  7% (Standard, auch Default-Wert im Code falls das Feld fehlt),
+  Österreich 10%, Schweiz vermutlich ein anderer reduzierter Satz (nicht
+  verifiziert — im Einzelfall prüfen, falls jemals von dort bezogen wird).
+- `gewichtGramm` und `masseCm` (Länge/Breite/Höhe) beschreiben das
+  Buch selbst — Basis für die Versandkosten-Berechnung.
+
+**Versandkosten-Tabelle** (geteilt für alle Bücher, nicht pro Buch) in
+`assets/shop/products.json` unter `"shipping.warensendungNational"`,
+orientiert an der Deutschen Post Preisliste (WARENSENDUNG national: bis
+1.000 g 2,70 €, bis 2.000 g +0,85 € = 3,55 €). Schwerere/größere Pakete
+als die konfigurierten Stufen fallen aktuell auf die schwerste Stufe
+zurück (kein automatischer Wechsel auf DHL Päckchen S/M) — für die
+aktuellen, leichten Einzelbücher ausreichend; bei Bedarf (schwerere Bücher,
+Mehrfachversand) die Tabelle erweitern.
+
+**UI/Flow:** Im Produkt-Modal erscheint bei Büchern mit `verfuegbar:true`
+UND gewählter Variante "Print" eine Checkbox "Stattdessen ein
+Werkstattexemplar …" — aktiviert sie zeigt der Preis den durchgestrichenen
+Normalpreis plus den berechneten Preis, ohne den `sales`-Rabattmechanismus
+zu kombinieren (beide Mechanismen gleichzeitig würde keinen Sinn ergeben).
+Die Wahl wird im Warenkorb-Eintrag als `mangelexemplar: true` mitgeführt,
+taucht als "Werkstattexemplar"-Hinweis im Warenkorb sowie in der per Mail
+verschickten Bestellzeile auf.
+
+**"Zurückgeben"-Button** (`#modal-return`, im Produkt-Modal, nur bei
+Büchern sichtbar): öffnet einen vorausgefüllten Mailto-Entwurf für eine
+Mängelrüge. Kulanzregelung (nur als Text in der Mail, keine echte
+Rückabwicklung auf der Website — dafür gibt es keine Bestellverwaltung):
+Rückversand trägt der Verlag, nach Prüfung erstattet er 10% des aktuellen
+Neupreises. Gilt unabhängig davon, ob ursprünglich ein reguläres oder ein
+Werkstattexemplar gekauft wurde.
+
+**Aktueller Datenstand (Stand dieser Session):** Nur `reznik-debater` hat
+ein Werkstattexemplar — 100 g, 10,5 × 15 × 0,7 cm, `autorenexemplarPreis`
+aber noch `null` (fehlt), also **wird aktuell nichts angezeigt/berechnet**,
+bis dieser Wert nachgetragen wird (siehe "Offene Punkte"). Die
+Rechnungsdaten von `reznik-relationships` (7,90 €/7,89 € netto, 7% USt,
+8,45 € brutto pro Autorenexemplar, 500 g, 20,32 × 1,27 × 25,4 cm) und
+`jung-lichtstrahl` (10 € netto, angenommen 7% USt, 540 g,
+14 × 2,34 × 21,01 cm) wurden auf Nutzerwunsch aus den jeweiligen
+`meta.json` wieder entfernt — für diese beiden Bücher wird aktuell kein
+Werkstattexemplar angeboten. Zur Referenz, was die Formel für sie ergeben
+hätte: reznik-relationships 14,01 € (regulär 37 €), jung-lichtstrahl
+14,23 € (regulär 18,95 €).
+
 ## Sprachstil: KEIN Gendern
 
 Ausdrückliche Anweisung des Nutzers, gilt für JEDEN Text auf dieser Website
@@ -2043,6 +2242,19 @@ Umgesetzt in `webpages/webshop/index.html`:
 
 ## Offene Punkte
 
+- **`reznik-debater`s Werkstattexemplar fehlt noch der Autorenexemplar-
+  Preis.** `assets/work/books/reznik-debater/meta.json` hat
+  `"mangelexemplar.autorenexemplarPreis": null` — Gewicht (100 g) und Maße
+  (10,5 × 15 × 0,7 cm) sind gesetzt, aber ohne den Netto-Preis, den der
+  Verlag für ein Autorenexemplar dieses Buchs zahlt, kann die Preisformel
+  nichts berechnen; Ribbon/Checkbox bleiben deshalb unsichtbar, bis der
+  Wert nachgetragen wird.
+- **Mängelexemplar-USt-Satz für Österreich/Schweiz nicht verifiziert.**
+  `autorenexemplarUstProzent` in einem Buch-`meta.json` wird aktuell
+  überall mit 7% (Deutschland) gepflegt. Falls Autorenexemplare je aus
+  Österreich (10%) oder der Schweiz (vermutlich anderer reduzierter Satz)
+  bezogen werden, muss das Feld für das betroffene Buch entsprechend
+  angepasst werden — siehe "Werkstattexemplare" weiter oben.
 - **`GAME_PASSWORD_MORPHOLOGY` muss noch im Cloudflare-Dashboard gesetzt
   werden.** Ohne diese Umgebungsvariable (Settings → Environment
   variables im Cloudflare-Pages-Projekt) bleibt `/api/game-access` für

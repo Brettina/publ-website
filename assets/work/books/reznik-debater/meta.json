@@ -14,6 +14,13 @@
     "tags": ["therapy", "guide","publishing","translation"],
     "excerpt": "Die Hinweise eines Therapeuten an Jugendliche und alle, die mit sich hadern.",
  "price-print":15,
+  "mangelexemplar": {
+    "verfuegbar": true,
+    "autorenexemplarPreis": null,
+    "autorenexemplarUstProzent": 7,
+    "gewichtGramm": 100,
+    "masseCm": { "laenge": 10.5, "breite": 15, "hoehe": 0.7 }
+  },
   "alsoPublished": [
     { "label": "Autorenwebsite", "url": "https://www.drpeterreznik.com/" },
     { "label": "Amazon", "url": "https://www.amazon.com/Taming-Debater-Within-Peter-Reznik/dp/B09MYXSPPY" }

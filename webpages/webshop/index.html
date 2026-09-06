@@ -250,6 +250,34 @@
       z-index: 3;
     }
 
+    /* "Werkstattexemplar" ribbon — the customer-facing brand name for what
+       is legally a Mängelexemplar (see DOCUMENTATION.md, "Buchpreis-
+       bindung"): second-hand/prototype/damaged copies, one of BuchPrG's
+       recognized exceptions. Mirrors .sale-ribbon (top-right instead of
+       top-left, opposite rotation) but in a distinct slate color — keeping
+       it visually different from .sale-ribbon avoids implying the same
+       (legally risky) percent-discount mechanism. Books only. */
+    .mangel-ribbon {
+      position: absolute;
+      top: 12px;
+      right: -42px;
+      width: 190px;
+      padding: 9px 0;
+      transform: rotate(42deg);
+      transform-origin: center center;
+      background: #5b6b73;
+      clip-path: polygon(6% 0, 94% 0, 100% 50%, 94% 100%, 6% 100%, 0 50%);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.84rem;
+      text-align: center;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 3;
+    }
+
     /* Sale badge — plain inline version for use in running text (modal
        price line), not the corner graphic. */
     .sale-badge {
@@ -719,10 +747,20 @@
             </div>
           </div>
 
+          <div class="field checkbox" id="modal-mangel-wrap" style="display:none;">
+            <input id="modal-mangel" type="checkbox" />
+            <label for="modal-mangel">Stattdessen ein Werkstattexemplar (frühere, evtl. fehlerhafte Version)</label>
+          </div>
+          <p class="fineprint" id="modal-mangel-info" style="margin:0; display:none;"></p>
+
           <div class="modal-actions">
             <span class="fineprint" id="modal-unit"></span>
             <button type="button" class="button" id="modal-add">In Auswahl</button>
           </div>
+
+          <p class="fineprint" style="margin:8px 0 0;">
+            <button type="button" class="btn-mini" id="modal-return" style="display:none;">Mangel meines Exemplars melden / zurückgeben</button>
+          </p>
         </div>
     </article>
 
@@ -810,6 +848,9 @@
           Alle Preise inkl. der gesetzlichen Mehrwertsteuer, ggf. zzgl. Versand-/Abholkosten nach Absprache.
         </p>
         <p class="fineprint">
+          Werkstattexemplare (frühere, second-hand oder experimentelle Ausgaben; rechtlich Mängelexemplare) sind als solche gekennzeichnet und liegen außerhalb der Buchpreisbindung.
+        </p>
+        <p class="fineprint">
           Siehe <a href="/regulation/privacy/">Datenschutz</a>, <a href="/regulation/cookies/">Cookies</a>, <a href="/regulation/withdrawal/">Widerrufsbelehrung</a>, <a href="/regulation/imprint/">Impressum</a>.
         </p>
 
@@ -889,6 +930,10 @@
     const modalQty = $("#modal-qty");
     const modalUnit = $("#modal-unit");
     const modalAdd = $("#modal-add");
+    const modalMangelWrap = $("#modal-mangel-wrap");
+    const modalMangel = $("#modal-mangel");
+    const modalMangelInfo = $("#modal-mangel-info");
+    const modalReturn = $("#modal-return");
 
     let products = [];
     let cart = []; // {id, name, image, variant, qty, unit, pickupRequired}
@@ -1078,23 +1123,69 @@
       return active.until ? `-${cut} bis ${formatDateDE(active.until)}` : `-${cut}`;
     }
 
+    // Shared cache for products.json — sales list, and the shipping-rate
+    // table used by the Mängelexemplar price calculation below.
+    let shopConfigPromise = null;
+    function loadShopConfig() {
+      if (!shopConfigPromise) {
+        shopConfigPromise = fetch("/assets/shop/products.json", { cache: "no-store" })
+          .then(res => res.ok ? res.json() : {})
+          .catch(() => ({}));
+      }
+      return shopConfigPromise;
+    }
+
     // Central discount list (products.json "sales") — books look up their
     // discount here too, keyed by slug, instead of carrying it in meta.json.
-    let salesByIdPromise = null;
     function loadSalesById() {
-      if (!salesByIdPromise) {
-        salesByIdPromise = fetch("/assets/shop/products.json", { cache: "no-store" })
-          .then(res => res.ok ? res.json() : { sales: [] })
-          .then(data => {
-            const map = new Map();
-            (Array.isArray(data?.sales) ? data.sales : []).forEach(s => {
-              if (s && s.id) map.set(String(s.id), s);
-            });
-            return map;
-          })
-          .catch(() => new Map());
-      }
-      return salesByIdPromise;
+      return loadShopConfig().then(data => {
+        const map = new Map();
+        (Array.isArray(data?.sales) ? data.sales : []).forEach(s => {
+          if (s && s.id) map.set(String(s.id), s);
+        });
+        return map;
+      });
+    }
+
+    function loadShippingRates() {
+      return loadShopConfig().then(data => (data && data.shipping) || {});
+    }
+
+    // Cost of shipping a single Warensendung nationally, by weight — tiers
+    // configured in products.json "shipping.warensendungNational" (source:
+    // Deutsche Post Preisliste, "WARENSENDUNG" national). Falls back to the
+    // heaviest configured tier if the weight exceeds all of them, rather
+    // than refusing to price the item.
+    function shippingCostForWeight(gramm, rates) {
+      const tiers = Array.isArray(rates?.warensendungNational) ? rates.warensendungNational : [];
+      if (!tiers.length || gramm == null) return null;
+      const sorted = tiers.slice().sort((a, b) => a.maxGewichtGramm - b.maxGewichtGramm);
+      const hit = sorted.find(t => gramm <= t.maxGewichtGramm);
+      return toNumber((hit || sorted[sorted.length - 1]).preis);
+    }
+
+    // Mängelexemplar pricing (second-hand/Prototyp/Schönheitsfehler copies)
+    // — one of Buchpreisbindungsgesetz's recognized exceptions, unlike a
+    // plain percent-off "sale" on a bound new book (see DOCUMENTATION.md,
+    // "Buchpreisbindung"). Price is set so the publisher keeps 10% of the
+    // profit a regular sale would have made, after covering: what she paid
+    // to acquire the author's copy (incl. the VAT she paid on that
+    // purchase), plus shipping — which she covers herself here, unlike a
+    // normal sale where it's billed to the customer separately.
+    //   Kostenbasis = Autorenpreis (netto) × (1 + USt%/100)
+    //   regulärer Gewinn = regulärer Print-Preis − Kostenbasis
+    //   Mängelexemplar-Preis = Kostenbasis + Versand + 10% × regulärer Gewinn
+    function computeMangelexemplarPreis(cfg, pricePrint, rates) {
+      if (!cfg || cfg.verfuegbar !== true) return null;
+      const autorenpreisNetto = toNumber(cfg.autorenexemplarPreis);
+      if (autorenpreisNetto == null || pricePrint == null) return null;
+      const ustProzent = toNumber(cfg.autorenexemplarUstProzent) ?? 7;
+      const versandkosten = shippingCostForWeight(toNumber(cfg.gewichtGramm), rates);
+      if (versandkosten == null) return null;
+      const kostenbasis = autorenpreisNetto * (1 + ustProzent / 100);
+      const regulaererGewinn = pricePrint - kostenbasis;
+      const preis = kostenbasis + versandkosten + 0.10 * regulaererGewinn;
+      return Math.max(0, Math.round(preis * 100) / 100);
     }
 
     function loadCartFromStorage() {
@@ -1179,6 +1270,13 @@
           ribbon.className = "sale-ribbon";
           ribbon.textContent = saleRibbonLabel(p.sale);
           img.appendChild(ribbon);
+        }
+
+        if (p.mangelexemplar) {
+          const mRibbon = document.createElement("div");
+          mRibbon.className = "mangel-ribbon";
+          mRibbon.textContent = "Werkstattexemplar verfügbar";
+          img.appendChild(mRibbon);
         }
 
         if (p.comingSoon) {
@@ -1291,6 +1389,10 @@
         meta.appendChild(document.createTextNode(`${it.qty} ${it.unit}`));
         meta.appendChild(document.createTextNode("•"));
         meta.appendChild(document.createTextNode(`Variante: ${it.variant}`));
+        if (it.mangelexemplar) {
+          meta.appendChild(document.createTextNode("•"));
+          meta.appendChild(document.createTextNode("Werkstattexemplar"));
+        }
         if (it.pickupRequired) {
           meta.appendChild(document.createTextNode("•"));
           meta.appendChild(document.createTextNode("Abholung erforderlich"));
@@ -1331,7 +1433,7 @@
         edit.addEventListener("click", () => {
           const p = products.find(x => x.id === it.id) || null;
           if (p) {
-            openProductModal(p, { preselectVariant: it.variant, presetQty: it.qty });
+            openProductModal(p, { preselectVariant: it.variant, presetQty: it.qty, preselectMangel: !!it.mangelexemplar });
           } else {
             const newQty = prompt("Menge:", String(it.qty));
             const parsed = Math.max(1, parseInt(newQty || String(it.qty), 10) || it.qty);
@@ -1394,14 +1496,31 @@ function getUnitPriceForVariant(p, variant) {
 
 function renderModalPriceForVariant(p) {
   const v = modalVariant?.value || "Print";
+
+  const canMangel = v === "Print" && !!p.mangelexemplar;
+  if (modalMangelWrap) modalMangelWrap.style.display = canMangel ? "" : "none";
+  if (!canMangel && modalMangel) modalMangel.checked = false;
+  if (modalMangelInfo) {
+    modalMangelInfo.style.display = canMangel ? "" : "none";
+    if (canMangel) {
+      modalMangelInfo.textContent =
+        "Werkstattexemplare sind frühere Versionen — inhaltlich vollständig lesbar, aber möglicherweise mit kleinen Fehlern oder optisch weniger fein (Experiment/Prototyp). Rechtlich ein Mängelexemplar, außerhalb der Buchpreisbindung reduziert erhältlich.";
+    }
+  }
+  const useMangel = canMangel && !!modalMangel?.checked;
+
   const basePrice = getUnitPriceForVariant(p, v);
-  const salePrice = applySale(basePrice, p.sale);
-  const onSale = basePrice != null && salePrice !== basePrice;
+  const salePrice = useMangel ? p.mangelexemplar.preis : applySale(basePrice, p.sale);
+  const onSale = !useMangel && basePrice != null && salePrice !== basePrice;
 
   const vat = vatNote(p.vatRate);
   if (modalPrice) {
     if (basePrice == null) {
       modalPrice.textContent = "";
+    } else if (useMangel) {
+      modalPrice.innerHTML =
+        `<span style="text-decoration:line-through; opacity:0.6; font-weight:400; font-size:0.75em;">${formatEUR(basePrice)} ${vat}</span> ` +
+        `Preis (Werkstattexemplar): ${formatEUR(salePrice)} ${vat}`;
     } else if (onSale) {
       modalPrice.innerHTML =
         `<span style="text-decoration:line-through; opacity:0.6; font-weight:400; font-size:0.75em;">${formatEUR(basePrice)} ${vat}</span> ` +
@@ -1484,6 +1603,17 @@ function openProductModal(p, opts = {}) {
   const presetQty = parseInt(opts.presetQty || "1", 10);
   modalQty.value = String(Math.min(50, Math.max(1, isNaN(presetQty) ? 1 : presetQty)));
 
+  // Mängelexemplar checkbox: reset, then preselect if editing a cart item
+  // that was already a Mängelexemplar.
+  if (modalMangel) modalMangel.checked = !!opts.preselectMangel;
+
+  // "Zurückgeben" — books only (see meta.json "category" set in
+  // loadBooksFromWorkIndex; merch/games don't get this button).
+  if (modalReturn) {
+    modalReturn.style.display = p.category === "books" ? "" : "none";
+    modalReturn.onclick = () => openReturnMailto(p);
+  }
+
   // price must be updated AFTER variants exist / selected
   modalVariant.onchange = () => renderModalPriceForVariant(p);
   renderModalPriceForVariant(p);
@@ -1499,6 +1629,17 @@ function openProductModal(p, opts = {}) {
       activeProduct = null;
     }
 
+    // Popup shown every time someone opts INTO a Werkstattexemplar (not
+    // just an inline note) — the user asked for this to be surfaced
+    // explicitly at the moment of choosing it, not just left as fineprint.
+    const WERKSTATTEXEMPLAR_HINWEIS =
+      "Ein Werkstattexemplar ist eine frühere Version dieses Buchs: Der Text ist vollständig lesbar, kann aber fehlerhaft sein (z. B. kleine Rechtschreib- oder Layoutfehler). Es ist kein reguläres, fertiges Exemplar, sondern ggf. ein optisch weniger schönes Experiment oder ein Prototyp. Rechtlich handelt es sich um ein Mängelexemplar außerhalb der Buchpreisbindung.";
+
+    modalMangel?.addEventListener("change", () => {
+      if (activeProduct) renderModalPriceForVariant(activeProduct);
+      if (modalMangel.checked) alert(WERKSTATTEXEMPLAR_HINWEIS);
+    });
+
     modalClose?.addEventListener("click", closeProductModal);
     modalBackdrop?.addEventListener("click", (e) => { if (e.target === modalBackdrop) closeProductModal(); });
     document.addEventListener("keydown", (e) => {
@@ -1510,12 +1651,15 @@ function openProductModal(p, opts = {}) {
 
       const variant = (modalVariant.value || "Print").toString();
       const qty = Math.max(1, Math.min(50, parseInt(modalQty.value || "1", 10) || 1));
+      const isMangel = variant === "Print" && !!activeProduct.mangelexemplar && !!modalMangel?.checked;
 
-      const existing = cart.find(x => x.id === activeProduct.id && x.variant === variant);
+      const existing = cart.find(x => x.id === activeProduct.id && x.variant === variant && !!x.mangelexemplar === isMangel);
       if (existing) {
         existing.qty = Math.min(50, (parseInt(existing.qty, 10) || 0) + qty);
       } else {
-        const unitPrice = applySale(getUnitPriceForVariant(activeProduct, variant), activeProduct.sale);
+        const unitPrice = isMangel
+          ? activeProduct.mangelexemplar.preis
+          : applySale(getUnitPriceForVariant(activeProduct, variant), activeProduct.sale);
 
         cart.push({
           id: activeProduct.id,
@@ -1525,6 +1669,7 @@ function openProductModal(p, opts = {}) {
           qty,
           unit: safeUnit(activeProduct),
           unitPrice, // NEW
+          mangelexemplar: isMangel,
           pickupRequired: !!activeProduct.pickupRequired
         });
 
@@ -1622,10 +1767,33 @@ function openProductModal(p, opts = {}) {
       a.remove();
     }
 
+// "Zurückgeben" — per-book Kulanzregelung: the publisher covers return
+// shipping and refunds 10% of a new copy's current price once a defect is
+// checked. No order-tracking backend exists on this static site, so this
+// just opens a prefilled complaint/return request by mail, same pattern
+// as the rest of the checkout flow.
+function openReturnMailto(p) {
+  const title = p.name || p.id;
+  const body = [
+    "Hallo Frau Lohr,",
+    "",
+    `ich habe einen Mangel an meinem Exemplar von "${title}" festgestellt und möchte es zurückgeben.`,
+    "",
+    "Bitte senden Sie mir eine Rücksendeanweisung. Der Rückversand wird laut Kulanzregelung vom Verlag übernommen. Nach Prüfung erhalte ich 10% des aktuellen Kaufpreises eines neuen Exemplars erstattet.",
+    "",
+    "Kurze Beschreibung des Mangels:",
+    "[bitte ergänzen]",
+    "",
+    "Vielen Dank!"
+  ].join("\r\n");
+  openMailto({ to: CONTACT_EMAIL, subject: `Reklamation: ${title}`, body });
+}
+
 function cartLinesText() {
   return cart.map(it => {
     const p = typeof it.unitPrice === "number" ? ` — ${formatEUR(it.unitPrice)}` : "";
-    return `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${p}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`;
+    const mangel = it.mangelexemplar ? " (Werkstattexemplar)" : "";
+    return `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${mangel}${p}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`;
   });
 }
 
@@ -1788,9 +1956,10 @@ async function resolveWorkImage({ slug, category, meta, indexCover }) {
 }
 
 async function loadBooksFromWorkIndex() {
-  const [res, salesById] = await Promise.all([
+  const [res, salesById, shippingRates] = await Promise.all([
     fetch("/assets/work-index.json", { cache: "no-store" }),
-    loadSalesById()
+    loadSalesById(),
+    loadShippingRates()
   ]);
   if (!res.ok) throw new Error("work-index.json missing");
   const data = await res.json();
@@ -1873,9 +2042,19 @@ const author = String(meta.author || "");
 const excerpt = String(meta.excerpt || meta.description || "");
 const tags = Array.isArray(meta.tags) ? meta.tags : [];
 
+// Mängelexemplare — books only (the field is only ever set in a book's
+// own meta.json), and only for the Print variant (a "used/damaged" copy
+// of a digital edition makes no sense).
+const mangelCfg = (w.category === "books" && meta.mangelexemplar && meta.mangelexemplar.verfuegbar === true)
+  ? meta.mangelexemplar
+  : null;
+const mangelPreis = mangelCfg ? computeMangelexemplarPreis(mangelCfg, pricePrint, shippingRates) : null;
+const mangelexemplar = (mangelCfg && mangelPreis != null) ? { ...mangelCfg, preis: mangelPreis } : null;
+
 return {
   id: w.id,
   slug: w.slug,
+  category: w.category,
 
   name: title,
   author,
@@ -1888,6 +2067,7 @@ return {
   pricePrint,
   priceDigital,
   sale: salesById.get(String(w.id)) || null,
+  mangelexemplar,
   currency: "EUR",
   // German reduced VAT rate (7%) applies to books (print + e-book) —
   // everything else sold here (games/tools, event/article items, if ever
