@@ -178,9 +178,15 @@
     }
     .gallery-dot.is-active { background: #fff; }
 
-    /* Sale ribbon — corner sash on discounted items, hanging over the
-       TOP-LEFT corner of the picture (needs .shop-img/.shop-card above to
-       NOT clip — see their overflow comments).
+    /* Sale ribbon — corner sash hanging over the TOP-LEFT corner of the
+       picture (needs .shop-img/.shop-card above to NOT clip — see their
+       overflow comments). One single ribbon slot, reused for two purposes
+       (never shown together — see renderProducts): a book with a
+       Werkstattexemplar (customer-facing name for what's legally a
+       Mängelexemplar, see DOCUMENTATION.md "Buchpreisbindung") shows
+       "Werkstattexemplar verfügbar" here and takes priority; otherwise an
+       active `sales`-percent discount shows its own label. Kept as one
+       ribbon per explicit user request — no second ribbon element.
        Simplified architecture: ONE element, text as its own textContent
        (no separate image/span children). A single `transform: rotate()`
        on this one element rotates the background AND the text together,
@@ -246,34 +252,6 @@
       color: rgba(255, 255, 255, 0.7);
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
       background: rgba(0, 0, 0, 0.25);
-      pointer-events: none;
-      z-index: 3;
-    }
-
-    /* "Werkstattexemplar" ribbon — the customer-facing brand name for what
-       is legally a Mängelexemplar (see DOCUMENTATION.md, "Buchpreis-
-       bindung"): second-hand/prototype/damaged copies, one of BuchPrG's
-       recognized exceptions. Mirrors .sale-ribbon (top-right instead of
-       top-left, opposite rotation) but in a distinct slate color — keeping
-       it visually different from .sale-ribbon avoids implying the same
-       (legally risky) percent-discount mechanism. Books only. */
-    .mangel-ribbon {
-      position: absolute;
-      top: 12px;
-      right: -42px;
-      width: 190px;
-      padding: 9px 0;
-      transform: rotate(42deg);
-      transform-origin: center center;
-      background: #5b6b73;
-      clip-path: polygon(6% 0, 94% 0, 100% 50%, 94% 100%, 6% 100%, 0 50%);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.45);
-      color: #fff;
-      font-weight: 700;
-      font-size: 0.84rem;
-      text-align: center;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-      white-space: nowrap;
       pointer-events: none;
       z-index: 3;
     }
@@ -756,11 +734,16 @@
             </div>
           </div>
 
-          <div class="field checkbox" id="modal-mangel-wrap" style="display:none;">
-            <input id="modal-mangel" type="checkbox" />
-            <label for="modal-mangel">Stattdessen ein Werkstattexemplar (frühere, evtl. fehlerhafte Version)</label>
+          <div class="field" id="modal-sprache-wrap" style="display:none;">
+            <label for="modal-sprache">Sprache</label>
+            <select id="modal-sprache"></select>
           </div>
-          <p class="fineprint" id="modal-mangel-info" style="margin:0; display:none;"></p>
+
+          <div class="field" id="modal-zustand-wrap" style="display:none;">
+            <label for="modal-zustand">Zustand</label>
+            <select id="modal-zustand"></select>
+          </div>
+          <p class="fineprint" id="modal-zustand-info" style="margin:0; display:none;"></p>
 
           <div class="modal-actions">
             <span class="fineprint" id="modal-unit"></span>
@@ -768,7 +751,7 @@
           </div>
 
           <p class="fineprint" style="margin:8px 0 0;">
-            <button type="button" class="btn-mini" id="modal-return" style="display:none;">Mangel meines Exemplars melden / zurückgeben</button>
+            <button type="button" class="btn-mini" id="modal-return" style="display:none;">Buch zurückgeben</button>
           </p>
         </div>
     </article>
@@ -941,9 +924,11 @@
     const modalQty = $("#modal-qty");
     const modalUnit = $("#modal-unit");
     const modalAdd = $("#modal-add");
-    const modalMangelWrap = $("#modal-mangel-wrap");
-    const modalMangel = $("#modal-mangel");
-    const modalMangelInfo = $("#modal-mangel-info");
+    const modalSpracheWrap = $("#modal-sprache-wrap");
+    const modalSprache = $("#modal-sprache");
+    const modalZustandWrap = $("#modal-zustand-wrap");
+    const modalZustand = $("#modal-zustand");
+    const modalZustandInfo = $("#modal-zustand-info");
     const modalReturn = $("#modal-return");
 
     let products = [];
@@ -1165,17 +1150,17 @@
     // was tried first, but for cheaper books that undercut what the author
     // copy itself cost — the publisher would have sold at a loss. Now:
     //   Brutto = autorenexemplarPreis (netto) × (1 + USt%/100)
-    //   Werkstattexemplar-Preis = AUFRUNDEN(Brutto, 1 €) + 1 €
+    //   Werkstattexemplar-Preis = AUFRUNDEN(Brutto, 1 €) + 3 €
     // VAT is deliberately included (not skipped) — the publisher actually
     // paid it acquiring the author copy, so it belongs in the real cost
-    // before the +1 € margin is added.
+    // before the +3 € margin is added.
     function computeMangelexemplarPreis(cfg) {
       if (!cfg || cfg.verfuegbar !== true) return null;
       const autorenpreisNetto = toNumber(cfg.autorenexemplarPreis);
       if (autorenpreisNetto == null) return null;
       const ustProzent = toNumber(cfg.autorenexemplarUstProzent) ?? 7;
       const brutto = autorenpreisNetto * (1 + ustProzent / 100);
-      return Math.ceil(brutto) + 1;
+      return Math.ceil(brutto) + 3;
     }
 
     function loadCartFromStorage() {
@@ -1254,19 +1239,28 @@
         const img = buildGallery(safeImages(p), p.name || p.id);
         img.classList.add("shop-img");
 
+        // One ribbon slot, never more than one at once. Priority:
+        // Werkstattexemplar/Gebraucht (both, if EITHER language has stock)
+        // > an active `sales` discount (see .sale-ribbon CSS comment
+        // above). Aggregated across all languages — the card-level ribbon
+        // is a coarse "something's available" signal, the actual
+        // per-language detail is resolved in the modal's Sprache/Zustand
+        // dropdowns.
         const activeSale = getActiveSale(p.sale);
-        if (activeSale) {
+        const sprachBestaende = p.sprachenData ? Object.values(p.sprachenData) : [];
+        const hasMangel = sprachBestaende.some(d => d.mangelexemplar);
+        const hasGebraucht = sprachBestaende.some(d => Array.isArray(d.gebrauchtOptionen) && d.gebrauchtOptionen.length > 0);
+        let ribbonLabel = null;
+        if (hasMangel && hasGebraucht) ribbonLabel = "Werkstatt/gebraucht verfügbar";
+        else if (hasMangel) ribbonLabel = "Werkstattexemplar verfügbar";
+        else if (hasGebraucht) ribbonLabel = "Gebraucht verfügbar";
+        else if (activeSale) ribbonLabel = saleRibbonLabel(p.sale);
+
+        if (ribbonLabel) {
           const ribbon = document.createElement("div");
           ribbon.className = "sale-ribbon";
-          ribbon.textContent = saleRibbonLabel(p.sale);
+          ribbon.textContent = ribbonLabel;
           img.appendChild(ribbon);
-        }
-
-        if (p.mangelexemplar) {
-          const mRibbon = document.createElement("div");
-          mRibbon.className = "mangel-ribbon";
-          mRibbon.textContent = "Werkstattexemplar verfügbar";
-          img.appendChild(mRibbon);
         }
 
         if (p.comingSoon) {
@@ -1379,9 +1373,13 @@
         meta.appendChild(document.createTextNode(`${it.qty} ${it.unit}`));
         meta.appendChild(document.createTextNode("•"));
         meta.appendChild(document.createTextNode(`Variante: ${it.variant}`));
-        if (it.mangelexemplar) {
+        if (it.sprache) {
           meta.appendChild(document.createTextNode("•"));
-          meta.appendChild(document.createTextNode("Werkstattexemplar"));
+          meta.appendChild(document.createTextNode(it.sprache));
+        }
+        if (it.zustandLabel) {
+          meta.appendChild(document.createTextNode("•"));
+          meta.appendChild(document.createTextNode(it.zustandLabel));
         }
         if (it.pickupRequired) {
           meta.appendChild(document.createTextNode("•"));
@@ -1423,7 +1421,7 @@
         edit.addEventListener("click", () => {
           const p = products.find(x => x.id === it.id) || null;
           if (p) {
-            openProductModal(p, { preselectVariant: it.variant, presetQty: it.qty, preselectMangel: !!it.mangelexemplar });
+            openProductModal(p, { preselectVariant: it.variant, presetQty: it.qty, preselectZustand: it.zustand, preselectSprache: it.sprache });
           } else {
             const newQty = prompt("Menge:", String(it.qty));
             const parsed = Math.max(1, parseInt(newQty || String(it.qty), 10) || it.qty);
@@ -1488,33 +1486,108 @@ function getUnitPriceForVariant(p, variant) {
   return p.pricePrint ?? p.price ?? null;
 }
 
+// Zustand ("Print neu" / Werkstattexemplar / Gebraucht) — Print variant
+// only, and specific to the currently selected Sprache: stock (and so
+// mangelexemplar/gebrauchtOptionen) is tracked PER LANGUAGE in
+// p.sprachenData, since a book can well have used German copies but no
+// used English ones. Both are already filtered in loadBooksFromWorkIndex
+// to only exist with a valid price AND stock > 0; "Print neu" itself is
+// left out when that language's stock tracking says regulaer stock is 0.
+function buildZustandOptions(p, sprache) {
+  const d = p.sprachenData?.[sprache] || {};
+  const options = [];
+  const regulaerOk = !d.bestand || d.bestand.regulaer > 0;
+  if (regulaerOk) options.push({ value: "regulaer", label: "Print neu" });
+  if (d.mangelexemplar) {
+    options.push({ value: "werkstatt", label: `Werkstattexemplar – ${formatEUR(d.mangelexemplar.preis)}` });
+  }
+  (d.gebrauchtOptionen || []).forEach(g => {
+    options.push({ value: `gebraucht:${g.index}`, label: `Gebraucht – ${formatEUR(g.preis)}` });
+  });
+  return options;
+}
+
+function getZustandPreis(p, sprache, zustandValue) {
+  const d = p.sprachenData?.[sprache] || {};
+  if (zustandValue === "werkstatt") return d.mangelexemplar ? d.mangelexemplar.preis : null;
+  if (zustandValue && zustandValue.startsWith("gebraucht:")) {
+    const idx = Number(zustandValue.split(":")[1]);
+    const entry = (d.gebrauchtOptionen || []).find(g => g.index === idx);
+    return entry ? entry.preis : null;
+  }
+  return null;
+}
+
+// Set right before openProductModal's renderModalPriceForVariant call, so
+// the just-opened product's options exist before we try to select one
+// (editing a cart item needs to preselect its saved Zustand).
+let pendingZustandPreselect = null;
+
 function renderModalPriceForVariant(p) {
   const v = modalVariant?.value || "Print";
 
-  const canMangel = v === "Print" && !!p.mangelexemplar;
-  if (modalMangelWrap) modalMangelWrap.style.display = canMangel ? "" : "none";
-  if (!canMangel && modalMangel) modalMangel.checked = false;
-  if (modalMangelInfo) {
-    modalMangelInfo.style.display = canMangel ? "" : "none";
-    if (canMangel) {
-      modalMangelInfo.textContent =
+  // Sprache first — Zustand options depend on which language's stock we're
+  // looking at (a book can have used German copies but no used English
+  // ones, etc.). Only read modalSprache's own value when the dropdown is
+  // actually showing a real choice; otherwise there's just the one
+  // language and nothing to disambiguate.
+  const spracheListe = Array.isArray(p.sprachen) && p.sprachen.length ? p.sprachen : ["Deutsch"];
+  const sprache = spracheListe.length > 1 ? (modalSprache?.value || spracheListe[0]) : spracheListe[0];
+
+  const zustandOptions = v === "Print" ? buildZustandOptions(p, sprache) : [];
+  const hasAlternatives = zustandOptions.some(o => o.value !== "regulaer");
+
+  if (modalZustandWrap) modalZustandWrap.style.display = hasAlternatives ? "" : "none";
+
+  if (hasAlternatives && modalZustand) {
+    const desired = pendingZustandPreselect;
+    pendingZustandPreselect = null;
+    const prevValue = modalZustand.value;
+    modalZustand.innerHTML = "";
+    zustandOptions.forEach(o => {
+      const opt = document.createElement("option");
+      opt.value = o.value;
+      opt.textContent = o.label;
+      modalZustand.appendChild(opt);
+    });
+    const candidate = desired || prevValue;
+    const stillValid = zustandOptions.some(o => o.value === candidate);
+    modalZustand.value = stillValid ? candidate : (zustandOptions[0]?.value || "regulaer");
+  } else {
+    pendingZustandPreselect = null;
+  }
+
+  const zustandValue = hasAlternatives ? (modalZustand?.value || "regulaer") : "regulaer";
+
+  if (modalZustandInfo) {
+    if (zustandValue === "werkstatt") {
+      modalZustandInfo.style.display = "";
+      modalZustandInfo.textContent =
         "Werkstattexemplare sind frühere Versionen — inhaltlich vollständig lesbar, aber möglicherweise mit kleinen Fehlern oder optisch weniger fein (Experiment/Prototyp). Rechtlich ein Mängelexemplar, außerhalb der Buchpreisbindung reduziert erhältlich.";
+    } else if (zustandValue.startsWith("gebraucht")) {
+      modalZustandInfo.style.display = "";
+      modalZustandInfo.textContent =
+        "Gebrauchte Exemplare wurden von Lesern zurückgegeben und bereits gelesen — der Zustand kann von Exemplar zu Exemplar leicht variieren.";
+    } else {
+      modalZustandInfo.style.display = "none";
     }
   }
-  const useMangel = canMangel && !!modalMangel?.checked;
 
   const basePrice = getUnitPriceForVariant(p, v);
-  const salePrice = useMangel ? p.mangelexemplar.preis : applySale(basePrice, p.sale);
-  const onSale = !useMangel && basePrice != null && salePrice !== basePrice;
+  const zustandPreis = zustandValue !== "regulaer" ? getZustandPreis(p, sprache, zustandValue) : null;
+  const useZustandPreis = zustandPreis != null;
+  const salePrice = useZustandPreis ? zustandPreis : applySale(basePrice, p.sale);
+  const onSale = !useZustandPreis && basePrice != null && salePrice !== basePrice;
 
   const vat = vatNote(p.vatRate);
   if (modalPrice) {
     if (basePrice == null) {
       modalPrice.textContent = "";
-    } else if (useMangel) {
+    } else if (useZustandPreis) {
+      const label = zustandValue === "werkstatt" ? "Werkstattexemplar" : "Gebraucht";
       modalPrice.innerHTML =
         `<span style="text-decoration:line-through; opacity:0.6; font-weight:400; font-size:0.75em;">${formatEUR(basePrice)} ${vat}</span> ` +
-        `Preis (Werkstattexemplar): ${formatEUR(salePrice)} ${vat}`;
+        `Preis (${label}): ${formatEUR(salePrice)} ${vat}`;
     } else if (onSale) {
       modalPrice.innerHTML =
         `<span style="text-decoration:line-through; opacity:0.6; font-weight:400; font-size:0.75em;">${formatEUR(basePrice)} ${vat}</span> ` +
@@ -1597,9 +1670,27 @@ function openProductModal(p, opts = {}) {
   const presetQty = parseInt(opts.presetQty || "1", 10);
   modalQty.value = String(Math.min(50, Math.max(1, isNaN(presetQty) ? 1 : presetQty)));
 
-  // Mängelexemplar checkbox: reset, then preselect if editing a cart item
-  // that was already a Mängelexemplar.
-  if (modalMangel) modalMangel.checked = !!opts.preselectMangel;
+  // Sprache — only shown when a book actually offers more than one
+  // (most books here are German-only; jung-lichtstrahl also has an
+  // English edition). Not tied to price/stock, just a descriptor carried
+  // into the cart/order line.
+  const sprachen = Array.isArray(p.sprachen) && p.sprachen.length ? p.sprachen : ["Deutsch"];
+  if (modalSpracheWrap) modalSpracheWrap.style.display = sprachen.length > 1 ? "" : "none";
+  if (modalSprache) {
+    modalSprache.innerHTML = "";
+    sprachen.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s;
+      opt.textContent = s;
+      modalSprache.appendChild(opt);
+    });
+    const preselectSprache = (opts.preselectSprache || "").toString().trim();
+    if (preselectSprache && sprachen.includes(preselectSprache)) modalSprache.value = preselectSprache;
+  }
+
+  // Zustand: preselect if editing a cart item, consumed by
+  // renderModalPriceForVariant below once it has built the option list.
+  pendingZustandPreselect = opts.preselectZustand || null;
 
   // "Zurückgeben" — books only (see meta.json "category" set in
   // loadBooksFromWorkIndex; merch/games don't get this button).
@@ -1623,15 +1714,21 @@ function openProductModal(p, opts = {}) {
       activeProduct = null;
     }
 
-    // Popup shown every time someone opts INTO a Werkstattexemplar (not
-    // just an inline note) — the user asked for this to be surfaced
-    // explicitly at the moment of choosing it, not just left as fineprint.
+    // Popup shown every time someone selects a Werkstattexemplar (not just
+    // an inline note) — the user asked for this to be surfaced explicitly
+    // at the moment of choosing it, not just left as fineprint.
     const WERKSTATTEXEMPLAR_HINWEIS =
       "Ein Werkstattexemplar ist eine frühere Version dieses Buchs: Der Text ist vollständig lesbar, kann aber fehlerhaft sein (z. B. kleine Rechtschreib- oder Layoutfehler). Es ist kein reguläres, fertiges Exemplar, sondern ggf. ein optisch weniger schönes Experiment oder ein Prototyp. Rechtlich handelt es sich um ein Mängelexemplar außerhalb der Buchpreisbindung.";
 
-    modalMangel?.addEventListener("change", () => {
+    // Zustand options depend on which Sprache is selected (stock is
+    // tracked per language) — switching Sprache must rebuild them.
+    modalSprache?.addEventListener("change", () => {
       if (activeProduct) renderModalPriceForVariant(activeProduct);
-      if (modalMangel.checked) alert(WERKSTATTEXEMPLAR_HINWEIS);
+    });
+
+    modalZustand?.addEventListener("change", () => {
+      if (activeProduct) renderModalPriceForVariant(activeProduct);
+      if (modalZustand.value === "werkstatt") alert(WERKSTATTEXEMPLAR_HINWEIS);
     });
 
     modalClose?.addEventListener("click", closeProductModal);
@@ -1645,15 +1742,30 @@ function openProductModal(p, opts = {}) {
 
       const variant = (modalVariant.value || "Print").toString();
       const qty = Math.max(1, Math.min(50, parseInt(modalQty.value || "1", 10) || 1));
-      const isMangel = variant === "Print" && !!activeProduct.mangelexemplar && !!modalMangel?.checked;
 
-      const existing = cart.find(x => x.id === activeProduct.id && x.variant === variant && !!x.mangelexemplar === isMangel);
+      // Sprache resolved first — Zustand stock/options depend on it. Only
+      // recorded as its own cart field (spracheForCart) when the book
+      // actually has more than one language, keeping the common
+      // German-only case free of clutter in the cart/order line.
+      const sprachenListe = Array.isArray(activeProduct.sprachen) && activeProduct.sprachen.length ? activeProduct.sprachen : ["Deutsch"];
+      const sprache = sprachenListe.length > 1 ? (modalSprache?.value || sprachenListe[0]) : sprachenListe[0];
+      const spracheForCart = sprachenListe.length > 1 ? sprache : null;
+
+      const zustandOptions = variant === "Print" ? buildZustandOptions(activeProduct, sprache) : [];
+      const hasAlternatives = zustandOptions.some(o => o.value !== "regulaer");
+      const zustandValue = (hasAlternatives && modalZustand) ? (modalZustand.value || "regulaer") : "regulaer";
+
+      const existing = cart.find(x => x.id === activeProduct.id && x.variant === variant && (x.zustand || "regulaer") === zustandValue && (x.sprache || null) === spracheForCart);
       if (existing) {
         existing.qty = Math.min(50, (parseInt(existing.qty, 10) || 0) + qty);
       } else {
-        const unitPrice = isMangel
-          ? activeProduct.mangelexemplar.preis
+        const zustandPreis = zustandValue !== "regulaer" ? getZustandPreis(activeProduct, sprache, zustandValue) : null;
+        const unitPrice = zustandPreis != null
+          ? zustandPreis
           : applySale(getUnitPriceForVariant(activeProduct, variant), activeProduct.sale);
+        const zustandLabel =
+          zustandValue === "werkstatt" ? "Werkstattexemplar" :
+          zustandValue.startsWith("gebraucht") ? "Gebraucht" : "";
 
         cart.push({
           id: activeProduct.id,
@@ -1663,7 +1775,9 @@ function openProductModal(p, opts = {}) {
           qty,
           unit: safeUnit(activeProduct),
           unitPrice, // NEW
-          mangelexemplar: isMangel,
+          zustand: zustandValue,
+          zustandLabel,
+          sprache: spracheForCart,
           pickupRequired: !!activeProduct.pickupRequired
         });
 
@@ -1768,22 +1882,26 @@ function openProductModal(p, opts = {}) {
       a.remove();
     }
 
-// "Zurückgeben" — per-book Kulanzregelung: the publisher covers return
-// shipping and refunds 10% of a new copy's current price once a defect is
-// checked. No order-tracking backend exists on this static site, so this
-// just opens a prefilled complaint/return request by mail, same pattern
-// as the rest of the checkout flow.
+// "Zurückgeben" — matches the FAQ "Kann ich gebrauchte Bücher an Sie
+// zurückgeben?" on the homepage: the publisher covers return shipping,
+// and the reader gets either 2–5 € refunded or double that as a voucher
+// for the next purchase, depending on the book's condition
+// (Einzelfallentscheidung — decided per case, not computed here).
+// Werkstattexemplare are explicitly EXCLUDED from this — they were
+// already sold at a reduced price for exactly the imperfection a return
+// would otherwise be about, see the "Werkstattexemplare" FAQ. No
+// order-tracking backend exists on this static site, so this just opens a
+// prefilled return request by mail, same pattern as the rest of checkout.
 function openReturnMailto(p) {
   const title = p.name || p.id;
   const body = [
     "Hallo Frau Lohr,",
     "",
-    `ich habe einen Mangel an meinem Exemplar von "${title}" festgestellt und möchte es zurückgeben.`,
+    `ich möchte mein Exemplar von "${title}" zurückgeben.`,
     "",
-    "Bitte senden Sie mir eine Rücksendeanweisung. Der Rückversand wird laut Kulanzregelung vom Verlag übernommen. Nach Prüfung erhalte ich 10% des aktuellen Kaufpreises eines neuen Exemplars erstattet.",
+    "Bitte senden Sie mir eine Rücksendeanweisung. Der Rückversand ist für mich kostenlos. Je nach Zustand des Buches erhalte ich 2 bis 5 Euro erstattet, oder auf Wunsch den doppelten Betrag als Gutschein für meinen nächsten Kauf.",
     "",
-    "Kurze Beschreibung des Mangels:",
-    "[bitte ergänzen]",
+    "(Hinweis: Falls es sich um ein Werkstattexemplar handelte, ist eine Rückgabe leider nicht möglich.)",
     "",
     "Vielen Dank!"
   ].join("\r\n");
@@ -1793,8 +1911,9 @@ function openReturnMailto(p) {
 function cartLinesText() {
   return cart.map(it => {
     const p = typeof it.unitPrice === "number" ? ` — ${formatEUR(it.unitPrice)}` : "";
-    const mangel = it.mangelexemplar ? " (Werkstattexemplar)" : "";
-    return `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${mangel}${p}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`;
+    const zustand = it.zustandLabel ? ` (${it.zustandLabel})` : "";
+    const sprache = it.sprache ? ` — Sprache: ${it.sprache}` : "";
+    return `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${zustand}${sprache}${p}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`;
   });
 }
 
@@ -2007,17 +2126,77 @@ async function loadBooksFromWorkIndex() {
   const built = (await Promise.all(metas.map(async ({ w, meta }) => {
     if (!meta) return null;
 
+    // Stock-driven availability, PER LANGUAGE — a book can well have used
+    // German copies but no used English ones, so "bestand" lives UNDER
+    // each entry of meta.sprachen, not beside it. meta.sprachen is an
+    // object keyed by language name; books without it (games/merch, or
+    // older entries) fall back to a single "Deutsch" bucket wrapping the
+    // (now legacy) flat top-level "bestand" field, so nothing breaks.
+    const sprachenRaw = (meta.sprachen && typeof meta.sprachen === "object" && !Array.isArray(meta.sprachen))
+      ? meta.sprachen
+      : { "Deutsch": { bestand: meta.bestand || null } };
+    const sprachen = Object.keys(sprachenRaw);
+
+    // Builds the per-language stock/price bundle. Werkstattexemplare
+    // (Mängelexemplare) — books only, Print variant only. Availability
+    // comes from bestand.werkstatt.anzahl stock, not a manual "verfuegbar"
+    // flag. Price is always computed live from "specs" (shared across
+    // languages — no per-language author-copy cost tracked yet), never
+    // stored/hand-edited, so it can't drift out of sync with the formula
+    // — see computeMangelexemplarPreis above. Gebrauchte Exemplare: one
+    // book/language can have several used copies at different prices
+    // ("Einzelfallentscheidung" per returned copy), each its own
+    // selectable option; only entries with a real price AND stock > 0 are
+    // offered.
+    function buildSprachBestand(bestandRaw) {
+      const regulaerVorrat = bestandRaw ? toNumber(bestandRaw.regulaer?.anzahl) : null;
+      const werkstattVorrat = bestandRaw ? (toNumber(bestandRaw.werkstatt?.anzahl) || 0) : 0;
+      const gebrauchtListeRaw = Array.isArray(bestandRaw?.gebraucht) ? bestandRaw.gebraucht : [];
+      const gebrauchtGesamtVorrat = gebrauchtListeRaw.reduce((sum, g) => sum + (toNumber(g?.anzahl) || 0), 0);
+
+      const mangelCfg = (w.category === "books" && meta.specs && werkstattVorrat > 0) ? meta.specs : null;
+      const mangelPreis = mangelCfg ? computeMangelexemplarPreis(mangelCfg) : null;
+      const mangelexemplar = (mangelCfg && mangelPreis != null) ? { preis: mangelPreis, vorrat: werkstattVorrat } : null;
+
+      const gebrauchtOptionen = (w.category === "books" ? gebrauchtListeRaw : [])
+        .map((g, index) => ({ index, preis: toNumber(g?.preis), anzahl: toNumber(g?.anzahl) || 0 }))
+        .filter(g => g.preis != null && g.anzahl > 0);
+
+      return {
+        bestand: bestandRaw ? { regulaer: regulaerVorrat, werkstatt: werkstattVorrat, gebraucht: gebrauchtGesamtVorrat } : null,
+        mangelexemplar,
+        gebrauchtOptionen,
+        regulaerVorrat: regulaerVorrat || 0,
+        werkstattVorrat,
+        gebrauchtGesamtVorrat
+      };
+    }
+
+    const sprachenData = {};
+    sprachen.forEach(s => { sprachenData[s] = buildSprachBestand(sprachenRaw[s]?.bestand || null); });
+
     // Was: hidden entirely if unavailable. Now shown, but flagged
-    // "comingSoon" (blue ribbon, see renderProducts) — auto-detected
-    // (explicitly marked unavailable, or published in the future) OR
-    // manually forced via `"comingSoon": true` in the item's own
-    // meta.json, for cases where you want the ribbon regardless of the
-    // available/published auto-logic (e.g. a book whose published date
-    // has already passed but isn't really orderable yet).
-    const isAvailable = isAvailableFromMeta(meta);
+    // "comingSoon" (grayscale card, see renderProducts) — auto-detected
+    // (explicitly marked unavailable / out of stock, or published in the
+    // future) OR manually forced via `"comingSoon": true` in the item's
+    // own meta.json, for cases where you want it regardless of the
+    // available/published/stock auto-logic. With "bestand" tracked,
+    // "coming soon" only fires when EVERY pool, across EVERY language
+    // (regulär, Werkstatt, gebraucht) is empty — a Werkstattexemplar or
+    // gebrauchtes Exemplar still in stock (in any language) keeps the
+    // book orderable even with 0 regular copies.
+    const anyBestandTracked = sprachen.some(s => !!sprachenRaw[s]?.bestand);
+    const totalVorrat = sprachen.reduce((sum, s) => {
+      const d = sprachenData[s];
+      return sum + d.regulaerVorrat + d.werkstattVorrat + d.gebrauchtGesamtVorrat;
+    }, 0);
+    const anyRegulaerVorrat = sprachen.some(s => sprachenData[s].regulaerVorrat > 0);
+    const isAvailable = anyBestandTracked ? anyRegulaerVorrat : isAvailableFromMeta(meta);
     const publishedStr = String(meta.published || "").trim();
     const isFuturePublished = publishedStr && publishedStr > todayStr;
-    const comingSoon = !isAvailable || isFuturePublished || meta.comingSoon === true;
+    const comingSoon = anyBestandTracked
+      ? (totalVorrat <= 0 || isFuturePublished || meta.comingSoon === true)
+      : (!isAvailable || isFuturePublished || meta.comingSoon === true);
 
     const pricePrint = toNumber(meta["price-print"] ?? meta.pricePrint ?? meta.price_print ?? meta.price);
 const priceDigital = toNumber(meta["price-digital"] ?? meta.priceDigital ?? meta.price_digital);
@@ -2043,15 +2222,6 @@ const author = String(meta.author || "");
 const excerpt = String(meta.excerpt || meta.description || "");
 const tags = Array.isArray(meta.tags) ? meta.tags : [];
 
-// Mängelexemplare — books only (the field is only ever set in a book's
-// own meta.json), and only for the Print variant (a "used/damaged" copy
-// of a digital edition makes no sense).
-const mangelCfg = (w.category === "books" && meta.mangelexemplar && meta.mangelexemplar.verfuegbar === true)
-  ? meta.mangelexemplar
-  : null;
-const mangelPreis = mangelCfg ? computeMangelexemplarPreis(mangelCfg) : null;
-const mangelexemplar = (mangelCfg && mangelPreis != null) ? { ...mangelCfg, preis: mangelPreis } : null;
-
 return {
   id: w.id,
   slug: w.slug,
@@ -2068,7 +2238,7 @@ return {
   pricePrint,
   priceDigital,
   sale: salesById.get(String(w.id)) || null,
-  mangelexemplar,
+  sprachenData,
   currency: "EUR",
   // German reduced VAT rate (7%) applies to books (print + e-book) —
   // everything else sold here (games/tools, event/article items, if ever
@@ -2079,6 +2249,7 @@ return {
   unit: String(meta.unit || "Buch"),
   variants,
   tags,
+  sprachen,
 
   updated: String(meta.updated || w.updated || meta.published?.date || meta.published || "").trim(),
 

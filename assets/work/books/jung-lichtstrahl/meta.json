@@ -4,7 +4,6 @@
   "title": "Ein Lichtstrahl seiner Liebe",
   "author":"Angela Jung",
     "published": "2024-10-01",
-        "available": "ja",
 
   "updated": "2025-02-18",
       "eigenanteil": "Übersetzung ins Englische",
@@ -13,8 +12,25 @@
     "tags": ["christian", "biography", "book","translation"],
  "price-print":18.95,
   "price-digital":"nicht verfügbar",
-  "mangelexemplar": {
-    "verfuegbar": true,
+  "sprachen": {
+    "Deutsch": {
+      "bestand": {
+        "regulaer": { "anzahl": 20 },
+        "werkstatt": { "anzahl": 0 },
+        "gebraucht": [
+          { "anzahl": 1, "preis": 5 }
+        ]
+      }
+    },
+    "Englisch": {
+      "bestand": {
+        "regulaer": { "anzahl": 1 },
+        "werkstatt": { "anzahl": 0 },
+        "gebraucht": []
+      }
+    }
+  },
+  "specs": {
     "autorenexemplarPreis": 10,
     "autorenexemplarUstProzent": 7,
     "gewichtGramm": 540,

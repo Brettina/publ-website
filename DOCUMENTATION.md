@@ -134,28 +134,44 @@ Exemplar, ggf. optisch weniger schön oder ein Experiment/Prototyp, sowie
 der Hinweis auf den rechtlichen Mängelexemplar-Status.
 
 **Preisregel (aktuell, Stand dieser Session):** bewusst einfach gehalten,
-keine krummen Cent-Beträge, und garantiert mindestens 1 € über den
+keine krummen Cent-Beträge, und garantiert mindestens 3 € über den
 tatsächlichen Kosten (inkl. USt) — zwei frühere Ansätze wurden verworfen:
 eine komplexere Kosten-plus-10%-Gewinn-Formel (zu kompliziert) und danach
 "30% des regulären Preises" (konnte bei günstigen Büchern unter die
 tatsächlichen Kosten fallen, siehe `jung-lichtstrahl`/`reznik-debater`
-unten). Jetzt:
+unten); ein Zwischenschritt mit nur +1 € Marge war dem Nutzer zu knapp.
+Jetzt:
 
 ```
 Brutto                 = Autorenexemplarpreis (netto) × (1 + USt%/100)
-Werkstattexemplar-Preis = AUFRUNDEN(Brutto, 1 €) + 1 €
+Werkstattexemplar-Preis = AUFRUNDEN(Brutto, 1 €) + 3 €
 ```
 
 Die USt wird bewusst NICHT ignoriert — sie wurde real gezahlt, um das
 Autorenexemplar zu beziehen, und gehört deshalb in die Kostenbasis, bevor
-der 1€-Aufschlag draufkommt. `computeMangelexemplarPreis(cfg)` in
+der 3€-Aufschlag draufkommt. `computeMangelexemplarPreis(cfg)` in
 `webpages/webshop/index.html` macht genau das.
 
-**Datenfelder pro Buch**, in `assets/work/books/<slug>/meta.json`:
+**Bestandsführung (Stand dieser Session):** Verfügbarkeit UND Ribbon
+werden jetzt automatisch aus Lagerbeständen pro Buch abgeleitet, nicht
+mehr manuell umgeschaltet. `bestand` lebt dabei UNTER jeder Sprache (siehe
+"Sprachauswahl pro Buch" weiter unten für das Warum) — Felder in
+`assets/work/books/<slug>/meta.json`:
 
 ```json
-"mangelexemplar": {
-  "verfuegbar": true,
+"sprachen": {
+  "Deutsch": {
+    "bestand": {
+      "regulaer": { "anzahl": 5 },
+      "werkstatt": { "anzahl": 2 },
+      "gebraucht": [
+        { "anzahl": 1, "preis": 8 },
+        { "anzahl": 2, "preis": 6 }
+      ]
+    }
+  }
+},
+"specs": {
   "autorenexemplarPreis": 7.90,
   "autorenexemplarUstProzent": 7,
   "gewichtGramm": 500,
@@ -163,53 +179,164 @@ der 1€-Aufschlag draufkommt. `computeMangelexemplarPreis(cfg)` in
 }
 ```
 
-(Feldname im JSON bleibt `mangelexemplar` — nur die angezeigten Texte
-heißen "Werkstattexemplar", siehe Namensgebung oben.)
+Alles Bestand-/Preis-Bezogene lebt jetzt in genau zwei Blöcken:
+`sprachen.<Sprache>.bestand` (was ist gerade vorrätig, wie viel kostet es
+— pro Sprache getrennt) und `specs` (Produktdaten, sprachübergreifend:
+was hat der Verlag fürs Autorenexemplar bezahlt, Gewicht, Maße). Innerhalb
+von `bestand` bekommt jede der drei Kategorien Anzahl UND — wo sinnvoll —
+einen Preis:
 
-- `verfuegbar` steuert, ob das "Werkstattexemplar verfügbar"-Banner
-  (`.mangel-ribbon`, Webshop-Kartenansicht) überhaupt erscheint — fehlt
-  das Feld, steht es auf `false`, oder fehlt `autorenexemplarPreis`, wird
-  für dieses Buch nichts Reduziertes angezeigt oder berechnet.
-- `autorenexemplarPreis` ist der NETTO-Preis, den der Verlag für ein
-  Autorenexemplar zahlt — geht direkt in die Preisberechnung ein (siehe
-  Preisregel oben).
-- `autorenexemplarUstProzent` — der beim Bezug gezahlte Steuersatz, fließt
-  ebenfalls direkt in die Berechnung ein (Default im Code: 7%, falls das
-  Feld fehlt). Länderabhängig zu beachten, falls je aus dem Ausland
-  bezogen wird: Deutschland 7%, Österreich 10%, Schweiz vermutlich ein
-  anderer reduzierter Satz (nicht verifiziert).
-- `gewichtGramm`/`masseCm` sind reine Buchhaltungs-/Produktdaten, fließen
-  nicht in die Preisberechnung ein.
+- `bestand.regulaer.anzahl` — Anzahl regulärer Print-Exemplare dieser
+  Sprache vorrätig. KEIN eigenes Preisfeld hier — der reguläre Preis ist
+  immer `price-print` (Buchpreisbindung, ein einziger fester Preis, keine
+  zwei Zahlen die auseinanderlaufen könnten — gilt sprachübergreifend,
+  keine sprachabhängige Preisdifferenzierung). `0` bedeutet: das Buch gilt
+  in dieser Sprache (für den regulären Kauf) als nicht verfügbar; ob das
+  ganze Buch als "verfügbar" gilt, hängt vom Gesamtbestand ALLER Sprachen
+  ab — siehe Verfügbarkeits-Logik unten.
+- `bestand.werkstatt.anzahl` — ersetzt das frühere manuelle
+  `mangelexemplar.verfuegbar:true`. Das Werkstattexemplar-Ribbon/die
+  Auswahl erscheint für diese Sprache automatisch nur, wenn dieser Wert
+  > 0 ist (UND `specs.autorenexemplarPreis` gesetzt ist). Auch hier KEIN
+  eigenes Preisfeld — der Preis wird immer live aus `specs` berechnet
+  (siehe Preisregel oben), nie im JSON hinterlegt, damit er nie von Hand
+  nachgepflegt werden muss und nicht von der Formel abweichen kann.
+- `bestand.gebraucht` — eine LISTE, kein einzelner Wert, und die einzige
+  der drei Kategorien mit einem eigenen `preis`-Feld PRO EINTRAG: **gebrauchte
+  Exemplare stammen von Lesern, die ihr Exemplar zurückgeben und dafür
+  einen Gutschein von 2–5 € erhalten (Einzelfallentscheidung, kein fester
+  Automatismus)**. Jeder zurückgegebene Posten kann einen eigenen
+  Wiederverkaufspreis haben (`preis`) und eine eigene Stückzahl (`anzahl`)
+  — die Kundschaft wählt zwischen den einzelnen Preisstufen, nicht nur
+  "gebraucht ja/nein". Ein Eintrag mit `preis` oder `anzahl` fehlend/0
+  wird ignoriert. Kein Rückgabe-Formular auf der Website dafür — der
+  Gutschein wird individuell außerhalb des Shops vereinbart, danach trägt
+  Bettina Anzahl und Wiederverkaufspreis hier manuell ein — pro Sprache
+  der zurückgegebenen Ausgabe.
+- `specs.autorenexemplarPreis`/`autorenexemplarUstProzent`/`gewichtGramm`/
+  `masseCm` unverändert inhaltlich (siehe Preisregel oben für die ersten
+  beiden) — nur umbenannt von `mangelexemplar` zu `specs`, da es reine
+  Produktdaten sind, kein Verfügbarkeits-/Auswahl-Feld mehr. Ein Block für
+  das ganze Buch, nicht pro Sprache (siehe "Sprachauswahl pro Buch").
 
-**UI/Flow:** Im Produkt-Modal erscheint bei Büchern mit `verfuegbar:true`
-UND gewählter Variante "Print" eine Checkbox "Stattdessen ein
-Werkstattexemplar …" — aktiviert sie zeigt der Preis den durchgestrichenen
-Normalpreis plus den berechneten Preis, ohne den `sales`-Rabattmechanismus
-zu kombinieren (beide Mechanismen gleichzeitig würde keinen Sinn ergeben).
-Die Wahl wird im Warenkorb-Eintrag als `mangelexemplar: true` mitgeführt,
-taucht als "Werkstattexemplar"-Hinweis im Warenkorb sowie in der per Mail
-verschickten Bestellzeile auf.
+**Verfügbarkeits-/Ribbon-Logik** (`loadBooksFromWorkIndex()` in
+`webpages/webshop/index.html`): Bücher OHNE `sprachen`-Feld verhalten sich
+wie bisher (manuelles `available`/`comingSoon`). Mit `sprachen`:
+- "Bald wieder verfügbar" (graue Karte) erscheint nur, wenn ALLE drei
+  Bestände (regulär + Werkstatt + gebraucht), aufsummiert über ALLE
+  Sprachen zusammen, auf 0 stehen — ein einzelnes Werkstatt- oder
+  gebrauchtes Exemplar (in irgendeiner Sprache) hält das Buch bestellbar,
+  auch mit 0 regulären Exemplaren.
+- Ribbon: EIN Slot (`.sale-ribbon`), Priorität Werkstattexemplar/gebraucht
+  (kombiniert "Werkstatt/gebraucht verfügbar", falls beides — in
+  irgendeiner Sprache — vorrätig ist) vor einem aktiven `sales`-Rabatt.
+  Das Ribbon ist eine grobe, sprachübergreifende Zusammenfassung; welche
+  Sprache konkret was hat, klärt sich erst im Modal.
 
-**"Zurückgeben"-Button** (`#modal-return`, im Produkt-Modal, nur bei
-Büchern sichtbar): öffnet einen vorausgefüllten Mailto-Entwurf für eine
-Mängelrüge. Kulanzregelung (nur als Text in der Mail, keine echte
-Rückabwicklung auf der Website — dafür gibt es keine Bestellverwaltung):
-Rückversand trägt der Verlag, nach Prüfung erstattet er 10% des aktuellen
-Neupreises. Gilt unabhängig davon, ob ursprünglich ein reguläres oder ein
-Werkstattexemplar gekauft wurde.
+**UI/Flow — Zustand-Auswahl statt Checkbox:** Im Produkt-Modal ersetzt ein
+Dropdown "Zustand" (`#modal-zustand`) die frühere Checkbox, sobald Print
+gewählt ist UND mindestens eine Alternative zum regulären Exemplar
+existiert — abhängig von der aktuell im Sprache-Dropdown gewählten
+Sprache (siehe "Sprachauswahl pro Buch"). Optionen (nur die, die für DIE
+gewählte Sprache tatsächlich vorrätig sind): "Print neu" (nur wenn
+`bestand.regulaer.anzahl > 0`), "Werkstattexemplar – X €" (wenn
+`bestand.werkstatt.anzahl > 0`, Preis live aus `specs` berechnet), sowie
+EINE eigene Option pro Preisstufe in `bestand.gebraucht` ("Gebraucht –
+X €", "Gebraucht – Y €", …). Auswahl "Werkstattexemplar" löst weiterhin
+das erklärende Popup aus (siehe unten); "Gebraucht" zeigt stattdessen
+einen Fineprint-Hinweis (zurückgegeben, bereits gelesen, Zustand kann
+variieren). Die Wahl wird im Warenkorb-Eintrag als
+`zustand: "regulaer"|"werkstatt"|"gebraucht:<Index>"` plus `zustandLabel`
+("Werkstattexemplar"/"Gebraucht") mitgeführt, taucht so im Warenkorb sowie
+in der per Mail verschickten Bestellzeile auf.
+
+**"Buch zurückgeben"-Button** (`#modal-return`, im Produkt-Modal, nur bei
+Büchern sichtbar): öffnet einen vorausgefüllten Mailto-Entwurf. Deckt sich
+mit der FAQ "Kann ich gebrauchte Bücher an Sie zurückgeben?" auf der
+Startseite (nur als Text in der Mail, keine echte Rückabwicklung auf der
+Website — dafür gibt es keine Bestellverwaltung): Rückversand trägt der
+Verlag, je nach Zustand erhält die Leserin/der Leser 2–5 € erstattet oder
+wahlweise den doppelten Betrag als Gutschein für den nächsten Kauf
+(Einzelfallentscheidung, keine feste Formel im Code). **Werkstattexemplare
+sind ausdrücklich von der Rückgabe ausgeschlossen** — die Mail weist
+darauf explizit hin, da diese Seite nicht weiß, welchen Zustand die
+Leserin/der Leser ursprünglich gekauft hat (keine Bestellhistorie
+vorhanden). Ersetzt eine frühere Fassung dieses Buttons, die noch mit
+"10% Rückerstattung bei Mängeln" warb — das war vor der jetzt in der FAQ
+festgelegten, konkreteren Rückgabe-/Gutschein-Regelung.
 
 **Aktueller Datenstand:** alle drei Bücher haben ein Werkstattexemplar:
 
-| Buch | Autorenpreis netto | Brutto (USt) | Aufgerundet | **Werkstattexemplar-Preis (+1 €)** |
+| Buch | Autorenpreis netto | Brutto (USt) | Aufgerundet | **Werkstattexemplar-Preis (+3 €)** |
 |---|---|---|---|---|
-| `reznik-relationships` | 7,90 € | 8,45 € (7%) | 9 € | **10 €** |
-| `jung-lichtstrahl` | 10 € | 10,70 € (7%) | 11 € | **12 €** |
-| `reznik-debater` | 5 € | 5,35 € (7%) | 6 € | **7 €** |
+| `reznik-relationships` | 7,90 € | 8,45 € (7%) | 9 € | **12 €** |
+| `jung-lichtstrahl` | 10 € | 10,70 € (7%) | 11 € | **14 €** |
+| `reznik-debater` | 5 € | 5,35 € (7%) | 6 € | **9 €** |
 
 (Der Brutto-Wert für `reznik-relationships` stammt aus der echten
 Autorenexemplar-Rechnung: 7,90 €/7,89 € netto, 8,45 € brutto, 7% USt.)
 
-### Gratis-Goody ab 2 Artikeln
+**Bestandszahlen waren anfangs PLATZHALTER** — der Nutzer pflegt sie
+inzwischen direkt in den `meta.json`-Dateien gegen die echten Zahlen ein
+(siehe die jeweilige `sprachen.<Sprache>.bestand` dort für den aktuellen
+Stand, nicht hier — diese Zahlen ändern sich zu oft, um sie in der Doku
+aktuell zu halten).
+
+### Sprachauswahl pro Buch — bestand lebt UNTER jeder Sprache
+
+Wichtig, ursprünglich anders gebaut und vom Nutzer korrigiert: `bestand`
+gehört NICHT neben `sprachen`, sondern IN jede einzelne Sprache hinein —
+sonst könnte ein Kunde z. B. "Englisch, gebraucht" auswählen, obwohl nur
+auf Deutsch gebrauchte Exemplare existieren. `meta.sprachen` ist deshalb
+ein Objekt, keyed nach Sprachname, jede Sprache mit ihrem eigenen
+`bestand`-Block (gleiches Format wie zuvor: `regulaer.anzahl`,
+`werkstatt.anzahl`, `gebraucht`-Liste):
+
+```json
+"sprachen": {
+  "Deutsch": {
+    "bestand": {
+      "regulaer": { "anzahl": 20 },
+      "werkstatt": { "anzahl": 0 },
+      "gebraucht": [ { "anzahl": 1, "preis": 5 } ]
+    }
+  },
+  "Englisch": {
+    "bestand": {
+      "regulaer": { "anzahl": 0 },
+      "werkstatt": { "anzahl": 0 },
+      "gebraucht": []
+    }
+  }
+}
+```
+
+Fehlt `meta.sprachen` ganz (ältere Einträge, Spiele/Merch), fällt der Code
+auf einen einzelnen `"Deutsch"`-Eintrag zurück, der das (jetzt veraltete)
+flache Top-Level-`bestand`-Feld übernimmt — nichts bricht dadurch.
+`specs` (Autorenexemplarpreis usw.) bleibt EIN gemeinsamer Block für alle
+Sprachen eines Buchs (noch keine sprachabhängigen Herstellungskosten
+verfolgt — falls nötig, später leicht ergänzbar).
+
+Im Produkt-Modal erscheint das Dropdown "Sprache" (`#modal-sprache`) nur,
+wenn ein Buch WIRKLICH mehr als eine Sprache listet. Das darunterliegende
+Zustand-Dropdown wird bei jedem Sprachwechsel komplett neu aufgebaut
+(`buildZustandOptions(p, sprache)`) — zeigt also nur die Zustände, die es
+in DER gewählten Sprache tatsächlich gibt. Hat eine Sprache gar keinen
+Bestand (wie aktuell "Englisch" bei `jung-lichtstrahl`, alles auf 0
+gesetzt, siehe unten), bleiben dort schlicht keine Zustand-Optionen übrig.
+
+Die Sprachwahl beeinflusst NICHT den Preis selbst (keine sprachabhängige
+Preisdifferenzierung, nur die Verfügbarkeit unterscheidet sich), wird aber
+als `sprache`-Feld im Warenkorb-Eintrag mitgeführt und taucht — nur wenn
+das Buch mehrsprachig ist — im Warenkorb sowie in der Bestellzeile der
+Bestell-Mail auf. Zwei Sprachversionen desselben Buchs im Warenkorb zählen
+als getrennte Positionen (wie unterschiedliche Varianten/Zustände auch).
+
+Aktueller Datenstand: `jung-lichtstrahl` hat "Englisch" mit allen
+Bestandszahlen auf 0 (Platzhalter — es gibt eine englische Ausgabe, aber
+noch keine echten Stückzahlen dafür eingetragen); `reznik-relationships`
+und `reznik-debater` haben nur `"Deutsch"`.
 
 Sobald der Warenkorb insgesamt mindestens 2 Artikel enthält (Summe aller
 Mengen, `cartTotalQty() >= 2` in `webpages/webshop/index.html`), erscheint
@@ -2253,6 +2380,14 @@ Umgesetzt in `webpages/webshop/index.html`:
 
 ## Offene Punkte
 
+- **Bestandszahlen (`sprachen.<Sprache>.bestand.regulaer.anzahl`/
+  `werkstatt.anzahl`/`gebraucht`) waren anfangs Platzhalter** — werden
+  vom Nutzer laufend direkt in den `meta.json`-Dateien gepflegt. Ich habe
+  selbst keine Möglichkeit, die tatsächlichen Print-Bestände zu kennen;
+  falsche Zahlen dort zeigen sofort falsche Verfügbarkeit im Shop.
+  `jung-lichtstrahl`s "Englisch"-Eintrag steht aktuell komplett auf 0
+  (Platzhalter — es gibt eine englische Ausgabe, aber noch keine echten
+  Stückzahlen dafür).
 - **Mängelexemplar-USt-Satz für Österreich/Schweiz nicht verifiziert.**
   `autorenexemplarUstProzent` in einem Buch-`meta.json` wird aktuell
   überall mit 7% (Deutschland) gepflegt. Falls Autorenexemplare je aus

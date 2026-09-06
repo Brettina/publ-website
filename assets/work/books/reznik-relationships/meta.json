@@ -5,7 +5,6 @@
   "title": "Morphologische Geheimnisse von erfolgreichen Beziehungen",
   "author": "Peter S. Reznik, Ph.D",
   "published": "2026-02-12",
-      "available": "ja",
 
   "updated": "2026-01-19",
       "eigenanteil": "Übersetzung ins Deutsche, Buchsatz, Verlegung und Marketing",
@@ -13,8 +12,16 @@
     "tags": ["relationship", "facereading", "guide","publishing", "book","translation"],
     "excerpt": "Für alle, die an die Liebe auf den ersten Blick glauben, sowie phenomenologisch Interessierte.",
  "price-print":37,
-  "mangelexemplar": {
-    "verfuegbar": true,
+  "sprachen": {
+    "Deutsch": {
+      "bestand": {
+        "regulaer": { "anzahl": 0 },
+        "werkstatt": { "anzahl": 1 },
+        "gebraucht": []
+      }
+    }
+  },
+  "specs": {
     "autorenexemplarPreis": 7.90,
     "autorenexemplarUstProzent": 7,
     "gewichtGramm": 500,

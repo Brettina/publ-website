@@ -5,7 +5,6 @@
   "title": "Den Zweifler in uns zähmen",
    "author":"Peter S. Reznik, Ph.D",
     "published": "2026-09-04",
-      "available": "ja",
       "comingSoon": true,
 
   "updated": "2026-08-30",
@@ -14,8 +13,16 @@
     "tags": ["therapy", "guide","publishing","translation"],
     "excerpt": "Die Hinweise eines Therapeuten an Jugendliche und alle, die mit sich hadern.",
  "price-print":15,
-  "mangelexemplar": {
-    "verfuegbar": true,
+  "sprachen": {
+    "Deutsch": {
+      "bestand": {
+        "regulaer": { "anzahl": 10 },
+        "werkstatt": { "anzahl": 1 },
+        "gebraucht": []
+      }
+    }
+  },
+  "specs": {
     "autorenexemplarPreis": 5,
     "autorenexemplarUstProzent": 7,
     "gewichtGramm": 100,
