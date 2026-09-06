@@ -702,6 +702,15 @@
 
           <div id="cart-items" class="cart-items"></div>
 
+          <div id="goody-wrap" class="field" style="display:none; margin-top:12px;">
+            <label for="goody-select">Gratis-Goody ab 2 Artikeln</label>
+            <select id="goody-select">
+              <option value="Bierdeckel">Bierdeckel</option>
+              <option value="Sticker">Sticker</option>
+              <option value="Lesezeichen">Lesezeichen</option>
+            </select>
+          </div>
+
           <div id="cart-empty" class="card empty" style="margin-top:12px;">
             <p class="fineprint" style="margin:0;">Noch nichts ausgewählt. Klicken Sie auf einen Artikel und füge ihn hinzu.</p>
           </div>
@@ -896,6 +905,8 @@
     // Cart "Kaufen" controls (NEW)
     const buyBtn = $("#buy-btn");
     const buyHint = $("#buy-hint");
+    const goodyWrap = $("#goody-wrap");
+    const goodySelect = $("#goody-select");
 
     // Checkout modal (NEW)
     const checkoutBackdrop = $("#checkout-modal");
@@ -1147,45 +1158,24 @@
       });
     }
 
-    function loadShippingRates() {
-      return loadShopConfig().then(data => (data && data.shipping) || {});
-    }
-
-    // Cost of shipping a single Warensendung nationally, by weight — tiers
-    // configured in products.json "shipping.warensendungNational" (source:
-    // Deutsche Post Preisliste, "WARENSENDUNG" national). Falls back to the
-    // heaviest configured tier if the weight exceeds all of them, rather
-    // than refusing to price the item.
-    function shippingCostForWeight(gramm, rates) {
-      const tiers = Array.isArray(rates?.warensendungNational) ? rates.warensendungNational : [];
-      if (!tiers.length || gramm == null) return null;
-      const sorted = tiers.slice().sort((a, b) => a.maxGewichtGramm - b.maxGewichtGramm);
-      const hit = sorted.find(t => gramm <= t.maxGewichtGramm);
-      return toNumber((hit || sorted[sorted.length - 1]).preis);
-    }
-
-    // Mängelexemplar pricing (second-hand/Prototyp/Schönheitsfehler copies)
-    // — one of Buchpreisbindungsgesetz's recognized exceptions, unlike a
-    // plain percent-off "sale" on a bound new book (see DOCUMENTATION.md,
-    // "Buchpreisbindung"). Price is set so the publisher keeps 10% of the
-    // profit a regular sale would have made, after covering: what she paid
-    // to acquire the author's copy (incl. the VAT she paid on that
-    // purchase), plus shipping — which she covers herself here, unlike a
-    // normal sale where it's billed to the customer separately.
-    //   Kostenbasis = Autorenpreis (netto) × (1 + USt%/100)
-    //   regulärer Gewinn = regulärer Print-Preis − Kostenbasis
-    //   Mängelexemplar-Preis = Kostenbasis + Versand + 10% × regulärer Gewinn
-    function computeMangelexemplarPreis(cfg, pricePrint, rates) {
+    // Werkstattexemplar pricing (customer-facing name; legally a
+    // Mängelexemplar — one of Buchpreisbindungsgesetz's recognized
+    // exceptions, unlike a plain percent-off "sale" on a bound new book,
+    // see DOCUMENTATION.md "Buchpreisbindung"). A 30%-of-regular-price rule
+    // was tried first, but for cheaper books that undercut what the author
+    // copy itself cost — the publisher would have sold at a loss. Now:
+    //   Brutto = autorenexemplarPreis (netto) × (1 + USt%/100)
+    //   Werkstattexemplar-Preis = AUFRUNDEN(Brutto, 1 €) + 1 €
+    // VAT is deliberately included (not skipped) — the publisher actually
+    // paid it acquiring the author copy, so it belongs in the real cost
+    // before the +1 € margin is added.
+    function computeMangelexemplarPreis(cfg) {
       if (!cfg || cfg.verfuegbar !== true) return null;
       const autorenpreisNetto = toNumber(cfg.autorenexemplarPreis);
-      if (autorenpreisNetto == null || pricePrint == null) return null;
+      if (autorenpreisNetto == null) return null;
       const ustProzent = toNumber(cfg.autorenexemplarUstProzent) ?? 7;
-      const versandkosten = shippingCostForWeight(toNumber(cfg.gewichtGramm), rates);
-      if (versandkosten == null) return null;
-      const kostenbasis = autorenpreisNetto * (1 + ustProzent / 100);
-      const regulaererGewinn = pricePrint - kostenbasis;
-      const preis = kostenbasis + versandkosten + 0.10 * regulaererGewinn;
-      return Math.max(0, Math.round(preis * 100) / 100);
+      const brutto = autorenpreisNetto * (1 + ustProzent / 100);
+      return Math.ceil(brutto) + 1;
     }
 
     function loadCartFromStorage() {
@@ -1476,6 +1466,10 @@
     function syncCheckoutState() {
       const ok = cart.length > 0;
 
+      // Free goody (Bierdeckel/Sticker/Lesezeichen), one per order, once the
+      // order has at least 2 items total.
+      if (goodyWrap) goodyWrap.style.display = cartTotalQty() >= 2 ? "" : "none";
+
       if (buyBtn) buyBtn.disabled = !ok;
 
       if (!ok) {
@@ -1715,10 +1709,13 @@ function openProductModal(p, opts = {}) {
 
       const orderLines = cartLinesText();
 
+      // Free goody (Bierdeckel/Sticker/Lesezeichen) — only offered/included
+      // once the order has at least 2 items total (see syncCheckoutState).
+      const goody = (cartTotalQty() >= 2 && goodySelect) ? goodySelect.value : "";
 
       const CRLF = "\r\n";
 
-      const body = [
+      const bodyLines = [
         "Hallo Frau Lohr",
         "",
         "Adresse:",
@@ -1726,7 +1723,10 @@ function openProductModal(p, opts = {}) {
         "",
         "Bestellung:",
         orderLines.length ? orderLines.join(CRLF) : "—",
-        "",
+        ""
+      ];
+      if (goody) bodyLines.push(`Gratis-Goody: ${goody}`, "");
+      bodyLines.push(
         "Notizen:",
         notes || "—",
         "",
@@ -1742,7 +1742,8 @@ function openProductModal(p, opts = {}) {
         "",
         "Mit freundlichen Grüßen,",
         name || "—"
-      ].join(CRLF);
+      );
+      const body = bodyLines.join(CRLF);
 
       const subject = `[Buchshop] Bestellung — ${cart.length} Position(en)`;
       return { to: CONTACT_EMAIL, subject, body };
@@ -1808,6 +1809,7 @@ function cartTotalEUR() {
 function renderCheckoutCartPreview() {
   if (!checkoutCartPreview) return;
   const lines = cartLinesText();
+  if (cartTotalQty() >= 2 && goodySelect) lines.push(`+ Gratis-Goody: ${goodySelect.value}`);
   checkoutCartPreview.textContent = lines.length ? lines.join("\n") : "—";
   checkoutCartPreview.style.whiteSpace = "pre-wrap";
 }
@@ -1956,10 +1958,9 @@ async function resolveWorkImage({ slug, category, meta, indexCover }) {
 }
 
 async function loadBooksFromWorkIndex() {
-  const [res, salesById, shippingRates] = await Promise.all([
+  const [res, salesById] = await Promise.all([
     fetch("/assets/work-index.json", { cache: "no-store" }),
-    loadSalesById(),
-    loadShippingRates()
+    loadSalesById()
   ]);
   if (!res.ok) throw new Error("work-index.json missing");
   const data = await res.json();
@@ -2048,7 +2049,7 @@ const tags = Array.isArray(meta.tags) ? meta.tags : [];
 const mangelCfg = (w.category === "books" && meta.mangelexemplar && meta.mangelexemplar.verfuegbar === true)
   ? meta.mangelexemplar
   : null;
-const mangelPreis = mangelCfg ? computeMangelexemplarPreis(mangelCfg, pricePrint, shippingRates) : null;
+const mangelPreis = mangelCfg ? computeMangelexemplarPreis(mangelCfg) : null;
 const mangelexemplar = (mangelCfg && mangelPreis != null) ? { ...mangelCfg, preis: mangelPreis } : null;
 
 return {

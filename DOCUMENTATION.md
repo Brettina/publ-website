@@ -133,19 +133,23 @@ Text vollständig lesbar aber ggf. fehlerhaft, kein reguläres fertiges
 Exemplar, ggf. optisch weniger schön oder ein Experiment/Prototyp, sowie
 der Hinweis auf den rechtlichen Mängelexemplar-Status.
 
-Der Preis wird nicht frei gewählt, sondern automatisch so berechnet, dass
-dem Verlag nach Abzug seiner Kosten noch 10% des Gewinns bleiben, den er
-bei einem regulären Verkauf gehabt hätte:
+**Preisregel (aktuell, Stand dieser Session):** bewusst einfach gehalten,
+keine krummen Cent-Beträge, und garantiert mindestens 1 € über den
+tatsächlichen Kosten (inkl. USt) — zwei frühere Ansätze wurden verworfen:
+eine komplexere Kosten-plus-10%-Gewinn-Formel (zu kompliziert) und danach
+"30% des regulären Preises" (konnte bei günstigen Büchern unter die
+tatsächlichen Kosten fallen, siehe `jung-lichtstrahl`/`reznik-debater`
+unten). Jetzt:
 
 ```
-Kostenbasis          = Autorenexemplarpreis (netto) × (1 + USt%/100)
-regulärer Gewinn      = regulärer Print-Preis − Kostenbasis
-Mängelexemplar-Preis  = Kostenbasis + Versandkosten + 10% × regulärer Gewinn
+Brutto                 = Autorenexemplarpreis (netto) × (1 + USt%/100)
+Werkstattexemplar-Preis = AUFRUNDEN(Brutto, 1 €) + 1 €
 ```
 
-Der Verlag trägt den Versand bei Mängelexemplaren selbst (anders als beim
-regulären Verkauf, wo Versand separat mit dem Kunden abgerechnet wird) —
-das fließt deshalb hier explizit als Kostenposten mit ein.
+Die USt wird bewusst NICHT ignoriert — sie wurde real gezahlt, um das
+Autorenexemplar zu beziehen, und gehört deshalb in die Kostenbasis, bevor
+der 1€-Aufschlag draufkommt. `computeMangelexemplarPreis(cfg)` in
+`webpages/webshop/index.html` macht genau das.
 
 **Datenfelder pro Buch**, in `assets/work/books/<slug>/meta.json`:
 
@@ -164,27 +168,18 @@ heißen "Werkstattexemplar", siehe Namensgebung oben.)
 
 - `verfuegbar` steuert, ob das "Werkstattexemplar verfügbar"-Banner
   (`.mangel-ribbon`, Webshop-Kartenansicht) überhaupt erscheint — fehlt
-  das Feld, steht es auf `false`, oder fehlt `autorenexemplarPreis` (siehe
-  unten), wird für dieses Buch nichts Reduziertes angezeigt oder
-  berechnet.
-- `autorenexemplarPreis` ist der NETTO-Preis, den der Verlag zahlt, um ein
-  Autorenexemplar zu beziehen (nicht der Bruttopreis von der Rechnung).
-- `autorenexemplarUstProzent`: Der Mehrwertsteuersatz, den der Verlag beim
-  Bezug des Autorenexemplars gezahlt hat — **länderabhängig**: Deutschland
-  7% (Standard, auch Default-Wert im Code falls das Feld fehlt),
-  Österreich 10%, Schweiz vermutlich ein anderer reduzierter Satz (nicht
-  verifiziert — im Einzelfall prüfen, falls jemals von dort bezogen wird).
-- `gewichtGramm` und `masseCm` (Länge/Breite/Höhe) beschreiben das
-  Buch selbst — Basis für die Versandkosten-Berechnung.
-
-**Versandkosten-Tabelle** (geteilt für alle Bücher, nicht pro Buch) in
-`assets/shop/products.json` unter `"shipping.warensendungNational"`,
-orientiert an der Deutschen Post Preisliste (WARENSENDUNG national: bis
-1.000 g 2,70 €, bis 2.000 g +0,85 € = 3,55 €). Schwerere/größere Pakete
-als die konfigurierten Stufen fallen aktuell auf die schwerste Stufe
-zurück (kein automatischer Wechsel auf DHL Päckchen S/M) — für die
-aktuellen, leichten Einzelbücher ausreichend; bei Bedarf (schwerere Bücher,
-Mehrfachversand) die Tabelle erweitern.
+  das Feld, steht es auf `false`, oder fehlt `autorenexemplarPreis`, wird
+  für dieses Buch nichts Reduziertes angezeigt oder berechnet.
+- `autorenexemplarPreis` ist der NETTO-Preis, den der Verlag für ein
+  Autorenexemplar zahlt — geht direkt in die Preisberechnung ein (siehe
+  Preisregel oben).
+- `autorenexemplarUstProzent` — der beim Bezug gezahlte Steuersatz, fließt
+  ebenfalls direkt in die Berechnung ein (Default im Code: 7%, falls das
+  Feld fehlt). Länderabhängig zu beachten, falls je aus dem Ausland
+  bezogen wird: Deutschland 7%, Österreich 10%, Schweiz vermutlich ein
+  anderer reduzierter Satz (nicht verifiziert).
+- `gewichtGramm`/`masseCm` sind reine Buchhaltungs-/Produktdaten, fließen
+  nicht in die Preisberechnung ein.
 
 **UI/Flow:** Im Produkt-Modal erscheint bei Büchern mit `verfuegbar:true`
 UND gewählter Variante "Print" eine Checkbox "Stattdessen ein
@@ -203,18 +198,34 @@ Rückversand trägt der Verlag, nach Prüfung erstattet er 10% des aktuellen
 Neupreises. Gilt unabhängig davon, ob ursprünglich ein reguläres oder ein
 Werkstattexemplar gekauft wurde.
 
-**Aktueller Datenstand (Stand dieser Session):** Nur `reznik-debater` hat
-ein Werkstattexemplar — 100 g, 10,5 × 15 × 0,7 cm, `autorenexemplarPreis`
-aber noch `null` (fehlt), also **wird aktuell nichts angezeigt/berechnet**,
-bis dieser Wert nachgetragen wird (siehe "Offene Punkte"). Die
-Rechnungsdaten von `reznik-relationships` (7,90 €/7,89 € netto, 7% USt,
-8,45 € brutto pro Autorenexemplar, 500 g, 20,32 × 1,27 × 25,4 cm) und
-`jung-lichtstrahl` (10 € netto, angenommen 7% USt, 540 g,
-14 × 2,34 × 21,01 cm) wurden auf Nutzerwunsch aus den jeweiligen
-`meta.json` wieder entfernt — für diese beiden Bücher wird aktuell kein
-Werkstattexemplar angeboten. Zur Referenz, was die Formel für sie ergeben
-hätte: reznik-relationships 14,01 € (regulär 37 €), jung-lichtstrahl
-14,23 € (regulär 18,95 €).
+**Aktueller Datenstand:** alle drei Bücher haben ein Werkstattexemplar:
+
+| Buch | Autorenpreis netto | Brutto (USt) | Aufgerundet | **Werkstattexemplar-Preis (+1 €)** |
+|---|---|---|---|---|
+| `reznik-relationships` | 7,90 € | 8,45 € (7%) | 9 € | **10 €** |
+| `jung-lichtstrahl` | 10 € | 10,70 € (7%) | 11 € | **12 €** |
+| `reznik-debater` | 5 € | 5,35 € (7%) | 6 € | **7 €** |
+
+(Der Brutto-Wert für `reznik-relationships` stammt aus der echten
+Autorenexemplar-Rechnung: 7,90 €/7,89 € netto, 8,45 € brutto, 7% USt.)
+
+### Gratis-Goody ab 2 Artikeln
+
+Sobald der Warenkorb insgesamt mindestens 2 Artikel enthält (Summe aller
+Mengen, `cartTotalQty() >= 2` in `webpages/webshop/index.html`), erscheint
+im Warenkorb-Bereich ein Auswahlfeld `#goody-select` (Bierdeckel, Sticker,
+Lesezeichen — Default: Bierdeckel) unter der Artikelliste. Die Wahl:
+
+- wird in der Checkout-Vorschau (`renderCheckoutCartPreview()`) als
+  zusätzliche Zeile `+ Gratis-Goody: <Wahl>` mit angezeigt,
+- landet als eigene Zeile `Gratis-Goody: <Wahl>` in der per Mail
+  verschickten Bestellung (`buildMailtoFromForm()`).
+
+Kein eigenes Datenfeld/Preis — ein reines Bonus-Item, nur einmal pro
+Bestellung, unabhängig davon wie viele Artikel über 2 hinaus im Warenkorb
+liegen. Die Auswahl wird nicht in `localStorage` gespeichert (anders als
+der Warenkorb selbst) — bei einem Seiten-Reload springt sie auf den
+Default (Bierdeckel) zurück, das Cart selbst bleibt aber erhalten.
 
 ## Sprachstil: KEIN Gendern
 
@@ -2242,13 +2253,6 @@ Umgesetzt in `webpages/webshop/index.html`:
 
 ## Offene Punkte
 
-- **`reznik-debater`s Werkstattexemplar fehlt noch der Autorenexemplar-
-  Preis.** `assets/work/books/reznik-debater/meta.json` hat
-  `"mangelexemplar.autorenexemplarPreis": null` — Gewicht (100 g) und Maße
-  (10,5 × 15 × 0,7 cm) sind gesetzt, aber ohne den Netto-Preis, den der
-  Verlag für ein Autorenexemplar dieses Buchs zahlt, kann die Preisformel
-  nichts berechnen; Ribbon/Checkbox bleiben deshalb unsichtbar, bis der
-  Wert nachgetragen wird.
 - **Mängelexemplar-USt-Satz für Österreich/Schweiz nicht verifiziert.**
   `autorenexemplarUstProzent` in einem Buch-`meta.json` wird aktuell
   überall mit 7% (Deutschland) gepflegt. Falls Autorenexemplare je aus

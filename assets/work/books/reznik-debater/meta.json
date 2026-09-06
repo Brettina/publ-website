@@ -16,7 +16,7 @@
  "price-print":15,
   "mangelexemplar": {
     "verfuegbar": true,
-    "autorenexemplarPreis": null,
+    "autorenexemplarPreis": 5,
     "autorenexemplarUstProzent": 7,
     "gewichtGramm": 100,
     "masseCm": { "laenge": 10.5, "breite": 15, "hoehe": 0.7 }

@@ -13,6 +13,13 @@
     "tags": ["christian", "biography", "book","translation"],
  "price-print":18.95,
   "price-digital":"nicht verfügbar",
+  "mangelexemplar": {
+    "verfuegbar": true,
+    "autorenexemplarPreis": 10,
+    "autorenexemplarUstProzent": 7,
+    "gewichtGramm": 540,
+    "masseCm": { "laenge": 14, "breite": 2.34, "hoehe": 21.01 }
+  },
   "alsoPublished": [
     { "label": "Amazon", "url": "https://www.amazon.de/Lichtstrahl-Seiner-Liebe-Angela-Jung/dp/3949073310" }
   ]

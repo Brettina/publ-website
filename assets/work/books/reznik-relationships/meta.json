@@ -13,6 +13,13 @@
     "tags": ["relationship", "facereading", "guide","publishing", "book","translation"],
     "excerpt": "Für alle, die an die Liebe auf den ersten Blick glauben, sowie phenomenologisch Interessierte.",
  "price-print":37,
+  "mangelexemplar": {
+    "verfuegbar": true,
+    "autorenexemplarPreis": 7.90,
+    "autorenexemplarUstProzent": 7,
+    "gewichtGramm": 500,
+    "masseCm": { "laenge": 20.32, "breite": 1.27, "hoehe": 25.4 }
+  },
   "alsoPublished": [
     { "label": "Autorenwebsite", "url": "https://www.drpeterreznik.com/" }
   ]
