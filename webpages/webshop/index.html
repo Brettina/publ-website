@@ -724,9 +724,13 @@
           <p id="modal-material" class="fineprint" style="margin:0; opacity:0.75; font-style:italic;"></p>
 
           <div class="shop-row">
-            <div class="field">
+            <div class="field" id="modal-variant-wrap">
               <label for="modal-variant">Variante</label>
               <select id="modal-variant"></select>
+            </div>
+            <div class="field" id="modal-zustand-wrap" style="display:none;">
+              <label for="modal-zustand">Zustand</label>
+              <select id="modal-zustand"></select>
             </div>
             <div class="field">
               <label for="modal-qty">Menge</label>
@@ -739,10 +743,6 @@
             <select id="modal-sprache"></select>
           </div>
 
-          <div class="field" id="modal-zustand-wrap" style="display:none;">
-            <label for="modal-zustand">Zustand</label>
-            <select id="modal-zustand"></select>
-          </div>
           <p class="fineprint" id="modal-zustand-info" style="margin:0; display:none;"></p>
 
           <div class="modal-actions">
@@ -920,6 +920,7 @@
     const modalLinks = $("#modal-links");
     const modalKlappentext = $("#modal-klappentext");
     const modalMaterial = $("#modal-material");
+    const modalVariantWrap = $("#modal-variant-wrap");
     const modalVariant = $("#modal-variant");
     const modalQty = $("#modal-qty");
     const modalUnit = $("#modal-unit");
@@ -1524,6 +1525,16 @@ function getZustandPreis(p, sprache, zustandValue) {
 let pendingZustandPreselect = null;
 
 function renderModalPriceForVariant(p) {
+  // Merged dropdown per explicit user request: books never have a real
+  // E-Book edition, so "Variante" was pure clutter for them (always just
+  // "Print"). Books show ONE dropdown — "Zustand" (Print neu /
+  // Werkstattexemplar / Gebraucht) — in the exact spot Variante used to
+  // occupy; non-book products (merch sizes etc.) keep plain Variante and
+  // never see Zustand at all.
+  const isBook = p.category === "books";
+  if (modalVariantWrap) modalVariantWrap.style.display = isBook ? "none" : "";
+  if (modalZustandWrap) modalZustandWrap.style.display = isBook ? "" : "none";
+
   const v = modalVariant?.value || "Print";
 
   // Sprache first — Zustand options depend on which language's stock we're
@@ -1534,12 +1545,9 @@ function renderModalPriceForVariant(p) {
   const spracheListe = Array.isArray(p.sprachen) && p.sprachen.length ? p.sprachen : ["Deutsch"];
   const sprache = spracheListe.length > 1 ? (modalSprache?.value || spracheListe[0]) : spracheListe[0];
 
-  const zustandOptions = v === "Print" ? buildZustandOptions(p, sprache) : [];
-  const hasAlternatives = zustandOptions.some(o => o.value !== "regulaer");
+  const zustandOptions = isBook ? buildZustandOptions(p, sprache) : [];
 
-  if (modalZustandWrap) modalZustandWrap.style.display = hasAlternatives ? "" : "none";
-
-  if (hasAlternatives && modalZustand) {
+  if (isBook && modalZustand) {
     const desired = pendingZustandPreselect;
     pendingZustandPreselect = null;
     const prevValue = modalZustand.value;
@@ -1557,10 +1565,12 @@ function renderModalPriceForVariant(p) {
     pendingZustandPreselect = null;
   }
 
-  const zustandValue = hasAlternatives ? (modalZustand?.value || "regulaer") : "regulaer";
+  const zustandValue = isBook ? (modalZustand?.value || "regulaer") : "regulaer";
 
   if (modalZustandInfo) {
-    if (zustandValue === "werkstatt") {
+    if (!isBook) {
+      modalZustandInfo.style.display = "none";
+    } else if (zustandValue === "werkstatt") {
       modalZustandInfo.style.display = "";
       modalZustandInfo.textContent =
         "Werkstattexemplare sind frühere Versionen — inhaltlich vollständig lesbar, aber möglicherweise mit kleinen Fehlern oder optisch weniger fein (Experiment/Prototyp). Rechtlich ein Mängelexemplar, außerhalb der Buchpreisbindung reduziert erhältlich.";
@@ -1751,9 +1761,8 @@ function openProductModal(p, opts = {}) {
       const sprache = sprachenListe.length > 1 ? (modalSprache?.value || sprachenListe[0]) : sprachenListe[0];
       const spracheForCart = sprachenListe.length > 1 ? sprache : null;
 
-      const zustandOptions = variant === "Print" ? buildZustandOptions(activeProduct, sprache) : [];
-      const hasAlternatives = zustandOptions.some(o => o.value !== "regulaer");
-      const zustandValue = (hasAlternatives && modalZustand) ? (modalZustand.value || "regulaer") : "regulaer";
+      const isBook = activeProduct.category === "books";
+      const zustandValue = (isBook && modalZustand) ? (modalZustand.value || "regulaer") : "regulaer";
 
       const existing = cart.find(x => x.id === activeProduct.id && x.variant === variant && (x.zustand || "regulaer") === zustandValue && (x.sprache || null) === spracheForCart);
       if (existing) {
@@ -2178,14 +2187,23 @@ async function loadBooksFromWorkIndex() {
     // Was: hidden entirely if unavailable. Now shown, but flagged
     // "comingSoon" (grayscale card, see renderProducts) — auto-detected
     // (explicitly marked unavailable / out of stock, or published in the
-    // future) OR manually forced via `"comingSoon": true` in the item's
-    // own meta.json, for cases where you want it regardless of the
-    // available/published/stock auto-logic. With "bestand" tracked,
-    // "coming soon" only fires when EVERY pool, across EVERY language
-    // (regulär, Werkstatt, gebraucht) is empty — a Werkstattexemplar or
-    // gebrauchtes Exemplar still in stock (in any language) keeps the
-    // book orderable even with 0 regular copies.
-    const anyBestandTracked = sprachen.some(s => !!sprachenRaw[s]?.bestand);
+    // future). For BOOKS specifically, once any language has a "bestand"
+    // block, stock is the ONLY thing that decides this — NO manual
+    // override once real stock exists: "coming soon" only fires when
+    // EVERY pool, across EVERY language (regulär, Werkstatt, gebraucht) is
+    // empty, or the book is published in the future. A single
+    // Werkstattexemplar or gebrauchtes Exemplar in stock (in any language)
+    // is enough to keep the book fully orderable, even with 0 regular
+    // copies — a manual `"comingSoon": true` cannot force it grey anymore
+    // once stock tracking is active (explicit user request: no manual
+    // management once real availability data exists).
+    // IMPORTANT — scoped to books ONLY, on purpose, explicit user
+    // correction: everything else (games, merch, any future non-book item
+    // that might someday grow a "bestand" field) must keep respecting the
+    // manual "comingSoon" flag regardless of stock. The `w.category ===
+    // "books"` check below is a hard gate, not incidental — don't drop it
+    // even though only books currently have "sprachen"/"bestand" data.
+    const anyBestandTracked = w.category === "books" && sprachen.some(s => !!sprachenRaw[s]?.bestand);
     const totalVorrat = sprachen.reduce((sum, s) => {
       const d = sprachenData[s];
       return sum + d.regulaerVorrat + d.werkstattVorrat + d.gebrauchtGesamtVorrat;
@@ -2195,7 +2213,7 @@ async function loadBooksFromWorkIndex() {
     const publishedStr = String(meta.published || "").trim();
     const isFuturePublished = publishedStr && publishedStr > todayStr;
     const comingSoon = anyBestandTracked
-      ? (totalVorrat <= 0 || isFuturePublished || meta.comingSoon === true)
+      ? (totalVorrat <= 0 || isFuturePublished)
       : (!isAvailable || isFuturePublished || meta.comingSoon === true);
 
     const pricePrint = toNumber(meta["price-print"] ?? meta.pricePrint ?? meta.price_print ?? meta.price);

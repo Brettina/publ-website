@@ -220,25 +220,58 @@ einen Preis:
   das ganze Buch, nicht pro Sprache (siehe "Sprachauswahl pro Buch").
 
 **Verfügbarkeits-/Ribbon-Logik** (`loadBooksFromWorkIndex()` in
-`webpages/webshop/index.html`): Bücher OHNE `sprachen`-Feld verhalten sich
-wie bisher (manuelles `available`/`comingSoon`). Mit `sprachen`:
+`webpages/webshop/index.html`): Bücher OHNE `sprachen`-Feld (Spiele/Merch,
+oder noch nicht migrierte Einträge) verhalten sich wie bisher (manuelles
+`available`/`comingSoon` entscheidet). Mit `sprachen` (`anyBestandTracked`
+im Code):
 - "Bald wieder verfügbar" (graue Karte) erscheint nur, wenn ALLE drei
   Bestände (regulär + Werkstatt + gebraucht), aufsummiert über ALLE
-  Sprachen zusammen, auf 0 stehen — ein einzelnes Werkstatt- oder
-  gebrauchtes Exemplar (in irgendeiner Sprache) hält das Buch bestellbar,
-  auch mit 0 regulären Exemplaren.
+  Sprachen zusammen, auf 0 stehen — ODER das Buch in der Zukunft
+  erscheint. Ein einzelnes Werkstatt- oder gebrauchtes Exemplar (in
+  irgendeiner Sprache) hält das Buch bestellbar, auch mit 0 regulären
+  Exemplaren.
+- **KEIN manuelles `"comingSoon": true` mehr möglich, sobald `bestand`
+  getrackt wird — aber NUR bei Büchern.** Explizite Nutzeranweisung:
+  sobald echte Bestandsdaten existieren, entscheidet ausschließlich der
+  Bestand, keine manuelle Übersteuerung mehr. (Der Fall, der das ausgelöst
+  hat: `reznik-debater` hatte noch ein `"comingSoon": true` von vor dem
+  Launch, das die Karte grau hielt, obwohl längst 10 reguläre + 1
+  Werkstattexemplar vorrätig waren — das Flag wurde entfernt.)
+  **Ausdrücklich per Nutzerkorrektur eingeschränkt: das gilt NUR für
+  Bücher (`w.category === "books"`), hart im Code gegated
+  (`anyBestandTracked = w.category === "books" && ...`), nicht bloß
+  zufällig, weil aktuell nur Bücher `sprachen`/`bestand` haben.** Spiele,
+  Merch und jeder andere zukünftige Item-Typ bleiben IMMER beim manuellen
+  `comingSoon`/`status`-Flag, selbst falls ihnen irgendwann ein
+  `bestand`-Feld hinzugefügt würde — dieser Automatismus ist bewusst
+  Büchern vorbehalten. Bücher OHNE `bestand`/`sprachen` (noch nicht
+  migriert) bleiben ebenfalls beim manuellen Flag, da dort keine
+  Bestandsdaten existieren, aus denen sich Verfügbarkeit sonst ableiten
+  ließe.
 - Ribbon: EIN Slot (`.sale-ribbon`), Priorität Werkstattexemplar/gebraucht
   (kombiniert "Werkstatt/gebraucht verfügbar", falls beides — in
   irgendeiner Sprache — vorrätig ist) vor einem aktiven `sales`-Rabatt.
   Das Ribbon ist eine grobe, sprachübergreifende Zusammenfassung; welche
   Sprache konkret was hat, klärt sich erst im Modal.
 
-**UI/Flow — Zustand-Auswahl statt Checkbox:** Im Produkt-Modal ersetzt ein
-Dropdown "Zustand" (`#modal-zustand`) die frühere Checkbox, sobald Print
-gewählt ist UND mindestens eine Alternative zum regulären Exemplar
-existiert — abhängig von der aktuell im Sprache-Dropdown gewählten
-Sprache (siehe "Sprachauswahl pro Buch"). Optionen (nur die, die für DIE
-gewählte Sprache tatsächlich vorrätig sind): "Print neu" (nur wenn
+**UI/Flow — EIN Dropdown, nicht zwei:** Ursprünglich gab es getrennt eine
+"Variante" (Print/E-Book) und eine "Zustand"-Auswahl — explizite
+Nutzerkorrektur: das sind für Bücher dieselbe Sache, es wird nie ein
+E-Book geben, also gibt es für Bücher gar keine echte Variante zu wählen.
+Bücher zeigen deshalb NUR NOCH das Dropdown "Zustand" (`#modal-zustand`),
+an exakt der Stelle im `.shop-row`-Grid, wo vorher "Variante" saß
+(`#modal-variant-wrap` wird für Bücher komplett versteckt,
+`renderModalPriceForVariant()`/`modalAdd`-Handler prüfen dafür
+`p.category === "books"`, nicht mehr die Variante). Nicht-Buch-Produkte
+(Merch-Größen usw.) behalten "Variante" wie gehabt und sehen "Zustand"
+nie — die beiden Dropdowns sind also exklusiv nach Produkttyp, nicht
+gleichzeitig sichtbar.
+
+Für Bücher wird "Zustand" IMMER angezeigt (nicht mehr nur, wenn es
+Alternativen gibt) — "Print neu" ist jetzt selbst eine Zustand-Option,
+kein Sonderfall mehr. Optionen (nur die, die für DIE aktuell im
+Sprache-Dropdown gewählte Sprache tatsächlich vorrätig sind, siehe
+"Sprachauswahl pro Buch"): "Print neu" (nur wenn
 `bestand.regulaer.anzahl > 0`), "Werkstattexemplar – X €" (wenn
 `bestand.werkstatt.anzahl > 0`, Preis live aus `specs` berechnet), sowie
 EINE eigene Option pro Preisstufe in `bestand.gebraucht` ("Gebraucht –
