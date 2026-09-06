@@ -1010,7 +1010,7 @@
 
     function safeVariants(p) {
       if (Array.isArray(p?.variants)) return p.variants; // even if empty
-      return ["Print", "E-Book"];
+      return ["Print"]; // no E-Book default — there will never be ebooks
     }
 
     function safeUnit(p) { return p?.unit || "Buch"; }
@@ -1156,7 +1156,14 @@
     // paid it acquiring the author copy, so it belongs in the real cost
     // before the +3 € margin is added.
     function computeMangelexemplarPreis(cfg) {
-      if (!cfg || cfg.verfuegbar !== true) return null;
+      // NOTE: cfg is now "specs" (autorenexemplarPreis/UstProzent only) —
+      // there is no "verfuegbar" field anymore (availability comes from
+      // bestand.werkstatt.anzahl at the call site, see buildSprachBestand
+      // in loadBooksFromWorkIndex). A stray `cfg.verfuegbar !== true`
+      // check used to live here from the old schema and made this always
+      // return null, silently killing every Werkstattexemplar price/ribbon
+      // — do not reintroduce a verfuegbar check here.
+      if (!cfg) return null;
       const autorenpreisNetto = toNumber(cfg.autorenexemplarPreis);
       if (autorenpreisNetto == null) return null;
       const ustProzent = toNumber(cfg.autorenexemplarUstProzent) ?? 7;
@@ -1304,19 +1311,25 @@
         desc.textContent = (p.description || "").toString().trim();
         body.appendChild(desc);
 
-        if (p.price != null) {
+        if (p.priceRange) {
+          const { min, max } = p.priceRange;
+          const vat = vatNote(p.vatRate);
           const priceLine = document.createElement("p");
           priceLine.className = "fineprint";
           priceLine.style.margin = "0";
 
-          const salePrice = applySale(p.price, p.sale);
-          const vat = vatNote(p.vatRate);
-          if (salePrice !== p.price) {
-            priceLine.innerHTML =
-              `<span style="text-decoration:line-through; opacity:0.6;">${formatEUR(p.price)} ${vat}</span> ` +
-              `Preis: ${formatEUR(salePrice)} ${vat}`;
+          if (min !== max) {
+            // Availability-driven range (books: regulär/Werkstattexemplar/
+            // gebraucht are each priced differently) — no "sale"
+            // strikethrough layered on a range, that would be ambiguous
+            // (a discount off which end?). Only a single resolved price
+            // ever gets the sale treatment, see below.
+            priceLine.textContent = `Preis: ${formatEUR(min)}–${formatEUR(max)} ${vat}`;
           } else {
-            priceLine.textContent = `Preis: ${formatEUR(p.price)} ${vat}`;
+            const salePrice = applySale(min, p.sale);
+            priceLine.innerHTML = salePrice === min
+              ? `Preis: ${formatEUR(min)} ${vat}`
+              : `<span style="text-decoration:line-through; opacity:0.6;">${formatEUR(min)} ${vat}</span> Preis: ${formatEUR(salePrice)} ${vat}`;
           }
           body.appendChild(priceLine);
         }
@@ -1481,10 +1494,12 @@
         ? "Hinweis: Mindestens ein Artikel erfordert Abholung (steht in der Auswahl)."
         : "Klicken Sie auf „Kaufen“, um die E-Mail zu öffnen.";
     }
-function getUnitPriceForVariant(p, variant) {
-  const v = String(variant || "").toLowerCase();
-  if (v.includes("e-book") || v.includes("ebook") || v.includes("digital")) return p.priceDigital ?? null;
-  return p.pricePrint ?? p.price ?? null;
+// The only place a variant's price is looked up — always from the
+// product's own priceByVariant map (built once when the product list
+// loads, see loadBooksFromWorkIndex/loadMerchProducts). No guessing a
+// price from a variant's label text.
+function getVariantPrice(p, variant) {
+  return p.priceByVariant?.[variant] ?? null;
 }
 
 // Zustand ("Print neu" / Werkstattexemplar / Gebraucht) — Print variant
@@ -1494,35 +1509,57 @@ function getUnitPriceForVariant(p, variant) {
 // used English ones. Both are already filtered in loadBooksFromWorkIndex
 // to only exist with a valid price AND stock > 0; "Print neu" itself is
 // left out when that language's stock tracking says regulaer stock is 0.
+// Each option carries its own resolved `preis` directly (null for "Print
+// neu", meaning "use the regular/sale price") — nothing downstream needs
+// a second lookup function to find out what a given option costs.
 function buildZustandOptions(p, sprache) {
   const d = p.sprachenData?.[sprache] || {};
   const options = [];
-  const regulaerOk = !d.bestand || d.bestand.regulaer > 0;
-  if (regulaerOk) options.push({ value: "regulaer", label: "Print neu" });
+  if (!d.bestand || d.bestand.regulaer > 0) {
+    options.push({ value: "regulaer", label: "Print neu", preis: null });
+  }
   if (d.mangelexemplar) {
-    options.push({ value: "werkstatt", label: `Werkstattexemplar – ${formatEUR(d.mangelexemplar.preis)}` });
+    options.push({ value: "werkstatt", label: `Werkstattexemplar – ${formatEUR(d.mangelexemplar.preis)}`, preis: d.mangelexemplar.preis });
   }
   (d.gebrauchtOptionen || []).forEach(g => {
-    options.push({ value: `gebraucht:${g.index}`, label: `Gebraucht – ${formatEUR(g.preis)}` });
+    options.push({ value: `gebraucht:${g.index}`, label: `Gebraucht – ${formatEUR(g.preis)}`, preis: g.preis });
   });
   return options;
-}
-
-function getZustandPreis(p, sprache, zustandValue) {
-  const d = p.sprachenData?.[sprache] || {};
-  if (zustandValue === "werkstatt") return d.mangelexemplar ? d.mangelexemplar.preis : null;
-  if (zustandValue && zustandValue.startsWith("gebraucht:")) {
-    const idx = Number(zustandValue.split(":")[1]);
-    const entry = (d.gebrauchtOptionen || []).find(g => g.index === idx);
-    return entry ? entry.preis : null;
-  }
-  return null;
 }
 
 // Set right before openProductModal's renderModalPriceForVariant call, so
 // the just-opened product's options exist before we try to select one
 // (editing a cart item needs to preselect its saved Zustand).
 let pendingZustandPreselect = null;
+
+// Reads the modal's current dropdown state and resolves it to ONE
+// concrete thing to sell: which variant, which Sprache, which Zustand
+// (books only), and the resulting unit price. Both the price display
+// (renderModalPriceForVariant) and "add to cart" (modalAdd) call this
+// SAME function — what's shown is always exactly what gets added, there
+// is no second place that re-derives the same numbers a different way.
+function resolveModalSelection(p) {
+  const isBook = p.category === "books";
+  const variant = modalVariant?.value || "Print";
+
+  const spracheListe = Array.isArray(p.sprachen) && p.sprachen.length ? p.sprachen : ["Deutsch"];
+  const sprache = spracheListe.length > 1 ? (modalSprache?.value || spracheListe[0]) : spracheListe[0];
+  const spracheForCart = spracheListe.length > 1 ? sprache : null;
+
+  const zustandOptions = isBook ? buildZustandOptions(p, sprache) : [];
+  const zustandValue = (isBook && modalZustand) ? (modalZustand.value || "regulaer") : "regulaer";
+  const zustandOption = zustandOptions.find(o => o.value === zustandValue) || null;
+
+  const basePrice = getVariantPrice(p, variant);
+  const usesZustandPreis = !!zustandOption && zustandOption.preis != null;
+  const unitPrice = usesZustandPreis ? zustandOption.preis : applySale(basePrice, p.sale);
+
+  const zustandLabel =
+    zustandValue === "werkstatt" ? "Werkstattexemplar" :
+    zustandValue.startsWith("gebraucht") ? "Gebraucht" : "";
+
+  return { isBook, variant, sprache, spracheForCart, zustandOptions, zustandValue, zustandLabel, basePrice, unitPrice, usesZustandPreis };
+}
 
 function renderModalPriceForVariant(p) {
   // Merged dropdown per explicit user request: books never have a real
@@ -1535,19 +1572,14 @@ function renderModalPriceForVariant(p) {
   if (modalVariantWrap) modalVariantWrap.style.display = isBook ? "none" : "";
   if (modalZustandWrap) modalZustandWrap.style.display = isBook ? "" : "none";
 
-  const v = modalVariant?.value || "Print";
-
-  // Sprache first — Zustand options depend on which language's stock we're
-  // looking at (a book can have used German copies but no used English
-  // ones, etc.). Only read modalSprache's own value when the dropdown is
-  // actually showing a real choice; otherwise there's just the one
-  // language and nothing to disambiguate.
-  const spracheListe = Array.isArray(p.sprachen) && p.sprachen.length ? p.sprachen : ["Deutsch"];
-  const sprache = spracheListe.length > 1 ? (modalSprache?.value || spracheListe[0]) : spracheListe[0];
-
-  const zustandOptions = isBook ? buildZustandOptions(p, sprache) : [];
-
+  // Populate the Zustand dropdown's options (a DOM concern) before resolving
+  // the selection below — resolveModalSelection only ever READS the
+  // dropdown, it never builds its option list.
   if (isBook && modalZustand) {
+    const spracheListe = Array.isArray(p.sprachen) && p.sprachen.length ? p.sprachen : ["Deutsch"];
+    const sprache = spracheListe.length > 1 ? (modalSprache?.value || spracheListe[0]) : spracheListe[0];
+    const zustandOptions = buildZustandOptions(p, sprache);
+
     const desired = pendingZustandPreselect;
     pendingZustandPreselect = null;
     const prevValue = modalZustand.value;
@@ -1565,16 +1597,14 @@ function renderModalPriceForVariant(p) {
     pendingZustandPreselect = null;
   }
 
-  const zustandValue = isBook ? (modalZustand?.value || "regulaer") : "regulaer";
+  const sel = resolveModalSelection(p);
 
   if (modalZustandInfo) {
-    if (!isBook) {
-      modalZustandInfo.style.display = "none";
-    } else if (zustandValue === "werkstatt") {
+    if (sel.zustandValue === "werkstatt") {
       modalZustandInfo.style.display = "";
       modalZustandInfo.textContent =
         "Werkstattexemplare sind frühere Versionen — inhaltlich vollständig lesbar, aber möglicherweise mit kleinen Fehlern oder optisch weniger fein (Experiment/Prototyp). Rechtlich ein Mängelexemplar, außerhalb der Buchpreisbindung reduziert erhältlich.";
-    } else if (zustandValue.startsWith("gebraucht")) {
+    } else if (sel.zustandValue.startsWith("gebraucht")) {
       modalZustandInfo.style.display = "";
       modalZustandInfo.textContent =
         "Gebrauchte Exemplare wurden von Lesern zurückgegeben und bereits gelesen — der Zustand kann von Exemplar zu Exemplar leicht variieren.";
@@ -1583,31 +1613,24 @@ function renderModalPriceForVariant(p) {
     }
   }
 
-  const basePrice = getUnitPriceForVariant(p, v);
-  const zustandPreis = zustandValue !== "regulaer" ? getZustandPreis(p, sprache, zustandValue) : null;
-  const useZustandPreis = zustandPreis != null;
-  const salePrice = useZustandPreis ? zustandPreis : applySale(basePrice, p.sale);
-  const onSale = !useZustandPreis && basePrice != null && salePrice !== basePrice;
-
   const vat = vatNote(p.vatRate);
   if (modalPrice) {
-    if (basePrice == null) {
+    if (sel.basePrice == null) {
       modalPrice.textContent = "";
-    } else if (useZustandPreis) {
-      const label = zustandValue === "werkstatt" ? "Werkstattexemplar" : "Gebraucht";
+    } else if (sel.usesZustandPreis) {
       modalPrice.innerHTML =
-        `<span style="text-decoration:line-through; opacity:0.6; font-weight:400; font-size:0.75em;">${formatEUR(basePrice)} ${vat}</span> ` +
-        `Preis (${label}): ${formatEUR(salePrice)} ${vat}`;
-    } else if (onSale) {
+        `<span style="text-decoration:line-through; opacity:0.6; font-weight:400; font-size:0.75em;">${formatEUR(sel.basePrice)} ${vat}</span> ` +
+        `Preis (${sel.zustandLabel}): ${formatEUR(sel.unitPrice)} ${vat}`;
+    } else if (sel.unitPrice !== sel.basePrice) {
       modalPrice.innerHTML =
-        `<span style="text-decoration:line-through; opacity:0.6; font-weight:400; font-size:0.75em;">${formatEUR(basePrice)} ${vat}</span> ` +
-        `Preis: ${formatEUR(salePrice)} ${vat} <span class="sale-badge" style="margin-left:6px;">${escapeHtmlAttr(saleRibbonLabel(p.sale))}</span>`;
+        `<span style="text-decoration:line-through; opacity:0.6; font-weight:400; font-size:0.75em;">${formatEUR(sel.basePrice)} ${vat}</span> ` +
+        `Preis: ${formatEUR(sel.unitPrice)} ${vat} <span class="sale-badge" style="margin-left:6px;">${escapeHtmlAttr(saleRibbonLabel(p.sale))}</span>`;
     } else {
-      modalPrice.textContent = `Preis: ${formatEUR(basePrice)} ${vat}`;
+      modalPrice.textContent = `Preis: ${formatEUR(sel.basePrice)} ${vat}`;
     }
   }
 
-  const priceTxt = (salePrice != null) ? ` · ${formatEUR(salePrice)} / ${safeUnit(p)}` : "";
+  const priceTxt = (sel.unitPrice != null) ? ` · ${formatEUR(sel.unitPrice)} / ${safeUnit(p)}` : "";
   modalUnit.textContent = `Einheit: ${safeUnit(p)}${priceTxt}`;
 }
 
@@ -1709,8 +1732,18 @@ function openProductModal(p, opts = {}) {
     modalReturn.onclick = () => openReturnMailto(p);
   }
 
-  // price must be updated AFTER variants exist / selected
-  modalVariant.onchange = () => renderModalPriceForVariant(p);
+  // price must be updated AFTER variants exist / selected. Special case:
+  // a "Variante" whose label mentions "Mitglied" (currently just the
+  // morphology tool's "Als Mitglied kaufen") isn't a cart item at all —
+  // membership needs a real login, so selecting it sends the visitor
+  // straight to the login page instead of showing a price/add-to-cart.
+  modalVariant.onchange = () => {
+    if (String(modalVariant.value || "").toLowerCase().includes("mitglied")) {
+      window.location.href = "/webpages/login/";
+      return;
+    }
+    renderModalPriceForVariant(p);
+  };
   renderModalPriceForVariant(p);
 
   modalBackdrop.classList.add("is-open");
@@ -1750,43 +1783,27 @@ function openProductModal(p, opts = {}) {
     modalAdd?.addEventListener("click", () => {
       if (!activeProduct) return;
 
-      const variant = (modalVariant.value || "Print").toString();
       const qty = Math.max(1, Math.min(50, parseInt(modalQty.value || "1", 10) || 1));
 
-      // Sprache resolved first — Zustand stock/options depend on it. Only
-      // recorded as its own cart field (spracheForCart) when the book
-      // actually has more than one language, keeping the common
-      // German-only case free of clutter in the cart/order line.
-      const sprachenListe = Array.isArray(activeProduct.sprachen) && activeProduct.sprachen.length ? activeProduct.sprachen : ["Deutsch"];
-      const sprache = sprachenListe.length > 1 ? (modalSprache?.value || sprachenListe[0]) : sprachenListe[0];
-      const spracheForCart = sprachenListe.length > 1 ? sprache : null;
+      // Same resolution renderModalPriceForVariant just displayed — "add
+      // to cart" can never disagree with what was shown on screen.
+      const sel = resolveModalSelection(activeProduct);
 
-      const isBook = activeProduct.category === "books";
-      const zustandValue = (isBook && modalZustand) ? (modalZustand.value || "regulaer") : "regulaer";
-
-      const existing = cart.find(x => x.id === activeProduct.id && x.variant === variant && (x.zustand || "regulaer") === zustandValue && (x.sprache || null) === spracheForCart);
+      const existing = cart.find(x => x.id === activeProduct.id && x.variant === sel.variant && (x.zustand || "regulaer") === sel.zustandValue && (x.sprache || null) === sel.spracheForCart);
       if (existing) {
         existing.qty = Math.min(50, (parseInt(existing.qty, 10) || 0) + qty);
       } else {
-        const zustandPreis = zustandValue !== "regulaer" ? getZustandPreis(activeProduct, sprache, zustandValue) : null;
-        const unitPrice = zustandPreis != null
-          ? zustandPreis
-          : applySale(getUnitPriceForVariant(activeProduct, variant), activeProduct.sale);
-        const zustandLabel =
-          zustandValue === "werkstatt" ? "Werkstattexemplar" :
-          zustandValue.startsWith("gebraucht") ? "Gebraucht" : "";
-
         cart.push({
           id: activeProduct.id,
           name: activeProduct.name || activeProduct.id,
           image: safeImage(activeProduct),
-          variant,
+          variant: sel.variant,
           qty,
           unit: safeUnit(activeProduct),
-          unitPrice, // NEW
-          zustand: zustandValue,
-          zustandLabel,
-          sprache: spracheForCart,
+          unitPrice: sel.unitPrice,
+          zustand: sel.zustandValue,
+          zustandLabel: sel.zustandLabel,
+          sprache: sel.spracheForCart,
           pickupRequired: !!activeProduct.pickupRequired
         });
 
@@ -2221,17 +2238,48 @@ const priceDigital = toNumber(meta["price-digital"] ?? meta.priceDigital ?? meta
 
 if (pricePrint == null && priceDigital == null) return null; // nothing sellable
 
-// only offer variants that actually have a numeric price
-const variants = [];
-if (pricePrint != null) variants.push("Print");
-if (priceDigital != null) variants.push("E-Book");
+// variants + priceByVariant are decided together, once, right here — the
+// single source of truth for "what options exist and what do they cost".
+// No variant's price is ever guessed from its label text anywhere else
+// (see getVariantPrice) — that string-sniffing approach is exactly what
+// made morphology briefly show a nonsensical "E-Book" variant.
+let variants;
+const priceByVariant = {};
+if (Array.isArray(meta.variants) && meta.variants.length) {
+  // Explicit override — a non-book item that isn't Print/E-Book at all
+  // (e.g. morphology's "Einmalzahler"/"Als Mitglied kaufen"). Such custom
+  // variants share whichever single price the item has.
+  variants = meta.variants;
+  const shared = pricePrint ?? priceDigital ?? null;
+  variants.forEach(v => { priceByVariant[v] = shared; });
+} else {
+  variants = [];
+  if (pricePrint != null) { variants.push("Print"); priceByVariant.Print = pricePrint; }
+  // Books never get an "E-Book" variant, full stop — explicit, permanent
+  // decision, not just "hidden in the UI": there will never be ebooks for
+  // books on this site, only Print/Werkstattexemplar/Gebraucht (see the
+  // Zustand system below). A stray "price-digital" in a book's meta.json
+  // must not silently resurrect an E-Book option.
+  if (w.category !== "books" && priceDigital != null) { variants.push("E-Book"); priceByVariant["E-Book"] = priceDigital; }
+}
 
-// for list sorting/display: use the lowest available price
-const priceMin = Math.min(
-  pricePrint != null ? pricePrint : Number.POSITIVE_INFINITY,
-  priceDigital != null ? priceDigital : Number.POSITIVE_INFINITY
-);
-const displayPrice = Number.isFinite(priceMin) ? priceMin : null;
+// Card price line: only prices that are ACTUALLY available right now.
+// Books can have several independently-stocked options (regulär per
+// language, Werkstattexemplar, several gebraucht price tiers) — collect
+// every one currently in stock; the card shows a single price if they
+// all agree, or a "von–bis" range if they don't. Non-books just have
+// their one variant price (or several, if that's ever introduced —
+// same logic applies either way, nothing books-specific about it).
+const availablePrices = (w.category === "books")
+  ? Object.values(sprachenData).flatMap(d => [
+      (!d.bestand || d.bestand.regulaer > 0) ? pricePrint : null,
+      d.mangelexemplar?.preis,
+      ...(d.gebrauchtOptionen || []).map(g => g.preis)
+    ]).filter(x => x != null)
+  : variants.map(v => priceByVariant[v]).filter(x => x != null);
+const priceRange = availablePrices.length
+  ? { min: Math.min(...availablePrices), max: Math.max(...availablePrices) }
+  : null;
 
 const image = await resolveWorkImage({ slug: w.slug, category: w.category, meta, indexCover: w.cover });
 
@@ -2252,9 +2300,11 @@ return {
 
   image,
 
-  price: displayPrice,   // list/sort price (“from”)
+  price: priceRange ? priceRange.min : null,   // list/sort price ("from")
+  priceRange,
   pricePrint,
   priceDigital,
+  priceByVariant,
   sale: salesById.get(String(w.id)) || null,
   sprachenData,
   currency: "EUR",
@@ -2304,8 +2354,16 @@ async function loadMerchProducts() {
 
   return items
     .filter(p => p && (p.page || "") === "webshop")
-    .map(p => ({
+    .map(p => {
+      const price = toNumber(p.price);
+      const variants = Array.isArray(p.variants) ? p.variants : ["Standard"];
+      // Same shape as books: an explicit price-per-variant map, no
+      // string-sniffing. Merch charges the same price regardless of
+      // size/variant, so every variant just maps to that one price.
+      const priceByVariant = Object.fromEntries(variants.map(v => [v, price]));
+      return {
       id: p.id,
+      category: "merch",
       name: p.name || p.id,
       description: p.description || "",
       longDescription: p.description || "",
@@ -2313,7 +2371,9 @@ async function loadMerchProducts() {
       image: p.image || "",
       images: Array.isArray(p.images) ? p.images : (p.image ? [p.image] : []),
 
-      price: toNumber(p.price),
+      price,
+      priceRange: price != null ? { min: price, max: price } : null,
+      priceByVariant,
       sale: salesById.get(String(p.id)) || null,
       currency: "EUR",
       vatRate: 19, // textiles/merch: German standard VAT rate
@@ -2321,7 +2381,7 @@ async function loadMerchProducts() {
       material: p.material || "",
 
       unit: p.unit || "Stück",
-      variants: Array.isArray(p.variants) ? p.variants : ["Standard"],
+      variants,
       tags: ["Merch"],
 
       updated: "",
@@ -2331,7 +2391,8 @@ async function loadMerchProducts() {
       // just status-based or an explicit manual override.
       comingSoon: p.comingSoon === true || (p.status || "verfügbar") !== "verfügbar",
       pickupRequired: Boolean(p.pickupRequired)
-    }));
+      };
+    });
 }
 
 

@@ -133,6 +133,27 @@ Text vollständig lesbar aber ggf. fehlerhaft, kein reguläres fertiges
 Exemplar, ggf. optisch weniger schön oder ein Experiment/Prototyp, sowie
 der Hinweis auf den rechtlichen Mängelexemplar-Status.
 
+**Behobener Regressionsbug (Stand dieser Session):** Als `verfuegbar` aus
+`mangelexemplar` (jetzt `specs`) gestrichen und durch
+`bestand.werkstatt.anzahl` ersetzt wurde, blieb in
+`computeMangelexemplarPreis(cfg)` versehentlich die alte Zeile
+`if (!cfg || cfg.verfuegbar !== true) return null;` stehen. Da `specs`
+nie ein `verfuegbar`-Feld hatte, gab die Funktion für JEDES Buch immer
+`null` zurück — Werkstattexemplar-Ribbon UND die Zustand-Dropdown-Option
+waren dadurch für alle drei Bücher unbemerkt kaputt, auch wenn
+`bestand.werkstatt.anzahl > 0` war. Gefunden, weil eine reine
+Code-Review/Simulation das nicht aufgedeckt hatte (die Simulation war eine
+Neuimplementierung der Formel, keine Ausführung des echten Codes) — erst
+ein Test, der den ECHTEN `<script>`-Inhalt der Seite in einer
+Node-`vm`-Sandbox mit Mock-DOM/-fetch ausführte, zeigte `mangelexemplar:
+null` trotz vorhandenem Bestand. Behoben durch Streichen der
+`verfuegbar`-Prüfung. **Lehre für künftige Sessions:** bei Verdacht auf
+eine falsche Preis-/Verfügbarkeits-Berechnung im Webshop lieber den
+echten `<script>`-Code ausführen (z. B. per `vm.runInContext` mit
+gemockten `document`/`fetch`) statt die Formel nur in einem separaten
+Testskript nachzubauen — Letzteres verifiziert nur die eigene Annahme
+über den Code, nicht den Code selbst.
+
 **Preisregel (aktuell, Stand dieser Session):** bewusst einfach gehalten,
 keine krummen Cent-Beträge, und garantiert mindestens 3 € über den
 tatsächlichen Kosten (inkl. USt) — zwei frühere Ansätze wurden verworfen:
@@ -282,6 +303,78 @@ variieren). Die Wahl wird im Warenkorb-Eintrag als
 `zustand: "regulaer"|"werkstatt"|"gebraucht:<Index>"` plus `zustandLabel`
 ("Werkstattexemplar"/"Gebraucht") mitgeführt, taucht so im Warenkorb sowie
 in der per Mail verschickten Bestellzeile auf.
+
+### Preis-/Varianten-Architektur (Refactor, Stand dieser Session)
+
+Nach mehreren Iterationen (String-Sniffing von Variantennamen wie
+"e-book"/"digital", zwei Funktionen die denselben Preis auf zwei
+verschiedene Arten neu berechneten) wurde das vereinheitlicht. Zwei
+Prinzipien, für ALLE Artikel (Bücher, Merch, Spiele) gleichermaßen:
+
+1. **Jeder Preis kommt aus genau einer Quelle, nie aus geratener
+   Text-Erkennung.** `loadBooksFromWorkIndex()`/`loadMerchProducts()`
+   bauen beim Laden einmalig `priceByVariant` — eine einfache Map
+   `{ Variantenname: Preis }`. `getVariantPrice(p, variant)` ist danach
+   nur noch `p.priceByVariant[variant] ?? null`. Kein Code irgendwo prüft
+   mehr, ob ein Variantenname die Zeichenkette "e-book" oder "digital"
+   enthält — das war fragil und genau das, was das
+   Morphologie-Werkzeug (siehe unten) durcheinandergebracht hat.
+2. **Anzeige und Warenkorb lesen dieselbe Auflösung, nie zwei getrennte.**
+   `resolveModalSelection(p)` liest den aktuellen Dropdown-Zustand
+   (Variante, Sprache, Zustand) und gibt EIN Objekt zurück (`variant`,
+   `sprache`, `zustandValue`, `zustandLabel`, `basePrice`, `unitPrice`,
+   `usesZustandPreis`, …). Sowohl `renderModalPriceForVariant()` (Anzeige)
+   als auch der `modalAdd`-Klick-Handler (Warenkorb) rufen exakt diese
+   eine Funktion auf — was angezeigt wird, ist immer exakt das, was in
+   den Warenkorb wandert. Vorher berechneten beide Stellen Sprache/
+   Zustand/Preis unabhängig voneinander neu, mit echtem Risiko des
+   Auseinanderlaufens.
+
+Auch `buildZustandOptions(p, sprache)` liefert jetzt pro Option direkt
+deren `preis` mit (`null` bei "Print neu" = "nimm den regulären/Sale-
+Preis") — die frühere separate `getZustandPreis()`-Funktion, die dieselbe
+Information ein zweites Mal aus dem Zustand-String neu ableitete, wurde
+gestrichen.
+
+**Bücher bekommen NIE ein E-Book, hart durchgesetzt, nicht nur
+versteckt.** Explizite, wiederholte Nutzeranweisung. `loadBooksFromWorkIndex()`
+baut `variants`/`priceByVariant` zusammen in einem Zug: eine
+`"E-Book"`-Variante entsteht nur, wenn `w.category !== "books"` — für
+Bücher entsteht so gar nicht erst ein E-Book-Preispfad, egal was in
+`price-digital` steht. `safeVariants()`s generischer Default wurde
+ebenfalls von `["Print", "E-Book"]` auf `["Print"]` reduziert.
+
+**Der Variante-Mechanismus bleibt für NICHT-Bücher nutzbar — Beispiel
+Morphologie-Werkzeug.** `assets/work/games/morphology/meta.json` hat ein
+explizites `"variants": ["Einmalzahler", "Als Mitglied kaufen"]` — dieses
+Feld überschreibt (nur für Nicht-Bücher relevant) die automatische
+Print/E-Book-Ermittlung komplett, und beide Varianten landen in
+`priceByVariant` mit demselben (einzigen) Preis des Artikels. Vorher
+zeigte das Werkzeug fälschlich "E-Book" als einzige Variante (weil nur
+`price-digital` gesetzt war und die generische Print/E-Book-Logik griff)
+— für ein Tool ergibt das keinen Sinn.
+
+**Kartenpreis: nur was verfügbar ist, als Zahl oder als Von–Bis-Spanne.**
+`priceRange: { min, max }` wird beim Laden ebenfalls einmal gebaut. Für
+Bücher aus den tatsächlich vorrätigen Preispunkten über ALLE Sprachen
+(regulär nur wenn `bestand.regulaer > 0`, plus jedes vorhandene
+Werkstattexemplar, plus jede vorrätige gebraucht-Preisstufe) — ein nicht
+mehr vorrätiger regulärer Preis taucht dort gar nicht erst auf. Für
+Merch/Spiele einfach `{min: price, max: price}`. Die Karte
+(`renderProducts()`) zeigt bei `min === max` einen einzelnen Preis (mit
+Sale-Durchstreichung, falls ein `sales`-Rabatt aktiv ist), bei
+`min !== max` eine Spanne ("12,00 €–37,00 €") ohne Sale-Overlay — eine
+Spanne UND ein Rabatt gleichzeitig wäre nicht eindeutig ("Rabatt auf
+welches Ende?").
+
+Auswahl von **"Als Mitglied kaufen"** ist kein Warenkorb-Artikel — die
+Mitgliedschaft braucht einen echten Login (der noch nicht existiert, siehe
+"Mitgliedschaft/Login" weiter oben), deshalb leitet die Auswahl im
+`modalVariant.onchange`-Handler sofort auf `/webpages/login/` weiter,
+statt einen Preis/Add-to-Cart anzuzeigen. Erkennung: das Variantenlabel
+enthält (case-insensitive) `"mitglied"` — bewusst als Substring-Check
+statt exaktem String-Vergleich, damit kleine Label-Anpassungen später
+nicht sofort die Weiterleitung brechen.
 
 **"Buch zurückgeben"-Button** (`#modal-return`, im Produkt-Modal, nur bei
 Büchern sichtbar): öffnet einen vorausgefüllten Mailto-Entwurf. Deckt sich
@@ -1083,8 +1176,9 @@ Betrag reduziert; auf der Karte selbst wird nur der "ab"-Preis
 
 Angewendet an drei Stellen: Karten-Preiszeile (Durchstreichung),
 Modal-Preiszeile (Durchstreichung + `.sale-badge`-Pille), und beim
-Warenkorb/Bestellmail (`getUnitPriceForVariant()` → `applySale()`), damit
-der tatsächlich in der Mail stehende Preis korrekt reduziert ist.
+Warenkorb/Bestellmail (`resolveModalSelection()` → `applySale()`, siehe
+"Preis-/Varianten-Architektur" weiter oben), damit der tatsächlich in der
+Mail stehende Preis korrekt reduziert ist.
 
 **Sale-Ribbon — Verlauf der Korrekturen:** Drei Iterationen, jeweils ohne
 Möglichkeit, live im Browser zu testen (kein Browser-Zugriff in dieser
