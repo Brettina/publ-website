@@ -186,8 +186,8 @@ mehr manuell umgeschaltet. `bestand` lebt dabei UNTER jeder Sprache (siehe
       "regulaer": { "anzahl": 5 },
       "werkstatt": { "anzahl": 2 },
       "gebraucht": [
-        { "anzahl": 1, "preis": 8 },
-        { "anzahl": 2, "preis": 6 }
+        { "anzahl": 1, "ueberlassungspreis": 6 },
+        { "anzahl": 2, "ueberlassungspreis": 4 }
       ]
     }
   }
@@ -222,18 +222,28 @@ einen Preis:
   eigenes Preisfeld — der Preis wird immer live aus `specs` berechnet
   (siehe Preisregel oben), nie im JSON hinterlegt, damit er nie von Hand
   nachgepflegt werden muss und nicht von der Formel abweichen kann.
-- `bestand.gebraucht` — eine LISTE, kein einzelner Wert, und die einzige
-  der drei Kategorien mit einem eigenen `preis`-Feld PRO EINTRAG: **gebrauchte
+- `bestand.gebraucht` — eine LISTE, kein einzelner Wert: **gebrauchte
   Exemplare stammen von Lesern, die ihr Exemplar zurückgeben und dafür
-  einen Gutschein von 2–5 € erhalten (Einzelfallentscheidung, kein fester
-  Automatismus)**. Jeder zurückgegebene Posten kann einen eigenen
-  Wiederverkaufspreis haben (`preis`) und eine eigene Stückzahl (`anzahl`)
-  — die Kundschaft wählt zwischen den einzelnen Preisstufen, nicht nur
-  "gebraucht ja/nein". Ein Eintrag mit `preis` oder `anzahl` fehlend/0
-  wird ignoriert. Kein Rückgabe-Formular auf der Website dafür — der
-  Gutschein wird individuell außerhalb des Shops vereinbart, danach trägt
-  Bettina Anzahl und Wiederverkaufspreis hier manuell ein — pro Sprache
-  der zurückgegebenen Ausgabe.
+  einen Gutschein/eine Zahlung erhalten — den "Überlassungspreis"
+  (Einzelfallentscheidung, kein fester Automatismus, typisch 2–6 €)**.
+  Jeder Eintrag speichert NUR diesen `ueberlassungspreis` und eine eigene
+  Stückzahl (`anzahl`) — **NICHT den Preis, zu dem weiterverkauft wird.**
+  Der tatsächliche Wiederverkaufspreis an die Kundschaft ist immer
+  `ueberlassungspreis + 2 €` (`GEBRAUCHT_AUFSCHLAG` in
+  `webpages/webshop/index.html`, direkt neben `computeMangelexemplarPreis`
+  definiert) — live berechnet in `buildSprachBestand()`, nie im JSON
+  gespeichert, aus demselben Grund wie beim Werkstattexemplar-Preis: ein
+  von Hand gepflegter zweiter Wert kann veralten oder falsch eingetragen
+  werden. Die Kundschaft wählt zwischen den einzelnen (bereits
+  aufgeschlagenen) Preisstufen, nicht nur "gebraucht ja/nein". Ein Eintrag
+  mit `ueberlassungspreis` oder `anzahl` fehlend/0 wird ignoriert. Kein
+  Rückgabe-Formular auf der Website dafür — der Überlassungspreis wird
+  individuell außerhalb des Shops vereinbart, danach trägt Bettina Anzahl
+  und Überlassungspreis (NICHT den Wiederverkaufspreis!) hier manuell ein
+  — pro Sprache der zurückgegebenen Ausgabe. **Regressionsfall:** das
+  erste `jung-lichtstrahl`-Beispiel trug fälschlich `"preis": 5` ein — das
+  war der Überlassungspreis, nicht der beabsichtigte Verkaufspreis;
+  korrigiert zu `"ueberlassungspreis": 5` (→ Verkaufspreis 7 €).
 - `specs.autorenexemplarPreis`/`autorenexemplarUstProzent`/`gewichtGramm`/
   `masseCm` unverändert inhaltlich (siehe Preisregel oben für die ersten
   beiden) — nur umbenannt von `mangelexemplar` zu `specs`, da es reine

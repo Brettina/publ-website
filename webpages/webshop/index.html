@@ -1144,6 +1144,12 @@
       });
     }
 
+    // Gebraucht-Wiederverkaufspreis = Überlassungspreis (was an die
+    // zurückgebende Person gezahlt wurde) + dieser feste Aufschlag — nie
+    // umgekehrt gespeichert. See buildSprachBestand in
+    // loadBooksFromWorkIndex.
+    const GEBRAUCHT_AUFSCHLAG = 2;
+
     // Werkstattexemplar pricing (customer-facing name; legally a
     // Mängelexemplar — one of Buchpreisbindungsgesetz's recognized
     // exceptions, unlike a plain percent-off "sale" on a bound new book,
@@ -2184,8 +2190,21 @@ async function loadBooksFromWorkIndex() {
       const mangelPreis = mangelCfg ? computeMangelexemplarPreis(mangelCfg) : null;
       const mangelexemplar = (mangelCfg && mangelPreis != null) ? { preis: mangelPreis, vorrat: werkstattVorrat } : null;
 
+      // Gebraucht-Preis ist ein Aufschlag, kein gespeicherter Wert: jeder
+      // Eintrag speichert den Überlassungspreis (was der Verlag der Person
+      // gezahlt hat, die das Buch abgegeben hat) — der Wiederverkaufspreis
+      // an die Kundschaft ist immer 2 € mehr, live berechnet, damit nie
+      // jemand den Wiederverkaufspreis von Hand pflegen (und dabei aus
+      // Versehen falsch pflegen) muss.
       const gebrauchtOptionen = (w.category === "books" ? gebrauchtListeRaw : [])
-        .map((g, index) => ({ index, preis: toNumber(g?.preis), anzahl: toNumber(g?.anzahl) || 0 }))
+        .map((g, index) => {
+          const ueberlassungspreis = toNumber(g?.ueberlassungspreis);
+          return {
+            index,
+            anzahl: toNumber(g?.anzahl) || 0,
+            preis: ueberlassungspreis != null ? ueberlassungspreis + GEBRAUCHT_AUFSCHLAG : null
+          };
+        })
         .filter(g => g.preis != null && g.anzahl > 0);
 
       return {

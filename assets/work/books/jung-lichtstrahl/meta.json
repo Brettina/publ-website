@@ -18,7 +18,7 @@
         "regulaer": { "anzahl": 20 },
         "werkstatt": { "anzahl": 0 },
         "gebraucht": [
-          { "anzahl": 1, "preis": 5 }
+          { "anzahl": 1, "ueberlassungspreis": 5 }
         ]
       }
     },
