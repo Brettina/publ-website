@@ -2377,9 +2377,17 @@ async function loadMerchProducts() {
       const price = toNumber(p.price);
       const variants = Array.isArray(p.variants) ? p.variants : ["Standard"];
       // Same shape as books: an explicit price-per-variant map, no
-      // string-sniffing. Merch charges the same price regardless of
-      // size/variant, so every variant just maps to that one price.
-      const priceByVariant = Object.fromEntries(variants.map(v => [v, price]));
+      // string-sniffing. Most merch charges the same price regardless of
+      // size/variant (falls back to the one shared "price"), but an
+      // optional "pricesByVariant" in products.json lets a variant cost
+      // something different (e.g. socken: small/women's vs. men's sizes).
+      const priceByVariant = Object.fromEntries(
+        variants.map(v => [v, toNumber(p.pricesByVariant?.[v]) ?? price])
+      );
+      const variantPrices = Object.values(priceByVariant).filter(x => x != null);
+      const priceRange = variantPrices.length
+        ? { min: Math.min(...variantPrices), max: Math.max(...variantPrices) }
+        : null;
       return {
       id: p.id,
       category: "merch",
@@ -2390,8 +2398,8 @@ async function loadMerchProducts() {
       image: p.image || "",
       images: Array.isArray(p.images) ? p.images : (p.image ? [p.image] : []),
 
-      price,
-      priceRange: price != null ? { min: price, max: price } : null,
+      price: priceRange ? priceRange.min : price,
+      priceRange,
       priceByVariant,
       sale: salesById.get(String(p.id)) || null,
       currency: "EUR",

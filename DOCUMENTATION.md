@@ -340,6 +340,16 @@ Prinzipien, für ALLE Artikel (Bücher, Merch, Spiele) gleichermaßen:
    Zustand/Preis unabhängig voneinander neu, mit echtem Risiko des
    Auseinanderlaufens.
 
+**Merch mit variantenabhängigem Preis** (z. B. Socken: kleine/Frauen-
+Größen 7 €, mittlere/Männer-Größe 10 €): `assets/shop/products.json`
+erlaubt pro Produkt ein optionales `"pricesByVariant": { "<Variante>":
+<Preis> }` neben dem weiter vorhandenen einzelnen `"price"` (Fallback für
+Varianten ohne eigenen Eintrag dort). `loadMerchProducts()` baut daraus
+dasselbe `priceByVariant`/`priceRange` wie bei Büchern — Kartenpreis zeigt
+dann automatisch eine Von-Bis-Spanne ("7,00 €–10,00 €"), und die Modal-
+Auswahl je Größe den korrekten Einzelpreis, alles über denselben
+`resolveModalSelection()`-Pfad wie überall sonst.
+
 Auch `buildZustandOptions(p, sprache)` liefert jetzt pro Option direkt
 deren `preis` mit (`null` bei "Print neu" = "nimm den regulären/Sale-
 Preis") — die frühere separate `getZustandPreis()`-Funktion, die dieselbe
