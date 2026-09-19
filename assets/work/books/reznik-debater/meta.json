@@ -1,6 +1,6 @@
 {
   "id": "reznik-debater",
-    "klappentext":"Gibt es Tage, an denen du kein gutes Haar an dir lassen kannst? Das ist der Zweifler in dir. Der Therapeut Dr. Peter S. Reznik erklärt, wie man mit ihm umgeht.",
+    "klappentext":"Gibt es Tage, an denen du kein gutes Haar an dir lassen kannst? Das ist der Zweifler in dir. Der Therapeut Dr. Peter S. Reznik erklärt, wie man mit ihm umgeht. Das Buch wird empfohlen für Jugendliche ab 13 Jahren. Das Werk beinhaltet religiöse Analogien.",
 
   "title": "Den Zweifler in uns zähmen",
    "author":"Peter S. Reznik, Ph.D",
@@ -11,7 +11,7 @@
 
     "tags": ["therapy", "guide","publishing","translation"],
     "excerpt": "Die Hinweise eines Therapeuten an Jugendliche und alle, die mit sich hadern.",
- "price-print":15,
+ "price-print":8,
   "sprachen": {
     "Deutsch": {
       "bestand": {
@@ -22,7 +22,7 @@
     }
   },
   "specs": {
-    "autorenexemplarPreis": 5,
+    "autorenexemplarPreis": 4.5,
     "autorenexemplarUstProzent": 7,
     "gewichtGramm": 100,
     "masseCm": { "laenge": 10.5, "breite": 15, "hoehe": 0.7 }
