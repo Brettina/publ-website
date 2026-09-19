@@ -194,6 +194,7 @@ def main():
                 "published": meta.get("published", ""),
                 "updated": meta.get("updated", ""),
                 "eigenanteil": meta.get("eigenanteil", ""),
+                "hidden": bool(meta.get("hidden", False)),
                 "tags": meta.get("tags", []),
                 "excerpt": meta.get("excerpt", "") or description,
                 "description": description,

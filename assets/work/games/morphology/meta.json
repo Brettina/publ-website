@@ -5,6 +5,7 @@
   "updated": "2026-10-19",
   "available": "ja",
   "comingSoon": true,
+  "hidden": true,
   "price-digital": 20,
   "variants": ["Einmalzahler", "Als Mitglied kaufen"],
   "tags": ["morphology", "game"],

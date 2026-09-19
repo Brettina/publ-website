@@ -1,20 +1,6 @@
 {
-  "generatedAt": "2026-09-06T15:32:08.495Z",
+  "generatedAt": "2026-09-19T15:51:40.129Z",
   "items": [
-    {
-      "slug": "morphology",
-      "title": "Morphologie-Werkzeug",
-      "date": "2026-10-19",
-      "excerpt": "Ein Werkzeug um schnell dein Gegenüber einzuschätzen.",
-      "tags": [
-        "morphology",
-        "game"
-      ],
-      "cover": "/assets/work/games/morphology/cover.png",
-      "contentUrl": "/assets/work/blog/morphology/article.html",
-      "sourceUrl": "/assets/work/games/morphology/article.html",
-      "sourceCategory": "games"
-    },
     {
       "slug": "termin-2026-09-05",
       "title": "Vorarlberger Buchmesse in Dornbirn: über 1.000 Besucher",

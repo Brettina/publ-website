@@ -187,6 +187,7 @@
       "title": "Morphologie-Werkzeug",
       "published": "2026-10-19",
       "updated": "2026-10-19",
+      "hidden": true,
       "eigenanteil": "",
       "tags": [
         "morphology",

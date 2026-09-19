@@ -2525,6 +2525,38 @@ Umgesetzt in `webpages/webshop/index.html`:
   Produkt-Modal hatte nie eine "Bald verfügbar"-Kennzeichnung und bekommt
   hier ebenfalls keine, um den Scope nicht ungefragt zu erweitern.
 
+## Ein Work-Item komplett verstecken (`"hidden": true`)
+
+Ein Feld `"hidden": true` im `meta.json` eines Work-Items (Buch/Spiel/
+Artikel/Event) blendet es überall aus, ohne die Dateien zu löschen —
+zuerst genutzt, um das Morphologie-Werkzeug aus Bildergalerie, Webshop
+und Blog zu nehmen, während es intern (Passwortschutz, siehe
+"Echter Passwortschutz fürs Morphologie-Werkzeug") weiter existiert.
+
+Wirkt an drei Stellen, die jede für sich neu geladen/geprüft werden
+müssen — es gibt keine einzelne zentrale Filterstelle:
+
+1. **`assets/work-index.json`** — das Feld muss dort auch stehen (nicht
+   nur im Work-Item-`meta.json`), da die Startseiten-Bildergalerie NUR
+   dieses Index-JSON lädt, nie das volle `meta.json` jedes Kandidaten.
+   `convert_articles.py` schreibt `"hidden": bool(meta.get("hidden",
+   False))` jetzt automatisch mit — bei manueller Bearbeitung von
+   `work-index.json` (z. B. weil Python/die Konvertierungs-Abhängigkeiten
+   gerade nicht verfügbar sind) muss das Feld von Hand nachgetragen
+   werden, sonst weicht der Index vom `meta.json` ab.
+2. **Startseite, Bildergalerie** (`index.html`, `loadWorkItems()`):
+   filtert `x.hidden !== true` direkt beim Einlesen von `work-index.json`.
+3. **Webshop** (`webpages/webshop/index.html`, `loadBooksFromWorkIndex()`):
+   prüft `meta.hidden === true` — hier direkt am vollen `meta.json`, da
+   der Webshop das ohnehin pro Artikel lädt.
+4. **Blog** (`assets/tools/generate-blog-feed.mjs`, `buildFromWorkItems()`):
+   filtert `x.hidden !== true` aus `work-index.json` heraus, BEVOR ein
+   Blogpost-Ordner dafür entsteht. Existiert schon einer (weil das Item
+   vorher mal der "Feed-Spitzenreiter" war), entfernt `clearStalePosts()`
+   ihn automatisch beim nächsten Lauf — `node
+   assets/tools/generate-blog-feed.mjs` muss dafür einmal ausgeführt
+   werden, das passiert nicht von selbst.
+
 ## Offene Punkte
 
 - **Bestandszahlen (`sprachen.<Sprache>.bestand.regulaer.anzahl`/

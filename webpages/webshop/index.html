@@ -2157,6 +2157,7 @@ async function loadBooksFromWorkIndex() {
 
   const built = (await Promise.all(metas.map(async ({ w, meta }) => {
     if (!meta) return null;
+    if (meta.hidden === true) return null; // explicitly hidden from the shop (and carousel/blog, see meta.json "hidden")
 
     // Stock-driven availability, PER LANGUAGE — a book can well have used
     // German copies but no used English ones, so "bestand" lives UNDER

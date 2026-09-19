@@ -126,7 +126,7 @@ async function manifestEntryFor(slug, computed) {
 
 async function buildFromWorkItems() {
   const data = await readJson(WORK_INDEX, { items: [] });
-  const items = (data.items || []).filter(x => x && x.category !== "blog");
+  const items = (data.items || []).filter(x => x && x.category !== "blog" && x.hidden !== true);
 
   const entries = [];
 
