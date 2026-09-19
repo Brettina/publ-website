@@ -2525,37 +2525,72 @@ Umgesetzt in `webpages/webshop/index.html`:
   Produkt-Modal hatte nie eine "Bald verfügbar"-Kennzeichnung und bekommt
   hier ebenfalls keine, um den Scope nicht ungefragt zu erweitern.
 
-## Ein Work-Item komplett verstecken (`"hidden": true`)
+## Ein Work-Item verstecken — zwei verschiedene Mechanismen, nicht verwechseln
 
-Ein Feld `"hidden": true` im `meta.json` eines Work-Items (Buch/Spiel/
-Artikel/Event) blendet es überall aus, ohne die Dateien zu löschen —
-zuerst genutzt, um das Morphologie-Werkzeug aus Bildergalerie, Webshop
-und Blog zu nehmen, während es intern (Passwortschutz, siehe
-"Echter Passwortschutz fürs Morphologie-Werkzeug") weiter existiert.
+Zwei unabhängige Wege, ein Work-Item (Buch/Spiel/Artikel/Event) aus
+Bildergalerie, Webshop und Blog herauszuhalten, mit unterschiedlichem
+Zweck. Beide wirken an denselben drei Stellen, jede für sich neu
+geladen/geprüft — es gibt keine einzelne zentrale Filterstelle:
 
-Wirkt an drei Stellen, die jede für sich neu geladen/geprüft werden
-müssen — es gibt keine einzelne zentrale Filterstelle:
-
-1. **`assets/work-index.json`** — das Feld muss dort auch stehen (nicht
-   nur im Work-Item-`meta.json`), da die Startseiten-Bildergalerie NUR
-   dieses Index-JSON lädt, nie das volle `meta.json` jedes Kandidaten.
-   `convert_articles.py` schreibt `"hidden": bool(meta.get("hidden",
-   False))` jetzt automatisch mit — bei manueller Bearbeitung von
-   `work-index.json` (z. B. weil Python/die Konvertierungs-Abhängigkeiten
-   gerade nicht verfügbar sind) muss das Feld von Hand nachgetragen
-   werden, sonst weicht der Index vom `meta.json` ab.
-2. **Startseite, Bildergalerie** (`index.html`, `loadWorkItems()`):
-   filtert `x.hidden !== true` direkt beim Einlesen von `work-index.json`.
-3. **Webshop** (`webpages/webshop/index.html`, `loadBooksFromWorkIndex()`):
-   prüft `meta.hidden === true` — hier direkt am vollen `meta.json`, da
-   der Webshop das ohnehin pro Artikel lädt.
-4. **Blog** (`assets/tools/generate-blog-feed.mjs`, `buildFromWorkItems()`):
-   filtert `x.hidden !== true` aus `work-index.json` heraus, BEVOR ein
-   Blogpost-Ordner dafür entsteht. Existiert schon einer (weil das Item
-   vorher mal der "Feed-Spitzenreiter" war), entfernt `clearStalePosts()`
-   ihn automatisch beim nächsten Lauf — `node
+1. **`assets/work-index.json`** — Filterfelder müssen dort auch stehen
+   (nicht nur im Work-Item-`meta.json`), da die Startseiten-Bildergalerie
+   NUR dieses Index-JSON lädt, nie das volle `meta.json` jedes
+   Kandidaten. `convert_articles.py` schreibt `"hidden"` automatisch mit;
+   bei manueller Bearbeitung von `work-index.json` (z. B. weil Python/die
+   Konvertierungs-Abhängigkeiten gerade nicht verfügbar sind) muss das
+   Feld von Hand nachgetragen werden, sonst weicht der Index vom
+   `meta.json` ab. `"published"` steht dort ohnehin schon immer drin.
+2. **Startseite, Bildergalerie** (`index.html`, `loadWorkItems()`).
+3. **Webshop** (`webpages/webshop/index.html`, `loadBooksFromWorkIndex()`)
+   — prüft direkt am vollen `meta.json`, da der Webshop das ohnehin pro
+   Artikel lädt.
+4. **Blog** (`assets/tools/generate-blog-feed.mjs`, `buildFromWorkItems()`)
+   — filtert BEVOR ein Blogpost-Ordner entsteht. Existiert schon einer
+   (weil das Item vorher mal der "Feed-Spitzenreiter" war), entfernt
+   `clearStalePosts()` ihn automatisch beim nächsten Lauf — `node
    assets/tools/generate-blog-feed.mjs` muss dafür einmal ausgeführt
    werden, das passiert nicht von selbst.
+
+### `"hidden": true` — permanent, manuell, ohne Bezug zum Datum
+
+Blendet ein Item aus, bis jemand das Feld wieder entfernt — unabhängig
+vom `published`-Datum. Für Dinge, die dauerhaft nicht öffentlich sein
+sollen (z. B. ein Entwurf, der nie automatisch erscheinen soll).
+**Kein** Automatismus, jemand muss das Feld irgendwann aktiv wieder
+löschen, sonst bleibt es für immer versteckt.
+
+### `published` in der Zukunft — automatisch, kein Flag nötig (Regelfall)
+
+**Das ist der richtige Mechanismus für "erscheint erst ab Datum X"** —
+ursprünglich fälschlich mit `"hidden": true` gelöst (siehe unten), auf
+Nutzerkorrektur hin auf echte Datumslogik umgestellt: Ein Item mit einem
+`published`-Datum in der Zukunft ist überall vollständig ABWESEND (nicht
+nur grau/"Bald wieder verfügbar"), bis genau dieses Datum erreicht ist —
+dann erscheint es von selbst, ohne dass irgendwer ein Flag zurücksetzen
+muss. Kein neues Feld: nutzt das ohnehin vorhandene `"published"`.
+
+Umgesetzt in `webpages/webshop/index.html`s `loadBooksFromWorkIndex()`:
+direkt nach dem `meta.hidden`-Check kommt `if (publishedStr &&
+publishedStr > todayStr) return null;` — das Item existiert für den
+Webshop schlicht nicht, bevor sein Datum erreicht ist. Dieselbe Regel in
+`index.html`s `loadWorkItems()` (Bildergalerie) und
+`generate-blog-feed.mjs`s `buildFromWorkItems(todayStr)` (Blog).
+
+**Wichtige Abgrenzung zu "comingSoon" (grauer "Bald wieder verfügbar"-
+Karte):** Ein bereits veröffentlichtes, aber gerade ausverkauftes/
+nicht vorrätiges Buch soll weiterhin GEZEIGT werden (grau, mit Hinweis)
+— das ist ein reales, existierendes Werk, das nur kurzfristig nicht
+verfügbar ist. Ein Item mit Zukunfts-`published` existiert dagegen noch
+gar nicht öffentlich und wird deshalb komplett ausgeblendet, nicht nur
+grau markiert — zwei unterschiedliche Situationen, bewusst
+unterschiedlich behandelt.
+
+**Regressionsfall:** Das Morphologie-Werkzeug (`published: 2026-10-19`)
+wurde zunächst mit einem manuell gesetzten `"hidden": true` versteckt.
+Das hätte bedeutet: es bleibt für immer versteckt, auch nach dem 19.
+Oktober, bis jemand das Feld von Hand wieder entfernt — nicht die
+Absicht. Auf Korrektur hin durch die Datumslogik oben ersetzt, `"hidden"`
+wieder entfernt.
 
 ## Offene Punkte
 

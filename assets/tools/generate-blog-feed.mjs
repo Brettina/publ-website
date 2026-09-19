@@ -124,9 +124,15 @@ async function manifestEntryFor(slug, computed) {
   };
 }
 
-async function buildFromWorkItems() {
+async function buildFromWorkItems(todayStr) {
   const data = await readJson(WORK_INDEX, { items: [] });
-  const items = (data.items || []).filter(x => x && x.category !== "blog" && x.hidden !== true);
+  // "hidden" = permanently out regardless of date; a future "published"
+  // date = not yet public, nothing to blog about until that day arrives
+  // on its own (matches the same rule in the webshop and homepage
+  // carousel — see loadBooksFromWorkIndex / loadWorkItems).
+  const items = (data.items || []).filter(x =>
+    x && x.category !== "blog" && x.hidden !== true && !(x.published && x.published > todayStr)
+  );
 
   const entries = [];
 
@@ -295,7 +301,7 @@ async function main() {
   await fs.mkdir(BLOG_DIR, { recursive: true });
 
   const today = todayIso();
-  const fromWork = await buildFromWorkItems();
+  const fromWork = await buildFromWorkItems(today);
   const fromCalendar = await buildFromCalendar(today);
 
   const all = [...fromWork, ...fromCalendar];

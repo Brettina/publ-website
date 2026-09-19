@@ -1522,7 +1522,11 @@ function buildZustandOptions(p, sprache) {
   const d = p.sprachenData?.[sprache] || {};
   const options = [];
   if (!d.bestand || d.bestand.regulaer > 0) {
-    options.push({ value: "regulaer", label: "Print neu", preis: null });
+    // Every option shows its price, "Print neu" included — the regular
+    // (possibly sale-adjusted) price, same number the price line below
+    // would show if this option were selected.
+    const regulaerPreis = applySale(getVariantPrice(p, "Print"), p.sale);
+    options.push({ value: "regulaer", label: `Print neu – ${formatEUR(regulaerPreis)}`, preis: null });
   }
   if (d.mangelexemplar) {
     options.push({ value: "werkstatt", label: `Werkstattexemplar – ${formatEUR(d.mangelexemplar.preis)}`, preis: d.mangelexemplar.preis });
@@ -1694,7 +1698,10 @@ function openProductModal(p, opts = {}) {
   safeVariants(p).forEach(v => {
     const opt = document.createElement("option");
     opt.value = v;
-    opt.textContent = v;
+    // Every dropdown option shows its price — consistent with Zustand
+    // (Print neu/Werkstattexemplar/Gebraucht), which does the same.
+    const variantPreis = applySale(getVariantPrice(p, v), p.sale);
+    opt.textContent = variantPreis != null ? `${v} – ${formatEUR(variantPreis)}` : v;
     modalVariant.appendChild(opt);
   });
 
@@ -2157,7 +2164,18 @@ async function loadBooksFromWorkIndex() {
 
   const built = (await Promise.all(metas.map(async ({ w, meta }) => {
     if (!meta) return null;
-    if (meta.hidden === true) return null; // explicitly hidden from the shop (and carousel/blog, see meta.json "hidden")
+    if (meta.hidden === true) return null; // explicitly hidden, regardless of date
+
+    // Not yet published: fully ABSENT everywhere (carousel/webshop/blog),
+    // not just greyed "coming soon" — it doesn't exist for customers yet,
+    // nothing to tease. Automatic and date-driven: the moment "published"
+    // is reached it starts appearing on its own, no flag to remember to
+    // flip back. Different from "published but currently out of stock",
+    // which SHOULD still show as a greyed "Bald wieder verfügbar" card
+    // (see comingSoon below) — that's a real, existing thing that's
+    // temporarily unavailable, not something that doesn't exist yet.
+    const publishedStr = String(meta.published || "").trim();
+    if (publishedStr && publishedStr > todayStr) return null;
 
     // Stock-driven availability, PER LANGUAGE — a book can well have used
     // German copies but no used English ones, so "bestand" lives UNDER
@@ -2247,11 +2265,11 @@ async function loadBooksFromWorkIndex() {
     }, 0);
     const anyRegulaerVorrat = sprachen.some(s => sprachenData[s].regulaerVorrat > 0);
     const isAvailable = anyBestandTracked ? anyRegulaerVorrat : isAvailableFromMeta(meta);
-    const publishedStr = String(meta.published || "").trim();
-    const isFuturePublished = publishedStr && publishedStr > todayStr;
+    // isFuturePublished already handled above (return null before this
+    // point) — nothing that reaches here is published in the future.
     const comingSoon = anyBestandTracked
-      ? (totalVorrat <= 0 || isFuturePublished)
-      : (!isAvailable || isFuturePublished || meta.comingSoon === true);
+      ? (totalVorrat <= 0)
+      : (!isAvailable || meta.comingSoon === true);
 
     const pricePrint = toNumber(meta["price-print"] ?? meta.pricePrint ?? meta.price_print ?? meta.price);
 const priceDigital = toNumber(meta["price-digital"] ?? meta.priceDigital ?? meta.price_digital);

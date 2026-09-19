@@ -537,13 +537,13 @@
        <br></br>       
         
        <h2>
-          Lässt sich Ihr Werk nicht klar in etablierte Genres einordnen, ist das klassische Verlagsmodell nichts für Sie, oder suchen Sie eine individuelle Vertragslösung?
+          Lässt sich Ihr Werk nicht klar in etablierte Genres einordnen, ist das klassische Verlagsmodell nichts für Sie oder suchen Sie eine individuelle Vertragslösung?
         </h2>
       </br>
        <h1> Dann kommen Sie zu uns!</h1>
 
        </br>
-      <h3> Sie sind bei uns richtig</h3> wenn Sie eine Idee haben und Unterstützung bei ihrer Umsetzung suchen, wenn Sie neue oder ungewöhnliche Perspektiven vertreten oder wenn Sie für Ihr Werk eine individuelle Lösung in Gestaltung, Produktion und Vertrieb brauchen.
+      <h3> Sie sind bei uns richtig,</h3> wenn Sie eine Idee haben und Unterstützung bei ihrer Umsetzung suchen, wenn Sie neue oder ungewöhnliche Perspektiven vertreten oder wenn Sie für Ihr Werk eine individuelle Lösung in Gestaltung, Produktion und Vertrieb brauchen.
       
         </p>
         <p class="fineprint">
@@ -554,6 +554,10 @@
         </br></br>
           <h3>Zuletzt erschienene Titel</h3>
 <ul>
+  <li>
+    Die Übersetzung von <a href="https://www.amazon.com/Taming-Debater-Within-Peter-Reznik/dp/B09MYXSPPY" target="_blank" rel="noopener">„Taming the Debater within“ (Amazon)</a>
+
+  </li>
   <li>
     Die Übersetzung ins Englische von
     <a href="https://www.amazon.de/Lichtstrahl-Seiner-Liebe-Angela-Jung/dp/3949073310" target="_blank" rel="noopener">„Ein Lichtstrahl Seiner Liebe“ (Amazon)</a>
@@ -1888,9 +1892,14 @@ async function openCurrent() {
       const res = await fetch("/assets/work-index.json", { cache: "no-store" });
       if (!res.ok) throw new Error("work-index.json missing");
       const data = await res.json();
+      const todayStr = new Date().toISOString().slice(0, 10);
 
       list = (data.items || [])
-        .filter(x => x && x.type === "work" && x.hidden !== true)
+        // "hidden" = permanently out regardless of date; a future
+        // "published" date = not yet public, automatically starts
+        // appearing on its own the day it's reached (see the matching
+        // logic in webpages/webshop/index.html's loadBooksFromWorkIndex).
+        .filter(x => x && x.type === "work" && x.hidden !== true && !(x.published && x.published > todayStr))
         .sort((a, b) => String(b.updated || "").localeCompare(String(a.updated || "")))
         .map(x => {
           const slug = String(x.slug || "").trim();
