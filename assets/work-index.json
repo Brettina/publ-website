@@ -3,6 +3,29 @@
     {
       "type": "work",
       "category": "articles",
+      "slug": "romane-machen-klueger",
+      "title": "Warum Romane uns klüger machen könnten als Sachbücher",
+      "published": "2026-09-22",
+      "updated": "2026-09-22",
+      "eigenanteil": "",
+      "hidden": false,
+      "tags": [
+        "psychology",
+        "reading",
+        "article"
+      ],
+      "excerpt": "Ein Psychologe empfiehlt in einem aktuellen Video Romane statt Sachbücher zum Abschalten. Was die Forschung zu Belletristik, Empathie und Wortschatz tatsächlich zeigt.",
+      "description": "",
+      "images": [
+        "/assets/work/articles/romane-machen-klueger/read.png"
+      ],
+      "cover": "/assets/work/articles/romane-machen-klueger/read.png",
+      "contentUrl": "/assets/work/articles/romane-machen-klueger/article.html",
+      "metaUrl": "/assets/work/articles/romane-machen-klueger/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "articles",
       "slug": "400000",
       "title": "400.000",
       "published": "2023-03-30",

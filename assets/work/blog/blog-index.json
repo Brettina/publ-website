@@ -1,6 +1,21 @@
 {
-  "generatedAt": "2026-09-19T15:56:48.379Z",
+  "generatedAt": "2026-09-22T08:52:33.630Z",
   "items": [
+    {
+      "slug": "romane-machen-klueger",
+      "title": "Warum Romane uns klüger machen könnten als Sachbücher",
+      "date": "2026-09-22",
+      "excerpt": "Ein Psychologe empfiehlt in einem aktuellen Video Romane statt Sachbücher zum Abschalten. Was die Forschung zu Belletristik, Empathie und Wortschatz tatsächlich zeigt.",
+      "tags": [
+        "psychology",
+        "reading",
+        "article"
+      ],
+      "cover": "/assets/work/blog/romane-machen-klueger/read.png",
+      "contentUrl": "/assets/work/blog/romane-machen-klueger/article.html",
+      "sourceUrl": "/assets/work/articles/romane-machen-klueger/article.html",
+      "sourceCategory": "articles"
+    },
     {
       "slug": "termin-2026-09-05",
       "title": "Vorarlberger Buchmesse in Dornbirn: über 1.000 Besucher",
