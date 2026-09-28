@@ -83,7 +83,7 @@
 
   function worksSectionHtml(label, slugs, linkFn) {
     if (!Array.isArray(slugs) || !slugs.length) return "";
-    return `<h3>${escapeHtml(label)}</h3><ul>${slugs.map(linkFn).join("")}</ul>`;
+    return `<div class="author-works-section"><h3>${escapeHtml(label)}</h3><ul class="author-work-links">${slugs.map(linkFn).join("")}</ul></div>`;
   }
 
   async function init() {
@@ -121,11 +121,18 @@
     ].join("");
 
     root.innerHTML = `
-      <img class="author-photo-large" src="${photo}" alt="${escapeHtml(name)}" onerror="this.src='/img/webicon.png';" />
-      <h1 style="margin:12px 0 0;">${escapeHtml(name)}</h1>
-      ${genres.length ? `<div class="author-genres">${genres.map(g => `<span class="chip">${escapeHtml(g)}</span>`).join("")}</div>` : ""}
+      <div class="author-hero">
+        <span class="author-photo-frame">
+          <img src="${photo}" alt="${escapeHtml(name)}" onerror="this.src='/img/webicon.png';" />
+        </span>
+        <div class="author-hero-info">
+          <h1>${escapeHtml(name)}</h1>
+          ${genres.length ? `<div class="author-genres">${genres.map(g => `<span class="chip">${escapeHtml(g)}</span>`).join("")}</div>` : ""}
+          ${website ? `<p style="margin:10px 0 0;"><a href="${website}" target="_blank" rel="noopener">Website von ${escapeHtml(name)}</a></p>` : ""}
+        </div>
+      </div>
+      <hr class="gold-rule" />
       ${author.personal ? `<p class="author-bio">${escapeHtml(author.personal)}</p>` : ""}
-      ${website ? `<p><a href="${website}" target="_blank" rel="noopener">Website von ${escapeHtml(name)}</a></p>` : ""}
       <div class="author-works">${worksHtml}</div>
       <p class="fineprint" style="margin-top:20px;"><a href="/webpages/autoren/">← Zurück zur Autoren-Übersicht</a></p>
     `;

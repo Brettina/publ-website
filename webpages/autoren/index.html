@@ -7,7 +7,7 @@
   <script src="/assets/site.js" defer></script>
 
   <meta name="description" content="Autoren von publish-Lohr - Bücher, Werkzeuge und mehr auf einen Blick." />
-  <link rel="stylesheet" href="/assets/styles.css?v=3" />
+  <link rel="stylesheet" href="/assets/styles.css?v=4" />
   <link rel="icon" href="/img/webicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="/img/webicon.png" />
   <meta name="color-scheme" content="light dark" />
@@ -47,19 +47,10 @@
     /* Overview cards are deliberately light (photo + name + genre teaser)
        — the full profile (bio, all works) lives on each author's own
        /webpages/autoren/<slug>/ page, which this card links to. Avoids
-       showing the same bio/work list twice on two different pages. */
-    .author-card {
-      text-align: center;
-    }
-    .author-photo {
-      width: 100%;
-      height: 220px;
-      object-fit: cover;
-      border-radius: 12px;
-      display: block;
-      margin-bottom: 12px;
-      background: rgba(0,0,0,0.15);
-    }
+       showing the same bio/work list twice on two different pages.
+       Card layout + photo duotone frame are shared (assets/styles.css,
+       ".author-card"/".author-photo-frame") — only the genre-chip size is
+       still page-local (a touch smaller here than on the detail page). */
     .author-genres {
       display: flex;
       flex-wrap: wrap;
@@ -133,8 +124,10 @@
 
         return `
           <a class="card author-card" href="${href}">
-            <img class="author-photo" src="${photo}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.src='/img/webicon.png';" />
-            <h3 style="margin:0;">${escapeHtml(name)}</h3>
+            <span class="author-photo-frame">
+              <img src="${photo}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.src='/img/webicon.png';" />
+            </span>
+            <h3>${escapeHtml(name)}</h3>
             ${genres.length ? `<div class="author-genres">${genres.map(g => `<span class="chip">${escapeHtml(g)}</span>`).join("")}</div>` : ""}
           </a>
         `;

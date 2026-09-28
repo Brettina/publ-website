@@ -566,3 +566,132 @@ p{ margin: 0 0 10px; color: var(--muted); }
   overflow: hidden;
   background: color-mix(in srgb, var(--panel) 92%, transparent);
 }
+
+/* ===== Autoren (overview grid + per-author detail page) =====
+   Shared by webpages/autoren/index.html (grid cards) and
+   assets/autoren-detail.js (per-author hero), so a layout change only
+   needs to happen here once, not once per page. Colors are the exact
+   corporate-design gold/brown values from assets/corporatedesign/cd.md
+   — not the site's blue/purple --accent, which isn't part of that
+   palette. */
+
+.author-photo-frame{
+  position: relative;
+  display: block;
+  overflow: hidden;
+  isolation: isolate;
+  background: rgba(0,0,0,.15);
+}
+.author-photo-frame img{
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Slightly desaturated + a touch more contrast so the gold/brown wash
+     below reads as a tint, not a wash-out. */
+  filter: grayscale(.25) contrast(1.08) brightness(.97);
+}
+/* Duotone wash in the exact CD gold/brown, via mix-blend-mode: color —
+   keeps every photo's own luminance/detail (so faces stay recognizable)
+   while pulling its hue toward the corporate palette. */
+.author-photo-frame::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #CCA459, #7F5B33 60%, #382918);
+  mix-blend-mode: color;
+  opacity: .6;
+  pointer-events: none;
+}
+
+.author-card{
+  text-align: center;
+  transition: border-color .15s ease, transform .15s ease;
+}
+.author-card:hover{
+  border-color: color-mix(in srgb, #D3B564 45%, var(--border));
+  transform: translateY(-2px);
+}
+.author-card .author-photo-frame{
+  border-radius: 12px;
+  height: 220px;
+  margin-bottom: 12px;
+}
+.author-card h3{ margin: 0; }
+
+.author-hero{
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.author-hero .author-photo-frame{
+  flex: 0 0 auto;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 3px solid #D3B564;
+  box-shadow: 0 6px 20px var(--shadow);
+}
+.author-hero-info{
+  flex: 1 1 260px;
+  min-width: 220px;
+}
+.author-hero-info h1{ margin: 0 0 10px; }
+
+.gold-rule{
+  border: none;
+  height: 1px;
+  margin: 22px 0;
+  background: linear-gradient(90deg, transparent, #D3B564 20%, #CCA459 50%, #D3B564 80%, transparent);
+  opacity: .6;
+}
+
+.author-bio{
+  max-width: 68ch;
+  line-height: 1.7;
+}
+
+.author-works-section{ margin-top: 4px; }
+.author-works-section h3{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05rem;
+  margin: 22px 0 10px;
+}
+.author-works-section h3::before{
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 2px;
+  background: linear-gradient(90deg, #D3B564, #7F5B33);
+}
+.author-work-links{
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.author-work-links li a{
+  display: inline-flex;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, #D3B564 45%, var(--border));
+  background: color-mix(in srgb, #7F5B33 14%, var(--panel));
+  text-decoration: none;
+  font-size: .92rem;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.author-work-links li a:hover{
+  background: color-mix(in srgb, #D3B564 22%, var(--panel));
+  border-color: #D3B564;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 560px){
+  .author-hero{ justify-content: center; text-align: center; }
+  .author-hero .author-photo-frame{ width: 140px; height: 140px; }
+}

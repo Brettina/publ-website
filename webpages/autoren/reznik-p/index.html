@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Autor - publish-Lohr</title>
   <script src="/assets/site.js" defer></script>
-  <script src="/assets/autoren-detail.js" defer></script>
+  <script src="/assets/autoren-detail.js?v=3" defer></script>
 
   <meta name="description" content="Autorenprofil bei publish-Lohr." />
-  <link rel="stylesheet" href="/assets/styles.css?v=3" />
+  <link rel="stylesheet" href="/assets/styles.css?v=4" />
   <link rel="icon" href="/img/webicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="/img/webicon.png" />
   <meta name="color-scheme" content="light dark" />
@@ -43,19 +43,15 @@
       background: color-mix(in srgb, var(--panel) 99.9%, transparent) !important;
     }
 
-    .author-photo-large {
-      width: 220px;
-      height: 220px;
-      object-fit: cover;
-      border-radius: 16px;
-      display: block;
-      background: rgba(0,0,0,0.15);
-    }
+    /* Hero photo, gold divider, bio measure and work-link chips are all
+       shared across every author page — see assets/styles.css
+       (".author-hero"/".gold-rule"/".author-bio"/".author-works-section"),
+       not redefined per page. */
     .author-genres {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin: 10px 0;
+      margin: 10px 0 0;
     }
     .author-genres .chip {
       display: inline-flex;
@@ -66,9 +62,6 @@
       opacity: 0.85;
       white-space: nowrap;
     }
-    .author-bio { margin: 10px 0; opacity: 0.92; }
-    .author-works h3 { margin: 16px 0 6px; }
-    .author-works ul { margin: 0 0 10px; padding-left: 18px; }
   </style>
 </head>
 <body class="page-autoren-detail">
