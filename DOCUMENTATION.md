@@ -2592,6 +2592,82 @@ Oktober, bis jemand das Feld von Hand wieder entfernt — nicht die
 Absicht. Auf Korrektur hin durch die Datumslogik oben ersetzt, `"hidden"`
 wieder entfernt.
 
+## Autoren-Seiten (`/webpages/autoren/` + `/webpages/autoren/<slug>/`)
+
+Zwei Seitentypen, nicht eine: eine schlanke Übersicht (Grid, nur Foto +
+Name + Genre-Chips, jede Karte ein Link) und pro Autor eine eigene
+Unterseite mit vollständigem Profil (Foto, Bio, alle Werke). Explizite
+Nutzerkorrektur: zuerst gab es nur die Übersicht mit Anker-Links
+(`#<slug>`) auf Karten innerhalb derselben Seite — das reichte nicht, es
+sollten echte, eigenständige Unterseiten sein, die sowohl von der
+Übersicht als auch direkt von einem Buch im Webshop aus erreichbar sind.
+
+**Datenmodell, bewusst schlank und ohne Duplikate:**
+
+- **`assets/author-index.json`** — Liste der Autoren-Slugs
+  (`{"authors": ["reznik-p", "jung-a"]}`), analog zu `work-index.json`.
+  Ein neuer Autor braucht hier einen Eintrag, sonst taucht er auf der
+  Übersicht nie auf.
+- **`assets/author/<slug>.json`** — ein Datensatz pro Autor:
+  ```json
+  {
+    "slug": "reznik-p",
+    "name": "Peter S. Reznik, Ph.D",
+    "photo": "",
+    "personal": "…",
+    "genres": ["Ratgeber", "Psychologie", "…"],
+    "works": { "books": ["reznik-debater", "…"], "tools": ["morphology"], "merch": [], "articles": [] },
+    "links": { "website": "https://www.drpeterreznik.com/" }
+  }
+  ```
+  `works.*` speichert NUR Slugs, nie Titel oder Links — beide Autoren-
+  Seitentypen lösen sie live gegen `work-index.json` (Bücher/Werkzeuge/
+  Artikel, über `contentUrl`) bzw. `assets/shop/products.json` (Merch,
+  verlinkt auf `/webpages/webshop/`) auf. Ein Buchtitel ändert sich
+  künftig nur an einer Stelle, nicht zusätzlich hier.
+- **`photo`** ist bei beiden aktuellen Autoren noch leer (kein Foto
+  erhalten) — beide Seitentypen fallen dann auf `/img/webicon.png`
+  zurück (`onerror`-Handler zusätzlich zum leeren Default, falls ein
+  gesetzter Pfad doch nicht lädt).
+
+**Architektur der Unterseiten — EIN Skript, nicht pro Autor kopiert.**
+`webpages/autoren/<slug>/index.html` ist für JEDEN Autor eine praktisch
+identische, dünne Hülle (Header-/Footer-Partial + `<div
+id="author-detail">`), die `/assets/autoren-detail.js` einbindet. Dieses
+eine Skript ermittelt den Slug selbst aus `location.pathname` (letztes
+Pfadsegment, auch mit `index.html` am Ende robust) und rendert das
+komplette Profil. Ein neuer Autor bedeutet: neue `author/<slug>.json` +
+neuen (identischen) Ordner `webpages/autoren/<slug>/index.html` anlegen
+und den Slug in `author-index.json` eintragen — nie eine zweite Kopie der
+Render-Logik. Existiert kein `author/<slug>.json` zum aufgerufenen Pfad,
+zeigt die Seite einen "nicht gefunden"-Hinweis mit Rücklink zur Übersicht,
+statt leer zu bleiben oder zu crashen.
+
+**Verknüpfung von Büchern zu ihrem Autor:** Ein `"authorSlug"`-Feld direkt
+neben `"author"` im jeweiligen Buch-`meta.json` (z. B. `"authorSlug":
+"reznik-p"`). `loadBooksFromWorkIndex()` in `webpages/webshop/index.html`
+reicht das als `p.authorSlug` durch; sowohl die Karten-Ansicht
+(`renderProducts()`) als auch das Produkt-Modal (`openProductModal()`)
+verwandeln den Autorennamen dann in einen Link auf
+`/webpages/autoren/<authorSlug>/` (die eigene Unterseite, kein Anker
+mehr), statt ihn nur als Text anzuzeigen. Fehlt `authorSlug` (z. B. bei
+künftigen Büchern ohne hinterlegten Autor), bleibt der Name reiner Text
+wie zuvor, kein Fehlerfall.
+
+Recherchequellen für die Erstbefüllung: Reznik über
+[drpeterreznik.com](https://www.drpeterreznik.com/) und dessen
+Unterseiten `/about` und `/courses-and-books`; Angela Jungs Personalie
+stammt direkt vom Nutzer (keine verlässlichen Online-Quellen zu ihr
+gefunden), inhaltlich deckungsgleich mit dem bereits vorhandenen
+Klappentext in `jung-lichtstrahl/meta.json`.
+
+**Nav-Link:** "Autoren" wurde in `assets/partials/header.html` ergänzt
+(deckt alle Seiten ab, die den Header-Partial nutzen) UND separat im
+Webshop, der seine eigene, nicht-partial-basierte Navigation hat (siehe
+"Bestandsführung"-Abschnitte weiter oben für den Hintergrund, warum der
+Webshop hier eine Ausnahme ist). Beide Nav-Links zeigen auf die Übersicht
+`/webpages/autoren/`, nicht auf eine einzelne Autoren-Unterseite.
+
 ## Offene Punkte
 
 - **Bestandszahlen (`sprachen.<Sprache>.bestand.regulaer.anzahl`/

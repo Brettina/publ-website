@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Autoren - publish-Lohr</title>
+  <script src="/assets/site.js" defer></script>
+
+  <meta name="description" content="Autoren von publish-Lohr - Bücher, Werkzeuge und mehr auf einen Blick." />
+  <link rel="stylesheet" href="/assets/styles.css?v=3" />
+  <link rel="icon" href="/img/webicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/img/webicon.png" />
+  <meta name="color-scheme" content="light dark" />
+
+  <style>
+    /* Same dark-theme-always rule as Startseite/Blog/Archiv/Webshop — see
+       index.html for the full explanation. */
+    :root {
+      --bg: #0b0c0f;
+      --panel: #12141a;
+      --text: #e9eef6;
+      --muted: #c9b48f;
+      --border: rgba(255,255,255,.12);
+      --shadow: rgba(0,0,0,.35);
+    }
+    body { color-scheme: dark; }
+
+    body {
+      background-color: #0b0c0f;
+      background-image: url("/img/bg.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
+    /* Same transparency rule as the other bg.png pages: .section
+       transparent, .page-hero/.card near-opaque. */
+    .section {
+      background: color-mix(in srgb, var(--panel) 50%, transparent) !important;
+    }
+    .page-hero,
+    .card {
+      background: color-mix(in srgb, var(--panel) 99.9%, transparent) !important;
+    }
+
+    /* Overview cards are deliberately light (photo + name + genre teaser)
+       — the full profile (bio, all works) lives on each author's own
+       /webpages/autoren/<slug>/ page, which this card links to. Avoids
+       showing the same bio/work list twice on two different pages. */
+    .author-card {
+      text-align: center;
+    }
+    .author-photo {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 12px;
+      display: block;
+      margin-bottom: 12px;
+      background: rgba(0,0,0,0.15);
+    }
+    .author-genres {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin: 8px 0 0;
+    }
+    .author-genres .chip {
+      display: inline-flex;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid currentColor;
+      font-size: 0.82em;
+      opacity: 0.85;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body class="page-autoren">
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <div id="header-slot"></div>
+
+  <main id="main" class="container">
+    <header class="page-hero">
+      <h1>Autoren</h1>
+      <p class="lead" style="margin:0;">
+        Die Menschen hinter den Büchern, Werkzeugen und Projekten von publish-Lohr.
+      </p>
+    </header>
+
+    <section class="section" aria-labelledby="autoren-title">
+      <h2 id="autoren-title" style="margin:0 0 12px;">Alle Autoren</h2>
+      <div id="autoren-grid" class="cards" aria-live="polite"></div>
+      <div id="autoren-empty" class="card empty" style="display:none; margin-top:14px;">
+        <p class="fineprint" style="margin:0;">Aktuell sind keine Autoren hinterlegt.</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer-slot"></div>
+
+  <script>
+    (async function () {
+      const grid = document.getElementById("autoren-grid");
+      const empty = document.getElementById("autoren-empty");
+
+      function escapeHtml(s) {
+        return (s || "").toString()
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;");
+      }
+
+      async function fetchJson(url) {
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (!res.ok) return null;
+          return await res.json();
+        } catch {
+          return null;
+        }
+      }
+
+      function authorCardHtml(author) {
+        const slug = author.slug || "";
+        const photo = author.photo || "/img/webicon.png";
+        const name = author.name || slug;
+        const genres = Array.isArray(author.genres) ? author.genres : [];
+        const href = `/webpages/autoren/${encodeURIComponent(slug)}/`;
+
+        return `
+          <a class="card author-card" href="${href}">
+            <img class="author-photo" src="${photo}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.src='/img/webicon.png';" />
+            <h3 style="margin:0;">${escapeHtml(name)}</h3>
+            ${genres.length ? `<div class="author-genres">${genres.map(g => `<span class="chip">${escapeHtml(g)}</span>`).join("")}</div>` : ""}
+          </a>
+        `;
+      }
+
+      const authorIndex = await fetchJson("/assets/author-index.json");
+      const slugs = Array.isArray(authorIndex?.authors) ? authorIndex.authors : [];
+
+      const authors = (await Promise.all(
+        slugs.map(slug => fetchJson(`/assets/author/${encodeURIComponent(slug)}.json`))
+      )).filter(Boolean);
+
+      if (!authors.length) {
+        empty.style.display = "block";
+        return;
+      }
+
+      grid.innerHTML = authors.map(authorCardHtml).join("");
+    })();
+  </script>
+</body>
+</html>

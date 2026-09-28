@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Autor - publish-Lohr</title>
+  <script src="/assets/site.js" defer></script>
+  <script src="/assets/autoren-detail.js" defer></script>
+
+  <meta name="description" content="Autorenprofil bei publish-Lohr." />
+  <link rel="stylesheet" href="/assets/styles.css?v=3" />
+  <link rel="icon" href="/img/webicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/img/webicon.png" />
+  <meta name="color-scheme" content="light dark" />
+
+  <style>
+    /* Same dark-theme-always rule as the rest of the site — see
+       index.html for the full explanation. */
+    :root {
+      --bg: #0b0c0f;
+      --panel: #12141a;
+      --text: #e9eef6;
+      --muted: #c9b48f;
+      --border: rgba(255,255,255,.12);
+      --shadow: rgba(0,0,0,.35);
+    }
+    body { color-scheme: dark; }
+
+    body {
+      background-color: #0b0c0f;
+      background-image: url("/img/bg.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
+    .section {
+      background: color-mix(in srgb, var(--panel) 50%, transparent) !important;
+    }
+    .page-hero,
+    .card {
+      background: color-mix(in srgb, var(--panel) 99.9%, transparent) !important;
+    }
+
+    .author-photo-large {
+      width: 220px;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 16px;
+      display: block;
+      background: rgba(0,0,0,0.15);
+    }
+    .author-genres {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0;
+    }
+    .author-genres .chip {
+      display: inline-flex;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid currentColor;
+      font-size: 0.85em;
+      opacity: 0.85;
+      white-space: nowrap;
+    }
+    .author-bio { margin: 10px 0; opacity: 0.92; }
+    .author-works h3 { margin: 16px 0 6px; }
+    .author-works ul { margin: 0 0 10px; padding-left: 18px; }
+  </style>
+</head>
+<body class="page-autoren-detail">
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <div id="header-slot"></div>
+
+  <main id="main" class="container">
+    <section class="section" aria-label="Autorenprofil">
+      <div id="author-detail"><p class="fineprint">Lädt…</p></div>
+    </section>
+  </main>
+
+  <div id="footer-slot"></div>
+</body>
+</html>

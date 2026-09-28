@@ -1,0 +1,16 @@
+{
+  "slug": "reznik-p",
+  "name": "Peter S. Reznik, Ph.D",
+  "photo": "/assets/author/reznik-p.png",
+  "personal": "Dr. Peter Reznik wurde in der Ukraine geboren und ist seit über 45 Jahren als Psychotherapeut tätig. Er hat mehr als 35.000 Patienten in der ehemaligen UdSSR, in Israel, Frankreich und den USA behandelt. Er hält Masterabschlüsse in Linguistik und Sozialarbeit sowie einen Doktortitel in Gesundheits- und Sozialwissenschaften und ist diplomierter klinischer Sozialarbeiter (LCSW). Sein fachlicher Schwerpunkt liegt auf Mind-Body-Integrativer Therapie, Verhaltensmodifikation, mentaler Bildarbeit, Traumarbeit, klinischer Hypnose und Morphologie (Gesichtslesen). Er lehrte am American Institute of Mental Imagery, war Mitarbeiter des Schachter Center for Complementary Medicine und Direktor des Petrie Institute of Hypnosis. Reznik moderiert die Radiosendung \"Dr. Peter Reznik's Toolbox\" auf dem Progressive Radio Network und war unter anderem bei NPR, Fox Five News und BBC zu Gast. Er hielt Wellness-Programme unter anderem für Citibank, Morgan Stanley und Estée Lauder.",
+  "genres": ["Ratgeber", "Psychologie", "Beziehungen", "Selbsthilfe"],
+  "works": {
+    "books": ["reznik-debater", "reznik-relationships"],
+    "tools": ["morphology"],
+    "merch": [],
+    "articles": []
+  },
+  "links": {
+    "website": "https://www.drpeterreznik.com/"
+  }
+}

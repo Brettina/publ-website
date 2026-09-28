@@ -596,6 +596,7 @@
         <li><a href="/webpages/blog/">Blog</a></li>
         <li><a href="/webpages/archiv/">Archiv</a></li>
         <li><a href="/webpages/webshop/" aria-current="page">Webshop</a></li>
+        <li><a href="/webpages/autoren/">Autoren</a></li>
         <li><a href="/webpages/login/">Anmelden</a></li>
         <li>
           <a href="#cart" class="cart-link" aria-label="Zum Warenkorb">
@@ -1307,7 +1308,16 @@
         if (p.author) {
           const author = document.createElement("p");
           author.className = "shop-author";
-          author.textContent = `von ${p.author}`;
+          if (p.authorSlug) {
+            author.appendChild(document.createTextNode("von "));
+            const authorLink = document.createElement("a");
+            authorLink.href = `/webpages/autoren/${encodeURIComponent(p.authorSlug)}/`;
+            authorLink.textContent = p.author;
+            authorLink.addEventListener("click", (e) => e.stopPropagation());
+            author.appendChild(authorLink);
+          } else {
+            author.textContent = `von ${p.author}`;
+          }
           body.appendChild(author);
         }
 
@@ -1657,7 +1667,13 @@ function openProductModal(p, opts = {}) {
   const meta = p._meta || {};
 
   modalTitle.textContent = p.name || p.id;
-  if (modalAuthor) modalAuthor.textContent = p.author ? `von ${p.author}` : "";
+  if (modalAuthor) {
+    if (p.author && p.authorSlug) {
+      modalAuthor.innerHTML = `von <a href="/webpages/autoren/${encodeURIComponent(p.authorSlug)}/">${escapeHtmlAttr(p.author)}</a>`;
+    } else {
+      modalAuthor.textContent = p.author ? `von ${p.author}` : "";
+    }
+  }
   modalImg.innerHTML = "";
   modalImg.appendChild(buildGallery(safeImages(p), p.name || p.id));
 
@@ -2323,6 +2339,7 @@ const image = await resolveWorkImage({ slug: w.slug, category: w.category, meta,
 
 const title = String(meta.title || w.id);
 const author = String(meta.author || "");
+const authorSlug = String(meta.authorSlug || "").trim() || null;
 const excerpt = String(meta.excerpt || meta.description || "");
 const tags = Array.isArray(meta.tags) ? meta.tags : [];
 
@@ -2333,6 +2350,7 @@ return {
 
   name: title,
   author,
+  authorSlug,
   description: excerpt,
   longDescription: excerpt,
 
