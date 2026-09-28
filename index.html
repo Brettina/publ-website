@@ -609,7 +609,7 @@
       <h2 id="mitglied-werden">Mitglied werden</h2>
       <p>
         Als Mitglied zahlen Sie für Werkzeuge und Spiele (z. B. das
-        <a href="/assets/work/games/morphology/article.html">Morphologie-Werkzeug</a>)
+        <a href="/assets/work/games/morphology/">Morphologie-Werkzeug</a>)
         nicht im Voraus. Stattdessen hinterlegen Sie ein Zahlungsmittel und
         werden monatlich nach tatsächlicher Nutzung abgerechnet. Dadurch bezahlen Sie nur wenige
         Cent pro Monat. Nutzen Sie in einem Monat nichts, wird auch nichts
@@ -1335,13 +1335,19 @@ Auch bei anderen Arbeitsschritten kann KI zum Einsatz kommen. Wo dies der Fall i
       const projects = Array.isArray(ev.projects) ? ev.projects : [];
       const projectLinks = projects.map(id => {
         const item = workItemsBySlug[id];
-        // Fall back to the old flat guess only if the slug isn't in
-        // work-index.json at all — normally contentUrl is the real,
-        // category-aware path (e.g. /assets/work/books/<slug>/article.html),
-        // which the flat guess below never was, and that mismatch is what
-        // made these links 404 (the static host's not-found fallback then
-        // lands back on "/", which looked like "scrolled to top").
-        const href = item?.contentUrl || `/assets/work/${encodeURIComponent(id)}/article.html`;
+        // Not a blank article.html info page: books go to the webshop with
+        // that exact item's modal open (?p=<slug>), tools/games go straight
+        // to the interactive tool itself, everything else (articles/events)
+        // keeps the real contentUrl. Fall back to the old flat guess only
+        // if the slug isn't in work-index.json at all.
+        let href;
+        if (item?.category === "books") {
+          href = `/webpages/webshop/?p=${encodeURIComponent(id)}`;
+        } else if (item?.category === "games") {
+          href = `/assets/work/${encodeURIComponent(item.category)}/${encodeURIComponent(id)}/`;
+        } else {
+          href = item?.contentUrl || `/assets/work/${encodeURIComponent(id)}/article.html`;
+        }
         const label = item?.title || id;
         return `<a href="${href}">${escapeHtml(label)}</a>`;
       }).join(", ");

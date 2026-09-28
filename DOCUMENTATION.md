@@ -2621,14 +2621,68 @@ sollten echte, eigenständige Unterseiten sein, die sowohl von der
   }
   ```
   `works.*` speichert NUR Slugs, nie Titel oder Links — beide Autoren-
-  Seitentypen lösen sie live gegen `work-index.json` (Bücher/Werkzeuge/
-  Artikel, über `contentUrl`) bzw. `assets/shop/products.json` (Merch,
-  verlinkt auf `/webpages/webshop/`) auf. Ein Buchtitel ändert sich
-  künftig nur an einer Stelle, nicht zusätzlich hier.
-- **`photo`** ist bei beiden aktuellen Autoren noch leer (kein Foto
-  erhalten) — beide Seitentypen fallen dann auf `/img/webicon.png`
-  zurück (`onerror`-Handler zusätzlich zum leeren Default, falls ein
-  gesetzter Pfad doch nicht lädt).
+  Seitentypen lösen sie live gegen `work-index.json` bzw.
+  `assets/shop/products.json` auf. Ein Buchtitel ändert sich künftig nur
+  an einer Stelle, nicht zusätzlich hier.
+- **`photo`** zeigt bei beiden aktuellen Autoren auf ein echtes,
+  nachträglich vom Nutzer bereitgestelltes Foto (`assets/author/
+  reznik-p.png`, `assets/author/jung-a.png`). Fehlt ein Foto künftig doch
+  einmal, fallen beide Seitentypen auf `/img/webicon.png` zurück
+  (`onerror`-Handler zusätzlich zum leeren Default, falls ein gesetzter
+  Pfad doch nicht lädt).
+
+**Verlinkung der Werke — nie eine leere `article.html`-Seite.** Explizite
+Nutzerkorrektur: "when clicking at the books or tools etc the person
+should not find a blankpage with info about it" plus, konkret für
+Werkzeuge, "morphologiewerkzeug for reznik should also dont lead to a
+white html page with that info, but to the tool itself". `contentUrl`
+aus `work-index.json` zeigt technisch auf die von `convert_articles.py`
+automatisch generierte, unstyled `article.html` je Werk — genau die soll
+niemand als Klickziel zu sehen bekommen. `assets/autoren-detail.js`
+löst deshalb je nach `works`-Rubrik unterschiedlich auf (drei getrennte
+Link-Funktionen statt einer gemeinsamen):
+  - **Bücher** (`bookLinkHtml`) → `/webpages/webshop/?p=<slug>` (siehe
+    Webshop-Deep-Link unten) — landet direkt im Produkt-Modal des
+    jeweiligen Buchs, kaufbereit.
+  - **Werkzeuge & Spiele** (`toolLinkHtml`) → `/assets/work/<category>/
+    <slug>/` — die echte, interaktive Tool-Seite selbst (z. B. das
+    Morphologie-Werkzeug mit Passwort-Gate), NICHT der Webshop und NICHT
+    die leere `article.html`.
+  - **Merch** (`merchLinkHtml`) → ebenfalls `/webpages/webshop/?p=<id>`.
+  - **Artikel** (`articleLinkHtml`) → unverändert `contentUrl`, da
+    Artikel keine Webshop-/Tool-Entsprechung haben und die generierte
+    Seite hier tatsächlich der richtige Inhalt ist.
+
+Dieselbe Kategorien-Logik (Bücher → Webshop-Deep-Link, Spiele →
+Tool-Ordner, sonst `contentUrl`) wurde außerdem angewendet auf:
+  - den Kalender-Klapppanel-Link in `index.html` (`openPanel()`,
+    `projectLinks`) — verlinkte Projekte eines Kalendertermins.
+  - die automatisch generierten Blogartikel-Stubs in
+    `assets/tools/generate-blog-feed.mjs` (`sourceLinkFor()`) — der
+    "Mehr zum Buch"/"Zum Werkzeug"/"Vollständigen Artikel lesen"-Link am
+    Ende jedes Kurzartikels. Wegen des WRITE-ONCE-PER-SLUG-Verhaltens des
+    Generators (siehe Kopfkommentar der Datei) wurden die bereits
+    bestehenden Posts (`reznik-debater`, `reznik-relationships`,
+    `jung-lichtstrahl`) zusätzlich von Hand nachgezogen, da ein erneuter
+    Lauf ihre `article.html` nicht mehr anfasst.
+  - das Morphologie-Werkzeug selbst: dessen eigene `article.html`
+    verlinkte auf das Buch "Morphologische Geheimnisse…" über dessen
+    (ebenfalls leere) `article.html` — jetzt Webshop-Deep-Link. Und die
+    echte Tool-Seite (`assets/work/games/morphology/index.html`) verlinkte
+    ihr "Zugang anfragen" auf die eigene leere `article.html` (die dort
+    nur den `mailto:`-Link enthielt) — jetzt direkt der `mailto:`-Link,
+    ohne Umweg über eine weitere leere Seite.
+  - die statische Erwähnung des Morphologie-Werkzeugs im
+    "Mitglied werden"-Abschnitt der Startseite (`index.html`).
+
+**Webshop-Deep-Link (`?p=<id>`):** `webpages/webshop/index.html`s
+`init()` liest `new URLSearchParams(location.search).get("p")` und öffnet,
+falls ein Produkt mit dieser `id` existiert, direkt dessen Modal
+(`openProductModal()`). Für Bücher ist die `id` der `work-index.json`-Slug
+(siehe `loadBooksFromWorkIndex()`), für Merch die `id` aus
+`assets/shop/products.json`. Existiert kein passendes Produkt (z. B. ein
+noch nicht veröffentlichtes Buch), öffnet sich einfach kein Modal — kein
+Fehlerfall, die Webshop-Seite lädt normal weiter.
 
 **Architektur der Unterseiten — EIN Skript, nicht pro Autor kopiert.**
 `webpages/autoren/<slug>/index.html` ist für JEDEN Autor eine praktisch

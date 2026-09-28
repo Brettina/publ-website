@@ -2498,6 +2498,16 @@ async function loadMerchProducts() {
       syncCheckoutState();
       syncCartBadge();
 
+      // Deep link: /webpages/webshop/?p=<id> opens that product's modal
+      // straight away — used by the Autoren pages, the homepage calendar,
+      // etc. so clicking a book/merch item lands the visitor somewhere
+      // they can actually buy it, not a bare, unstyled info page.
+      const deepLinkId = new URLSearchParams(location.search).get("p");
+      if (deepLinkId) {
+        const target = products.find(p => p.id === deepLinkId);
+        if (target) openProductModal(target);
+      }
+
     })();
   </script>
 </body>

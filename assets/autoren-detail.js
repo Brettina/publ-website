@@ -45,7 +45,28 @@
     return map;
   }
 
-  function workLinkHtml(slug, workIndexBySlug) {
+  // Books: not a blank article.html page, but the webshop with that exact
+  // book's modal already open (?p=<slug> — webshop's product id IS the
+  // work-index slug for books, see loadBooksFromWorkIndex).
+  function bookLinkHtml(slug, workIndexBySlug) {
+    const item = workIndexBySlug[slug];
+    const title = item?.title || slug;
+    return `<li><a href="/webpages/webshop/?p=${encodeURIComponent(slug)}">${escapeHtml(title)}</a></li>`;
+  }
+
+  // Tools/games: not the webshop and not the blank article.html page, but
+  // the interactive tool itself (its folder's own index.html) — explicit
+  // user correction for the Morphologie-Werkzeug.
+  function toolLinkHtml(slug, workIndexBySlug) {
+    const item = workIndexBySlug[slug];
+    const title = item?.title || slug;
+    const category = item?.category || "games";
+    return `<li><a href="/assets/work/${encodeURIComponent(category)}/${encodeURIComponent(slug)}/">${escapeHtml(title)}</a></li>`;
+  }
+
+  // Articles: no webshop/tool equivalent, so contentUrl (article.html)
+  // stays correct here.
+  function articleLinkHtml(slug, workIndexBySlug) {
     const item = workIndexBySlug[slug];
     const title = item?.title || slug;
     const url = item?.contentUrl || "";
@@ -57,7 +78,7 @@
   function merchLinkHtml(slug, merchById) {
     const item = merchById[slug];
     const title = item?.name || slug;
-    return `<li><a href="/webpages/webshop/">${escapeHtml(title)}</a></li>`;
+    return `<li><a href="/webpages/webshop/?p=${encodeURIComponent(slug)}">${escapeHtml(title)}</a></li>`;
   }
 
   function worksSectionHtml(label, slugs, linkFn) {
@@ -93,10 +114,10 @@
     const website = author.links?.website || "";
 
     const worksHtml = [
-      worksSectionHtml("Bücher", works.books, s => workLinkHtml(s, workIndexBySlug)),
-      worksSectionHtml("Werkzeuge & Spiele", works.tools, s => workLinkHtml(s, workIndexBySlug)),
+      worksSectionHtml("Bücher", works.books, s => bookLinkHtml(s, workIndexBySlug)),
+      worksSectionHtml("Werkzeuge & Spiele", works.tools, s => toolLinkHtml(s, workIndexBySlug)),
       worksSectionHtml("Merch", works.merch, s => merchLinkHtml(s, merchById)),
-      worksSectionHtml("Artikel", works.articles, s => workLinkHtml(s, workIndexBySlug)),
+      worksSectionHtml("Artikel", works.articles, s => articleLinkHtml(s, workIndexBySlug)),
     ].join("");
 
     root.innerHTML = `

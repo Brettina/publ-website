@@ -124,6 +124,22 @@ async function manifestEntryFor(slug, computed) {
   };
 }
 
+// Not a blank article.html info page: books point at the webshop with that
+// exact item's modal open (?p=<slug>), tools/games point straight at the
+// interactive tool itself, everything else (articles/events) keeps the
+// real contentUrl — matches the same routing used by the Autoren pages and
+// the homepage calendar (see assets/autoren-detail.js / index.html).
+function sourceLinkFor(item) {
+  if (!item.contentUrl) return null;
+  if (item.category === "books") {
+    return { url: `/webpages/webshop/?p=${encodeURIComponent(item.slug)}`, label: "Mehr zum Buch" };
+  }
+  if (item.category === "games") {
+    return { url: `/assets/work/${item.category}/${item.slug}/`, label: "Zum Werkzeug" };
+  }
+  return { url: item.contentUrl, label: "Vollständigen Artikel lesen" };
+}
+
 async function buildFromWorkItems(todayStr) {
   const data = await readJson(WORK_INDEX, { items: [] });
   // "hidden" = permanently out regardless of date; a future "published"
@@ -159,9 +175,7 @@ async function buildFromWorkItems(todayStr) {
       const html = articleHtml(
         title,
         [`${label}: ${title}`, excerpt],
-        item.contentUrl
-          ? { url: item.contentUrl, label: item.category === "books" ? "Mehr zum Buch" : "Vollständigen Artikel lesen" }
-          : null
+        sourceLinkFor(item)
       );
 
       await writePost(slug, {
