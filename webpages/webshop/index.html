@@ -822,9 +822,20 @@
             <option value="">Bitte wählen…</option>
             <option value="SEPA-Überweisung">SEPA-Überweisung</option>
             <option value="PayPal/Wise">PayPal / Wise</option>
+            <option value="SumUp (Visa, Mastercard, Maestro, American Express, Apple Pay, Google Pay u. a.)">SumUp (Visa, Mastercard, Maestro, American Express, Apple Pay, Google Pay u. a.)</option>
             <option value="BTC/Solana">BTC / Solana</option>
             <option value="Bar bei Abholung">Bar bei Abholung</option>
           </select>
+        </div>
+
+        <div class="note-block" id="co-sumup-info" style="display:none;">
+          <p class="fineprint" style="margin:0 0 8px;">
+            Sie können direkt per SumUp bezahlen — bitte den <strong>genauen Gesamtbetrag Ihrer Bestellung</strong> dort selbst eingeben (der Link fragt den Betrag ab, er ist nicht vorausgefüllt):
+          </p>
+          <img src="/img/sumup-qr.png" alt="QR-Code für SumUp-Zahlung" style="width:140px; height:140px; display:block; border-radius:8px;" />
+          <p class="fineprint" style="margin:8px 0 0;">
+            <a href="https://pay.sumup.com/b2c/QJO8QOSZ" target="_blank" rel="noopener">pay.sumup.com/b2c/QJO8QOSZ</a>
+          </p>
         </div>
 
         <div class="field">
@@ -908,6 +919,17 @@
     const coCountry = $("#co-country");
     const coPayment = $("#co-payment");
     const coNotes = $("#co-notes");
+    const coSumupInfo = $("#co-sumup-info");
+    const SUMUP_PAY_LINK = "https://pay.sumup.com/b2c/QJO8QOSZ";
+
+    // Purely a display toggle (show/hide the QR/link note) — doesn't touch
+    // the mailto submit logic at all. See DOCUMENTATION.md
+    // "Rechtsstatus des Webshops": a static, reusable payment link shown
+    // as information is safe; nothing here calls out to SumUp or changes
+    // what "E-Mail öffnen" does.
+    coPayment?.addEventListener("change", () => {
+      if (coSumupInfo) coSumupInfo.style.display = coPayment.value.startsWith("SumUp") ? "" : "none";
+    });
 
     // Product modal bindings (MISSING)
     const modalBackdrop = $("#product-modal");
@@ -1899,7 +1921,19 @@ function openProductModal(p, opts = {}) {
         "Notizen:",
         notes || "—",
         "",
-        `Bezahlung: ${payment || "—"}.`,
+        `Bezahlung: ${payment || "—"}.`
+      );
+      // Static, reusable "Offener Betrag" link — just a reference the
+      // customer uses on their own later, same as an IBAN would be. Only
+      // added as text here, nothing calls out to SumUp. See
+      // DOCUMENTATION.md "Rechtsstatus des Webshops".
+      if (payment.startsWith("SumUp")) {
+        bodyLines.push(
+          `SumUp-Zahlung: ${SUMUP_PAY_LINK}`,
+          "(Bitte erst nach meiner Bestätigung des Gesamtbetrags inkl. Versand dort zahlen — der Link fragt den Betrag ab, bitte den bestätigten Gesamtbetrag eingeben.)"
+        );
+      }
+      bodyLines.push(
         "",
         "Summe (ohne Versand):",
         formatEUR(total),

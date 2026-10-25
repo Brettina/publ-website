@@ -500,6 +500,141 @@ liegen. Die Auswahl wird nicht in `localStorage` gespeichert (anders als
 der Warenkorb selbst) — bei einem Seiten-Reload springt sie auf den
 Default (Bierdeckel) zurück, das Cart selbst bleibt aber erhalten.
 
+## Rechtsstatus des Webshops — WICHTIG, vor jeder Zahlungs-Integration prüfen
+
+Der Webshop wickelt bewusst **keine Zahlung auf der Website ab** (siehe
+Hinweistext im Shop-Header: "Es erfolgt keine Bezahlung auf dieser
+Internetseite."). Der Checkout-Dialog öffnet nur einen vorausgefüllten
+`mailto:`-Entwurf ("Bestellung = Anfrage/Reservierung. Ich bestätige per
+Mail."); die Nutzerin verschickt ihn manuell, die Verlegerin bestätigt
+manuell per Mail, und die eigentliche Zahlung (SEPA, PayPal/Wise, SumUp,
+BTC/Solana, bar) läuft danach komplett außerhalb der Website, auf welchem
+Weg auch immer man sich einigt. Das Zahlungs-Dropdown (`#co-payment`) ist
+nur eine im Mailtext mitgeschickte Präferenz, keine Live-Integration.
+
+**Warum das rechtlich wichtig ist:** die "Buttonlösung" (§ 312j BGB) —
+die einen Shop in die strengen E-Commerce-Pflichten zwingt (exakte
+Beschriftung "zahlungspflichtig bestellen" o. ä., Informationspflichten
+nach Art. 246a EGBGB unmittelbar vor diesem Button, automatische
+Sofort-Bestellbestätigung) — gilt nur, wenn der **Bestell-/
+Vertragsschluss-Schritt selbst** über einen automatisierten
+Website-Prozess läuft. Verträge, die durch individuelle Mail-Kommunikation
+zustande kommen (Kundin fragt an → Verlegerin bestätigt separat per Mail),
+sind von der Buttonlösung ausdrücklich ausgenommen — auch wenn allgemeines
+Fernabsatzrecht (inkl. Widerrufsrecht) trotzdem gelten kann und hier schon
+abgedeckt ist (`/regulation/withdrawal/`, `/regulation/privacy/`,
+`/regulation/imprint/`).
+
+**Die tatsächlich entscheidende Unterscheidung** (mit dem Nutzer am
+2026-10-25 anlässlich einer SumUp-Anfrage geklärt): Es geht NICHT darum,
+welcher Zahlungsdienstleister es ist oder wie viel manuellen Aufwand die
+Kundin hat (IBAN abtippen vs. Kartennummer eingeben ist gleich aufwändig).
+Es geht darum, **ob der Website-Code die Zahlung selbst als Teil des
+automatisierten Bestellvorgangs auslöst/orchestriert, oder ob es nur eine
+Ziel-Referenz ist, die die Kundin eigenständig und getrennt vom
+"Absenden"-Button benutzt:**
+
+- Ein Zahlungsart-Name im Dropdown (SEPA, PayPal/Wise, SumUp, BTC) → nur
+  Text im Mailentwurf. Unbedenklich, ändert nichts am "Anfrage"-Status.
+- Ein statischer Zahlungs-Link (z. B. ein SumUp-Pay-by-Link), der
+  automatisch in denselben vorausgefüllten Mailtext eingefügt wird → immer
+  noch nur eine Referenz, die die Kundin später selbst benutzt, genau wie
+  eine IBAN. Weiterhin unbedenklich — nichts ruft live eine Zahlungs-API
+  auf.
+- Ein Button im LIVE-Warenkorb/Checkout, der eine Zahlungs-API (z. B.
+  SumUp Checkout API) aufruft, einen Checkout erzeugt und die Kundin **als
+  Teil des Absendens** zur Zahlung weiterleitet → das wäre ein
+  automatisierter elektronischer Bestellvorgang und würde sehr
+  wahrscheinlich Buttonlösung + volle Informationspflichten-Timing +
+  automatische Bestellbestätigung auslösen — der Shop würde damit
+  rechtlich zu einem "echten" Onlineshop.
+
+**Wie anwenden:** Vor jeder neuen/erweiterten Zahlungs-Funktion prüfen, in
+welche der drei Kategorien sie fällt. Alles, was Text/ein statischer Link
+im bestehenden Mailentwurf bleibt, ist unbedenklich (einfach als neue
+Option ins `#co-payment`-Dropdown aufnehmen, wie die vier bestehenden
+Optionen). Alles, was einen echten API-Call live in den Checkout-Flow
+einbaut, ist eine bewusste Architektur- UND Rechtsstatus-Entscheidung, die
+die Nutzerin explizit treffen muss, nicht etwas, das nebenbei
+mitimplementiert wird. Falls diese Schwelle je überschritten wird: der
+Checkout-Betrag muss serverseitig aus der bereits vorhandenen,
+kanonischen Preislogik berechnet werden (`computeMangelexemplarPreis`/
+`getVariantPrice`/`priceByVariant` in `webpages/webshop/index.html`), nie
+aus einem vom Client mitgeschickten Betrag — sowohl gegen Manipulation als
+auch weil die Buchpreisbindung verlangt, dass exakt der gebundene
+Buchpreis auch tatsächlich abgebucht wird (siehe
+"Buchpreisbindung"-Abschnitt oben).
+
+### Umgesetzt: SumUp als Zahlungsoption (2026-10-25)
+
+Konkrete Anwendung der oben beschriebenen Kategorien — als Fallbeispiel,
+an dem man sich orientieren kann, wenn später eine weitere Zahlungsart
+dazukommt:
+
+- **`#co-payment`-Dropdown** (`webpages/webshop/index.html`): "SumUp
+  (Visa, Mastercard, Maestro, American Express, Apple Pay, Google Pay
+  u. a.)" als fünfte Option, gleichwertig zu den vier bestehenden. Reiner
+  Text, der im Mailtext landet — Kategorie 1.
+- **Statischer, wiederverwendbarer SumUp-"Zahlungslink"** (Typ "Offener
+  Betrag", d. h. die Kundin trägt den Betrag selbst ein; im SumUp-
+  Händlerkonto unter "Zahlungslinks" erstellt, nicht von dieser Website
+  generiert): `https://pay.sumup.com/b2c/QJO8QOSZ`. Als Konstante
+  `SUMUP_PAY_LINK` im Checkout-Skript hinterlegt.
+- **QR-Code** (`img/sumup-qr.png`, vom Nutzer aus dem SumUp-Händlerkonto
+  erzeugt und bereitgestellt) + der Link werden in einem
+  `.note-block#co-sumup-info` im Checkout-Formular angezeigt, **nur ein
+  Sichtbarkeits-Toggle per `change`-Event auf `#co-payment`** (sichtbar,
+  wenn der Wert mit "SumUp" beginnt) — keine Verbindung zur
+  `buildMailtoFromForm()`/`openMailto()`-Logik, kein API-Call. Reine
+  Anzeige einer statischen Information, kategorisch identisch damit, eine
+  IBAN auf der Seite abzudrucken — Kategorie 1, nicht Kategorie 3 (siehe
+  oben), unabhängig davon, dass sie im Checkout-Modal statt nur in der
+  Mail zu sehen ist. Der Anzeigeort ändert die rechtliche Einordnung
+  nicht, nur die Frage "wird die Zahlung vom Website-Code ausgelöst oder
+  nur als Referenz gezeigt" tut das.
+- **`buildMailtoFromForm()`**: wenn `payment` mit "SumUp" beginnt, wird
+  zusätzlich eine Zeile mit dem Link UND einem expliziten Hinweis
+  eingefügt, erst NACH Bestätigung des finalen Gesamtbetrags (inkl.
+  Versand, der in der vorangehenden "Summe (ohne Versand)"-Zeile nicht
+  enthalten ist) zu zahlen — wichtig, weil "Offener Betrag" bedeutet, dass
+  die Kundin den Betrag selbst einträgt und sonst versehentlich zu wenig/
+  zu viel zahlen könnte.
+- **Warum kein API-Key, keine Cloudflare-Function:** bewusst nicht
+  gebaut. Eine echte SumUp-Checkout-API-Integration (dynamisch pro
+  Bestellung einen Checkout erzeugen + im Warenkorb zur Zahlung
+  weiterleiten) würde laut obigem Abschnitt in Kategorie 3 fallen und den
+  Shop zu einem "echten" Onlineshop machen — das war ausdrücklich NICHT
+  gewünscht ("ich bin mir unsicher... ich mag das [aktuelle Modell]").
+
+## Barrierefreiheitsstärkungsgesetz (BFSG) — Übergangsfrist läuft, bis 2030 aktiv angehen
+
+Fund aus dem ersten `.claude/skills/legal-check`-Baseline-Scan
+(2026-10-25, Details siehe `LEGAL_SCAN_LOG.md`): Das BFSG (deutsches
+Gesetz zur digitalen Barrierefreiheit, verbindlich seit 28.06.2025) hat
+eine Kleinstunternehmen-Ausnahme — die gilt aber **nur für
+Dienstleistungen, nicht für Produkte**. Dieser Shop verkauft Bücher/Merch
+als Produkte, nicht nur Dienstleistungen, daher greift die Ausnahme hier
+vermutlich nicht automatisch.
+
+**Warum trotzdem nicht akut:** Für Produkte/Dienstleistungen, die schon
+vor dem 28.06.2025 am Markt waren, gilt eine Übergangsfrist bis 2030.
+Dieses Geschäft bestand bereits vorher, fällt also sehr wahrscheinlich
+unter diese Frist — aktuell kein Compliance-Verstoß, aber ein Datum, auf
+das aktiv hingearbeitet werden muss, nicht eines, das sich von selbst
+erledigt.
+
+**Wie anwenden:** Vor 2030 (früher ist besser) eine gezielte
+Barrierefreiheits-Prüfung einplanen: Alt-Texte auf Bildern (durchwachsen
+— viele `<img>`-Tags auf der Seite haben welche, nicht systematisch
+geprüft), Tastaturbedienbarkeit (Checkout-Modal, Kalender, Login-Gate),
+Farbkontraste (das dunkle Gold-auf-Braun-Theme sollte gegen WCAG-
+Kontrastwerte geprüft werden), Formular-Labels (Checkout-Formular hat
+bereits `<label for=...>` durchgängig, guter Ausgangspunkt). Nicht
+nebenbei in einem anderen Task miterledigen, sondern als eigenständigen
+Scan/Task einplanen, sobald das Datum näherrückt — der `legal-check`-
+Skill sollte das bei jedem künftigen Lauf im Blick behalten, bis es
+erledigt ist.
+
 ## Sprachstil: KEIN Gendern
 
 Ausdrückliche Anweisung des Nutzers, gilt für JEDEN Text auf dieser Website
