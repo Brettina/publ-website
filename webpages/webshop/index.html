@@ -787,6 +787,42 @@
             Bitte Ihr Wunschbild als <strong>Anhang an die E-Mail</strong> anfügen, bevor Sie sie senden — ein Mailto-Link kann keine Datei automatisch mitschicken.
           </p>
 
+          <!-- "Eigenes Cover" als Zugabe zu einem Buch (Weg 2) — eigener,
+               unabhängiger Block, analog zu Farbschnitt/Holzschmuck. -->
+          <div class="field checkbox" id="modal-cover-wrap" style="display:none;">
+            <input id="modal-cover-add" type="checkbox" />
+            <label for="modal-cover-add" id="modal-cover-add-label">Eigenes Cover dazu bestellen</label>
+          </div>
+          <div class="field" id="modal-cover-art-wrap" style="display:none;">
+            <label for="modal-cover-art">Art</label>
+            <select id="modal-cover-art"></select>
+          </div>
+
+          <!-- Eigenständiges "Eigenes Cover"-Produkt (Weg 1) — Maße werden
+               hier angegeben, da nicht an ein bestehendes Buch gebunden. -->
+          <div class="shop-row" id="modal-cover-masse-wrap" style="display:none;">
+            <div class="field">
+              <label for="modal-cover-hoehe">Höhe (cm)</label>
+              <input id="modal-cover-hoehe" type="number" min="1" step="0.1" />
+            </div>
+            <div class="field">
+              <label for="modal-cover-breite">Breite (cm)</label>
+              <input id="modal-cover-breite" type="number" min="1" step="0.1" />
+            </div>
+            <div class="field">
+              <label for="modal-cover-tiefe">Tiefe (cm)</label>
+              <input id="modal-cover-tiefe" type="number" min="1" step="0.1" />
+            </div>
+          </div>
+
+          <!-- Jedes Cover ist ein Unikat nach eigenem Design/eigener
+               Vorstellung — kein optionaler Haken wie bei Holzschmuck,
+               sondern immer relevant, sobald ein Cover bestellt wird
+               (Weg 1 immer, Weg 2 sobald die Checkbox oben an ist). -->
+          <p class="fineprint" id="modal-cover-personalisiert-hinweis" style="display:none;">
+            Jedes Cover ist ein Unikat: Bitte Ihr Design als <strong>Bild-Anhang an die E-Mail</strong> mitschicken, oder Ihre Vorstellung kurz in den Notizen beschreiben.
+          </p>
+
           <div class="modal-actions">
             <span class="fineprint" id="modal-unit"></span>
             <button type="button" class="button" id="modal-add">In Auswahl</button>
@@ -1010,12 +1046,23 @@
     const modalHolzBemalt = $("#modal-holz-bemalt");
     const modalHolzBemaltLabel = $("#modal-holz-bemalt-label");
     const modalHolzPersonalisiertHinweis = $("#modal-holz-personalisiert-hinweis");
+    const modalCoverWrap = $("#modal-cover-wrap");
+    const modalCoverAdd = $("#modal-cover-add");
+    const modalCoverAddLabel = $("#modal-cover-add-label");
+    const modalCoverArtWrap = $("#modal-cover-art-wrap");
+    const modalCoverArt = $("#modal-cover-art");
+    const modalCoverMasseWrap = $("#modal-cover-masse-wrap");
+    const modalCoverHoehe = $("#modal-cover-hoehe");
+    const modalCoverBreite = $("#modal-cover-breite");
+    const modalCoverTiefe = $("#modal-cover-tiefe");
+    const modalCoverPersonalisiertHinweis = $("#modal-cover-personalisiert-hinweis");
 
     let products = [];
     let cart = []; // {id, name, image, variant, qty, unit, pickupRequired}
     let activeProduct = null;
     let farbschnitt = { farben: [], preis: 0 }; // loaded from products.json in init()
     let holzschmuck = { personalisiert: { preis: 0 }, glitzer: { preis: 0 }, bemalt: { preis: 0 } }; // loaded from products.json in init()
+    let coverZugabe = { arten: [], preis: 0, preiseByArt: {} }; // "Eigenes Cover" als Zugabe zu einem Buch — loaded from products.json in init()
 
     function normalize(s) { return (s || "").toString().toLowerCase().trim(); }
     function compare(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
@@ -1500,6 +1547,14 @@
           meta.appendChild(document.createTextNode("•"));
           meta.appendChild(document.createTextNode(holzOptionen.join(", ")));
         }
+        if (it.coverAdd) {
+          meta.appendChild(document.createTextNode("•"));
+          meta.appendChild(document.createTextNode(`Eigenes Cover: ${it.coverArt}`));
+        }
+        if (it.coverHoehe != null || it.coverBreite != null || it.coverTiefe != null) {
+          meta.appendChild(document.createTextNode("•"));
+          meta.appendChild(document.createTextNode(`Maße: ${it.coverHoehe ?? "?"}×${it.coverBreite ?? "?"}×${it.coverTiefe ?? "?"} cm`));
+        }
         if (it.pickupRequired) {
           meta.appendChild(document.createTextNode("•"));
           meta.appendChild(document.createTextNode("Abholung erforderlich"));
@@ -1690,13 +1745,31 @@ function resolveModalSelection(p) {
     (holzGlitzer ? (holzschmuck.glitzer.preis || 0) : 0) +
     (holzBemalt ? (holzschmuck.bemalt.preis || 0) : 0);
 
-  const finalUnitPrice = unitPrice != null ? unitPrice + geschenkAufpreis + holzAufpreis : null;
+  // "Eigenes Cover" — Weg 2 (Zugabe zu einem Buch): eigener,
+  // unabhängiger Block, analog zu Farbschnitt/Holzschmuck. Jedes Cover
+  // ist immer personalisiert (eigenes Design/eigene Vorstellung), kein
+  // zusätzlicher Haken dafür nötig.
+  const coverAdd = isBook && !!modalCoverAdd?.checked;
+  const coverArt = coverAdd ? (modalCoverArt?.value || coverZugabe.arten[0] || "") : "";
+  const coverAufpreis = coverAdd ? (coverZugabe.preiseByArt[coverArt] ?? coverZugabe.preis ?? 0) : 0;
+
+  // "Eigenes Cover" — Weg 1 (eigenständiges Produkt): Maße statt
+  // Zustand/Sprache, da nicht an ein Buch gebunden. Die Art-Auswahl
+  // läuft hier ganz normal über die vorhandene Varianten-Mechanik
+  // (variant/basePrice oben), kein eigener Preis-Code nötig.
+  const isCoverProdukt = p.category === "cover";
+  const coverHoehe = isCoverProdukt ? (toNumber(modalCoverHoehe?.value) ?? null) : null;
+  const coverBreite = isCoverProdukt ? (toNumber(modalCoverBreite?.value) ?? null) : null;
+  const coverTiefe = isCoverProdukt ? (toNumber(modalCoverTiefe?.value) ?? null) : null;
+
+  const finalUnitPrice = unitPrice != null ? unitPrice + geschenkAufpreis + holzAufpreis + coverAufpreis : null;
 
   return {
     isBook, variant, sprache, spracheForCart, zustandOptions, zustandValue, zustandLabel,
     basePrice, unitPrice, usesZustandPreis,
     geschenk, geschenkAufpreis, farbschnittHintergrund, farbschnittSchrift, farbschnittText,
     isHolz, holzPersonalisiert, holzGlitzer, holzBemalt, holzAufpreis,
+    coverAdd, coverArt, coverAufpreis, isCoverProdukt, coverHoehe, coverBreite, coverTiefe,
     finalUnitPrice
   };
 }
@@ -1778,6 +1851,12 @@ function renderModalPriceForVariant(p) {
   }
   if (modalHolzPersonalisiertHinweis) {
     modalHolzPersonalisiertHinweis.style.display = sel.holzPersonalisiert ? "" : "none";
+  }
+  if (modalPrice && sel.coverAdd && sel.coverAufpreis) {
+    modalPrice.innerHTML += ` <span class="fineprint">+ Eigenes Cover (${escapeHtmlAttr(sel.coverArt)}): ${formatEUR(sel.coverAufpreis)} = ${formatEUR(sel.finalUnitPrice)} ${vat}</span>`;
+  }
+  if (modalCoverPersonalisiertHinweis) {
+    modalCoverPersonalisiertHinweis.style.display = (sel.isCoverProdukt || sel.coverAdd) ? "" : "none";
   }
 
   const priceTxt = (sel.finalUnitPrice != null) ? ` · ${formatEUR(sel.finalUnitPrice)} / ${safeUnit(p)}` : "";
@@ -1935,6 +2014,40 @@ function openProductModal(p, opts = {}) {
     if (cb) cb.onchange = () => renderModalPriceForVariant(p);
   });
 
+  // "Eigenes Cover" Weg 2 (Zugabe zu einem Buch) — eigener Reset-Block,
+  // unabhängig von Farbschnitt/Holzschmuck oben.
+  if (modalCoverWrap) modalCoverWrap.style.display = p.category === "books" ? "" : "none";
+  if (modalCoverAdd) modalCoverAdd.checked = false;
+  if (modalCoverArtWrap) modalCoverArtWrap.style.display = "none";
+  if (modalCoverAddLabel) {
+    modalCoverAddLabel.textContent = `Eigenes Cover dazu bestellen (ab +${formatEUR(coverZugabe.preis)})`;
+  }
+  if (modalCoverArt) {
+    modalCoverArt.innerHTML = "";
+    coverZugabe.arten.forEach(art => {
+      const opt = document.createElement("option");
+      opt.value = art;
+      const preis = coverZugabe.preiseByArt[art] ?? coverZugabe.preis;
+      opt.textContent = `${art} (+${formatEUR(preis)})`;
+      modalCoverArt.appendChild(opt);
+    });
+  }
+  if (modalCoverAdd) {
+    modalCoverAdd.onchange = () => {
+      if (modalCoverArtWrap) modalCoverArtWrap.style.display = modalCoverAdd.checked ? "" : "none";
+      renderModalPriceForVariant(p);
+    };
+  }
+  if (modalCoverArt) modalCoverArt.onchange = () => renderModalPriceForVariant(p);
+
+  // "Eigenes Cover" Weg 1 (eigenständiges Produkt) — Maßfelder statt
+  // Zustand/Sprache.
+  if (modalCoverMasseWrap) modalCoverMasseWrap.style.display = p.category === "cover" ? "" : "none";
+  [modalCoverHoehe, modalCoverBreite, modalCoverTiefe].forEach(inp => { if (inp) inp.value = ""; });
+  [modalCoverHoehe, modalCoverBreite, modalCoverTiefe].forEach(inp => {
+    if (inp) inp.onchange = () => renderModalPriceForVariant(p);
+  });
+
   // price must be updated AFTER variants exist / selected. Special case:
   // a "Variante" whose label mentions "Mitglied" (currently just the
   // morphology tool's "Als Mitglied kaufen") isn't a cart item at all —
@@ -1995,7 +2108,9 @@ function openProductModal(p, opts = {}) {
       const existing = cart.find(x => x.id === activeProduct.id && x.variant === sel.variant && (x.zustand || "regulaer") === sel.zustandValue && (x.sprache || null) === sel.spracheForCart
         && !!x.geschenk === sel.geschenk && (x.farbschnittHintergrund || "") === sel.farbschnittHintergrund
         && (x.farbschnittSchrift || "") === sel.farbschnittSchrift && (x.farbschnittText || "") === sel.farbschnittText
-        && !!x.holzPersonalisiert === sel.holzPersonalisiert && !!x.holzGlitzer === sel.holzGlitzer && !!x.holzBemalt === sel.holzBemalt);
+        && !!x.holzPersonalisiert === sel.holzPersonalisiert && !!x.holzGlitzer === sel.holzGlitzer && !!x.holzBemalt === sel.holzBemalt
+        && !!x.coverAdd === sel.coverAdd && (x.coverArt || "") === sel.coverArt
+        && (x.coverHoehe ?? null) === sel.coverHoehe && (x.coverBreite ?? null) === sel.coverBreite && (x.coverTiefe ?? null) === sel.coverTiefe);
       if (existing) {
         existing.qty = Math.min(50, (parseInt(existing.qty, 10) || 0) + qty);
       } else {
@@ -2017,6 +2132,11 @@ function openProductModal(p, opts = {}) {
           holzPersonalisiert: sel.holzPersonalisiert,
           holzGlitzer: sel.holzGlitzer,
           holzBemalt: sel.holzBemalt,
+          coverAdd: sel.coverAdd,
+          coverArt: sel.coverArt,
+          coverHoehe: sel.coverHoehe,
+          coverBreite: sel.coverBreite,
+          coverTiefe: sel.coverTiefe,
           pickupRequired: !!activeProduct.pickupRequired
         });
 
@@ -2169,7 +2289,11 @@ function cartLinesText() {
       : "";
     const holzOptionen = [it.holzPersonalisiert && "Personalisiert (Bild bitte als Anhang mitschicken!)", it.holzGlitzer && "Glitzer", it.holzBemalt && "Acryl-/Wasserfarbe"].filter(Boolean);
     const holz = holzOptionen.length ? ` — Zusatzoptionen: ${holzOptionen.join(", ")}` : "";
-    return `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${zustand}${sprache}${p}${geschenk}${holz}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`;
+    const coverAdd = it.coverAdd ? ` — Eigenes Cover: ${it.coverArt} (Design bitte als Anhang mitschicken oder in den Notizen beschreiben!)` : "";
+    const coverMasse = (it.coverHoehe != null || it.coverBreite != null || it.coverTiefe != null)
+      ? ` — Maße: ${it.coverHoehe ?? "?"}×${it.coverBreite ?? "?"}×${it.coverTiefe ?? "?"} cm`
+      : "";
+    return `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${zustand}${sprache}${p}${geschenk}${holz}${coverAdd}${coverMasse}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`;
   });
 }
 
@@ -2627,6 +2751,18 @@ async function loadMerchProducts() {
         };
       }
     });
+  }
+
+  // "Eigenes Cover" als Zugabe zu einem Buch (Weg 2) — dieselben Arten/
+  // Preise wie beim eigenständigen "eigenes-cover"-Produkt (Weg 1, siehe
+  // dessen "variants"/"pricesByVariant" oben), hier als eigene
+  // Konfiguration, weil das Buch-Modal keine Varianten-Auswahl hat.
+  if (data?.cover) {
+    coverZugabe = {
+      arten: Array.isArray(data.cover.arten) ? data.cover.arten : [],
+      preis: toNumber(data.cover.preis) || 0,
+      preiseByArt: (data.cover.preiseByArt && typeof data.cover.preiseByArt === "object") ? data.cover.preiseByArt : {}
+    };
   }
 
   const salesById = new Map();

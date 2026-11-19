@@ -81,8 +81,8 @@
       "page": "webshop",
       "name": "Lichterhaus (Reh)",
       "description": "Holz-Lichterhaus, Motiv Reh.",
-      "image": "/assets/shop/holz/rehhuette.jpg",
-      "images": ["/assets/shop/holz/rehhuette.jpg"],
+      "image": "/assets/shop/holz/rehhuette.png",
+      "images": ["/assets/shop/holz/rehhuette.png"],
       "status": "verfügbar",
       "variants": ["Standard"],
       "unit": "Stück",
@@ -116,8 +116,38 @@
       "unit": "Stück",
       "price": 10,
       "pickupRequired": false
+    },
+    {
+      "id": "eigenes-cover",
+      "category": "cover",
+      "page": "webshop",
+      "name": "Eigenes Cover",
+      "description": "Individuell gefertigter Bucheinband nach Ihrem eigenen Design oder Ihrer Vorstellung — jedes Cover ist ein Unikat. Textilkunst, Pressblumen, Holz oder eigene Idee; Maße werden bei der Bestellung angegeben.",
+      "image": "/assets/shop/covers/photo_2026-11-19_22-29-44.jpg",
+      "images": [
+        "/assets/shop/covers/photo_2026-11-19_22-29-44.jpg",
+        "/assets/shop/covers/photo_2026-11-03_17-51-33.jpg",
+        "/assets/shop/covers/photo_2026-11-19_22-29-48.png",
+        "/assets/shop/covers/photo_2026-11-19_22-29-49.jpg"
+      ],
+      "status": "verfügbar",
+      "variants": ["Textilkunst", "Blumen", "Holz", "eigene Idee"],
+      "unit": "Stück",
+      "price": 25,
+      "pricesByVariant": {
+        "Textilkunst": 25,
+        "Blumen": 25,
+        "Holz": 25,
+        "eigene Idee": 40
+      },
+      "pickupRequired": false
     }
   ],
+  "cover": {
+    "arten": ["Textilkunst", "Blumen", "Holz", "eigene Idee"],
+    "preis": 25,
+    "preiseByArt": { "eigene Idee": 40 }
+  },
   "farbschnitt": {
     "farben": ["Silber", "Glitzerorange"],
     "preis": 5

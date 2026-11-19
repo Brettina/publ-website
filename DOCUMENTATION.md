@@ -640,6 +640,39 @@ auf ausdrücklichen Nutzerwunsch ("am Farbschnitt nix ändern").
   vortäuschen), sondern ein Hinweistext im Modal UND in der Bestell-Mail:
   Bild bitte manuell als Anhang an die E-Mail anfügen.
 
+### Umgesetzt: "Eigenes Cover" — zwei Bestellwege (2026-11-19)
+
+Jedes Cover ist ein Unikat nach eigenem Design/eigener Vorstellung der
+Kundin — anders als Holzschmuck gibt es hier **keinen optionalen Haken
+dafür**, Personalisierung ist immer Teil des Produkts. Zwei Bestellwege,
+beide nutzen dieselben Art-/Preisangaben, aber über zwei unabhängige
+Mechanismen:
+
+- **Weg 1 — eigenständiges Produkt** (`id: "eigenes-cover"`,
+  `category: "cover"` im `products`-Array): Art-Auswahl (Textilkunst/
+  Blumen/Holz/eigene Idee) läuft über die **schon vorhandene** `variants`/
+  `pricesByVariant`-Mechanik (wie bei Socken) — kein neuer Preis-Code
+  nötig. Einzig neu: drei Zahlenfelder Höhe/Breite/Tiefe (cm), weil das
+  Cover an kein bestehendes Buch gebunden ist. Mehrere Bilder in
+  `images` (Textilkunst + Blumen bisher, Holz fehlt noch — Nutzerin
+  reicht das später nach und erweitert die Liste bei Bedarf selbst).
+- **Weg 2 — Zugabe zu einem Buch** (`category === "books"`): eigene
+  Checkbox "Eigenes Cover dazu bestellen", analog zu Farbschnitt/
+  Holzschmuck (eigener, unabhängiger Code-Block). Blendet ein Dropdown
+  "Art" ein, Preis kommt aus dem globalen `cover`-Schlüssel in
+  `products.json`. Keine eigenen Maßfelder — die kennt man vom Buch.
+- **`products.json`**: `"cover": { "arten": [...], "preis": 25,
+  "preiseByArt": { "eigene Idee": 40 } }` — gleiches Preis-Ausnahme-Muster
+  wie bei Socken (`price` + Ausnahme-Map), nicht neu erfunden. Die
+  Ausnahme "eigene Idee" kostet 40 € statt 25 €, weil es die aufwändigste
+  Art ist.
+- Hinweistext zum manuellen Bild-Anhang/zur Beschreibung in den Notizen
+  erscheint bei Weg 1 immer, bei Weg 2 sobald die Checkbox an ist —
+  gleiche `mailto:`-Einschränkung wie bei Holzschmuck.
+- Per echtem Codelauf geprüft: Weg 1 "eigene Idee" + Maße 20×15×3 cm →
+  40,00 €; Weg 2 Buch (8 €) + Cover "Holz" (25 €) → 33,00 €, beides
+  korrekt im Warenkorb, der Preisanzeige und im Bestelltext.
+
 ## Barrierefreiheitsstärkungsgesetz (BFSG) — Übergangsfrist läuft, bis 2030 aktiv angehen
 
 Fund aus dem ersten `.claude/skills/legal-check`-Baseline-Scan
