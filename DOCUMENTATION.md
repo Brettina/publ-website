@@ -1803,6 +1803,26 @@ referenziert (u. a. `p`, `.fineprint`).
 
 ## Gefundene und behobene Bugs (mit Ursache, damit sie nicht wiederkommen)
 
+- **BuchBerlin doppelt im Homepage-Karussell (2026-11-19)**: Ich hatte
+  den Besuch der BuchBerlin-Messe als eigenen, handgeschriebenen Artikel
+  unter `assets/work/articles/buch-berlin/` angelegt — es gab aber
+  bereits einen (bis dahin leeren) Kalendereintrag `"Berliner
+  Buchmesse"` am selben Datum in `calendar-index.json`. Beides erzeugt
+  unabhängig voneinander einen Eintrag im Homepage-Karussell
+  (`loadWorkItems()` für den Artikel, `loadMostRecentPastEvent()` für den
+  Kalendereintrag) — derselbe reale Messebesuch tauchte also zweimal auf.
+  **Lehre:** Ein Messe-/Veranstaltungsbesuch, den die Verlegerin selbst
+  besucht hat, gehört als **Kalendereintrag** (`assets/calendar/
+  calendar-index.json`, mit gutem `note`-Text + `photos`) modelliert,
+  NICHT als eigenständiger `assets/work/articles/`-Artikel — Letzteres
+  ist für unabhängige Kommentar-/Recherche-Stücke reserviert (siehe
+  "romane-machen-klueger" als Beispiel). Der Kalendereintrag erzeugt
+  über `buildFromCalendar()` automatisch einen Blog-Recap, sobald das
+  Datum in der Vergangenheit liegt — kein zusätzlicher Artikel nötig.
+  Behoben: Artikel-Ordner gelöscht, stattdessen den bestehenden
+  Kalendereintrag (umbenannt zu "BuchBerlin", echter Text + Foto unter
+  `img/kalender/2026-10-31/`) befüllt, `work-index.json`/
+  `blog-index.json` neu generiert.
 - **Homepage-Galerie/Modal zeigte `updated` statt `published` als Datum**:
   Drei Stellen in `index.html` (Bildunterschrift unter dem mittleren
   Karussell-Bild, sowie zweimal im Artikel-Modal) priorisierten

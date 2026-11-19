@@ -41,12 +41,12 @@
     },
     {
       "date": "2026-10-31",
-      "title": "Berliner Buchmesse",
-      "tags": ["publishing", "fair"],
-      "where": "Berlin",
+      "title": "BuchBerlin",
+      "tags": ["publishing", "fair", "farbschnitt"],
+      "where": "Arena Berlin, Alt-Treptow",
       "projects": ["reznik-debater", "reznik-relationships", "jung-lichtstrahl"],
-      "note": ".",
-      "photos": []
+      "note": "Rund 300 unabhängige Verlage und Autorinnen und Autoren waren vor Ort, dazu etwa 80 Lesungen übers Wochenende. Wir haben dort zum ersten Mal personalisierten Farbschnitt angeboten — individuelle Farbe plus eingeprägter Text auf dem Buchschnitt — und hatten viele gute Gespräche, mit Lesenden ebenso wie mit anderen Verlagen. Personalisierten Farbschnitt gibt es seitdem auch im Webshop.",
+      "photos": ["/img/kalender/2026-10-31/IMG_20261101_153017.jpg"]
     }
   ]
 }

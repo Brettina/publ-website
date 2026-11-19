@@ -1,12 +1,13 @@
 {
-  "title": "Berliner Buchmesse",
+  "title": "BuchBerlin",
   "published": "2026-10-31",
   "updated": "2026-10-31",
   "tags": [
     "publishing",
-    "fair"
+    "fair",
+    "farbschnitt"
   ],
-  "excerpt": ".",
+  "excerpt": "Rund 300 unabhängige Verlage und Autorinnen und Autoren waren vor Ort, dazu etwa 80 Lesungen übers Wochenende. Wir haben dort zum ersten Mal personalisierten Farbschnitt angeboten — individuelle Farbe plus eingeprägter Text auf dem Buchschnitt — und hatten viele gute Gespräche, mit Lesenden ebenso wie mit anderen Verlagen. Personalisierten Farbschnitt gibt es seitdem auch im Webshop.",
   "sourceCategory": "calendar",
   "calendarDate": "2026-10-31"
 }

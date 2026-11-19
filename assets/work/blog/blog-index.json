@@ -1,31 +1,17 @@
 {
-  "generatedAt": "2026-11-19T20:17:12.348Z",
+  "generatedAt": "2026-11-19T20:28:20.871Z",
   "items": [
     {
-      "slug": "buch-berlin",
-      "title": "BuchBerlin 2026: Erstmals personalisierter Farbschnitt im Gepäck",
-      "date": "2026-11-02",
-      "excerpt": "Rückblick auf die BuchBerlin 2026: rund 300 unabhängige Verlage, dazu bei uns zum ersten Mal personalisierter Farbschnitt und viele gute Gespräche.",
+      "slug": "termin-2026-10-31",
+      "title": "BuchBerlin",
+      "date": "2026-10-31",
+      "excerpt": "Rund 300 unabhängige Verlage und Autorinnen und Autoren waren vor Ort, dazu etwa 80 Lesungen übers Wochenende. Wir haben dort zum ersten Mal personalisierten Farbschnitt angeboten — individuelle Farbe plus eingeprägter Text auf dem Buchschnitt — und hatten viele gute Gespräche, mit Lesenden ebenso wie mit anderen Verlagen. Personalisierten Farbschnitt gibt es seitdem auch im Webshop.",
       "tags": [
-        "fair",
         "publishing",
+        "fair",
         "farbschnitt"
       ],
-      "cover": "/assets/work/articles/buch-berlin/IMG_20261101_153017.jpg",
-      "contentUrl": "/assets/work/blog/buch-berlin/article.html",
-      "sourceUrl": "/assets/work/articles/buch-berlin/article.html",
-      "sourceCategory": "articles"
-    },
-    {
-      "slug": "termin-2026-10-31",
-      "title": "Berliner Buchmesse",
-      "date": "2026-10-31",
-      "excerpt": ".",
-      "tags": [
-        "publishing",
-        "fair"
-      ],
-      "cover": "",
+      "cover": "/img/kalender/2026-10-31/IMG_20261101_153017.jpg",
       "contentUrl": "/assets/work/blog/termin-2026-10-31/article.html",
       "sourceUrl": "",
       "sourceCategory": "calendar",
