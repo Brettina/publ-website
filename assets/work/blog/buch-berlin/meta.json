@@ -1,13 +1,10 @@
 {
+  "id": "buch-berlin",
   "title": "BuchBerlin 2026: Erstmals personalisierter Farbschnitt im Gepäck",
   "published": "2026-11-02",
   "updated": "2026-11-02",
-  "tags": [
-    "fair",
-    "publishing",
-    "farbschnitt"
-  ],
-  "excerpt": "Rückblick auf die BuchBerlin 2026: rund 300 unabhängige Verlage, dazu bei uns zum ersten Mal personalisierter Farbschnitt und viele gute Gespräche.",
-  "sourceCategory": "articles",
-  "sourceUrl": "/assets/work/articles/buch-berlin/article.html"
+  "available": "nein",
+  "cover": "/assets/work/articles/buch-berlin/IMG_20261101_153017.jpg",
+  "tags": ["fair", "publishing", "farbschnitt"],
+  "excerpt": "Rückblick auf die BuchBerlin 2026: rund 300 unabhängige Verlage, dazu bei uns zum ersten Mal personalisierter Farbschnitt und viele gute Gespräche."
 }
