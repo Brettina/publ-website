@@ -6,7 +6,7 @@
   <title>Laden - Publish-Lohr</title>
 
   <meta name="description" content="Laden. Anfrage per E-Mail." />
-  <link rel="stylesheet" href="/assets/styles.css?v=4" />
+  <link rel="stylesheet" href="/assets/styles.css?v=5" />
   <link rel="icon" href="/img/webicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="/img/webicon.png" />
   <meta name="color-scheme" content="light dark" />
@@ -746,6 +746,47 @@
 
           <p class="fineprint" id="modal-zustand-info" style="margin:0; display:none;"></p>
 
+          <div class="field checkbox" id="modal-geschenk-wrap" style="display:none;">
+            <input id="modal-geschenk" type="checkbox" />
+            <label for="modal-geschenk" id="modal-geschenk-label">Als Geschenk verpacken</label>
+          </div>
+          <div class="shop-row" id="modal-geschenk-fields" style="display:none;">
+            <div class="field">
+              <label for="modal-farbschnitt-hintergrund">Hintergrundfarbe</label>
+              <select id="modal-farbschnitt-hintergrund"></select>
+            </div>
+            <div class="field">
+              <label for="modal-farbschnitt-schrift">Schriftfarbe</label>
+              <select id="modal-farbschnitt-schrift"></select>
+            </div>
+            <div class="field">
+              <label for="modal-farbschnitt-text">Personalisierter Text (max. 100 Zeichen)</label>
+              <input id="modal-farbschnitt-text" type="text" maxlength="100" placeholder="z. B. Für Helmut, Okt. 2026" />
+            </div>
+          </div>
+
+          <!-- Holzschmuck-Zusatzoptionen — eigener Block, unabhängig von
+               Farbschnitt oben (auf ausdrücklichen Wunsch nicht in ein
+               gemeinsames System zusammengelegt). Drei frei kombinierbare
+               Haken statt einer Varianten-Auswahl. -->
+          <div class="shop-row" id="modal-holz-wrap" style="display:none;">
+            <div class="field checkbox">
+              <input id="modal-holz-personalisiert" type="checkbox" />
+              <label for="modal-holz-personalisiert" id="modal-holz-personalisiert-label">Personalisiert</label>
+            </div>
+            <div class="field checkbox">
+              <input id="modal-holz-glitzer" type="checkbox" />
+              <label for="modal-holz-glitzer" id="modal-holz-glitzer-label">Mit Glitzer verziert</label>
+            </div>
+            <div class="field checkbox">
+              <input id="modal-holz-bemalt" type="checkbox" />
+              <label for="modal-holz-bemalt" id="modal-holz-bemalt-label">Mit Acryl-/Wasserfarbe bemalt</label>
+            </div>
+          </div>
+          <p class="fineprint" id="modal-holz-personalisiert-hinweis" style="display:none;">
+            Bitte Ihr Wunschbild als <strong>Anhang an die E-Mail</strong> anfügen, bevor Sie sie senden — ein Mailto-Link kann keine Datei automatisch mitschicken.
+          </p>
+
           <div class="modal-actions">
             <span class="fineprint" id="modal-unit"></span>
             <button type="button" class="button" id="modal-add">In Auswahl</button>
@@ -954,10 +995,27 @@
     const modalZustand = $("#modal-zustand");
     const modalZustandInfo = $("#modal-zustand-info");
     const modalReturn = $("#modal-return");
+    const modalGeschenkWrap = $("#modal-geschenk-wrap");
+    const modalGeschenk = $("#modal-geschenk");
+    const modalGeschenkLabel = $("#modal-geschenk-label");
+    const modalGeschenkFields = $("#modal-geschenk-fields");
+    const modalFarbschnittHintergrund = $("#modal-farbschnitt-hintergrund");
+    const modalFarbschnittSchrift = $("#modal-farbschnitt-schrift");
+    const modalFarbschnittText = $("#modal-farbschnitt-text");
+    const modalHolzWrap = $("#modal-holz-wrap");
+    const modalHolzPersonalisiert = $("#modal-holz-personalisiert");
+    const modalHolzPersonalisiertLabel = $("#modal-holz-personalisiert-label");
+    const modalHolzGlitzer = $("#modal-holz-glitzer");
+    const modalHolzGlitzerLabel = $("#modal-holz-glitzer-label");
+    const modalHolzBemalt = $("#modal-holz-bemalt");
+    const modalHolzBemaltLabel = $("#modal-holz-bemalt-label");
+    const modalHolzPersonalisiertHinweis = $("#modal-holz-personalisiert-hinweis");
 
     let products = [];
     let cart = []; // {id, name, image, variant, qty, unit, pickupRequired}
     let activeProduct = null;
+    let farbschnitt = { farben: [], preis: 0 }; // loaded from products.json in init()
+    let holzschmuck = { personalisiert: { preis: 0 }, glitzer: { preis: 0 }, bemalt: { preis: 0 } }; // loaded from products.json in init()
 
     function normalize(s) { return (s || "").toString().toLowerCase().trim(); }
     function compare(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
@@ -1433,6 +1491,15 @@
           meta.appendChild(document.createTextNode("•"));
           meta.appendChild(document.createTextNode(it.zustandLabel));
         }
+        if (it.geschenk) {
+          meta.appendChild(document.createTextNode("•"));
+          meta.appendChild(document.createTextNode(`Geschenk: ${it.farbschnittHintergrund}/${it.farbschnittSchrift}, „${it.farbschnittText || "—"}“`));
+        }
+        if (it.holzPersonalisiert || it.holzGlitzer || it.holzBemalt) {
+          const holzOptionen = [it.holzPersonalisiert && "Personalisiert", it.holzGlitzer && "Glitzer", it.holzBemalt && "Acryl-/Wasserfarbe"].filter(Boolean);
+          meta.appendChild(document.createTextNode("•"));
+          meta.appendChild(document.createTextNode(holzOptionen.join(", ")));
+        }
         if (it.pickupRequired) {
           meta.appendChild(document.createTextNode("•"));
           meta.appendChild(document.createTextNode("Abholung erforderlich"));
@@ -1600,7 +1667,38 @@ function resolveModalSelection(p) {
     zustandValue === "werkstatt" ? "Werkstattexemplar" :
     zustandValue.startsWith("gebraucht") ? "Gebraucht" : "";
 
-  return { isBook, variant, sprache, spracheForCart, zustandOptions, zustandValue, zustandLabel, basePrice, unitPrice, usesZustandPreis };
+  // Geschenkverpackung (Farbschnitt + Personalisierung) — Aufpreis, gilt
+  // für Bücher in JEDEM Zustand (Neu/Werkstatt/Gebraucht), explizit so
+  // gewünscht. Eigenes additives Feld statt in unitPrice/sale verwoben,
+  // damit die Sale-Badge-Logik unten unberührt bleibt (ein Aufpreis ist
+  // kein Rabatt).
+  const geschenk = isBook && !!modalGeschenk?.checked;
+  const geschenkAufpreis = geschenk ? (farbschnitt.preis || 0) : 0;
+  const farbschnittHintergrund = geschenk ? (modalFarbschnittHintergrund?.value || "") : "";
+  const farbschnittSchrift = geschenk ? (modalFarbschnittSchrift?.value || "") : "";
+  const farbschnittText = geschenk ? (modalFarbschnittText?.value || "").trim().slice(0, 100) : "";
+
+  // Holzschmuck-Zusatzoptionen — eigener, unabhängiger Block (siehe
+  // Kommentar oben am HTML-Markup: bewusst nicht mit Farbschnitt
+  // zusammengelegt). Drei frei kombinierbare Aufpreise.
+  const isHolz = p.category === "holz";
+  const holzPersonalisiert = isHolz && !!modalHolzPersonalisiert?.checked;
+  const holzGlitzer = isHolz && !!modalHolzGlitzer?.checked;
+  const holzBemalt = isHolz && !!modalHolzBemalt?.checked;
+  const holzAufpreis =
+    (holzPersonalisiert ? (holzschmuck.personalisiert.preis || 0) : 0) +
+    (holzGlitzer ? (holzschmuck.glitzer.preis || 0) : 0) +
+    (holzBemalt ? (holzschmuck.bemalt.preis || 0) : 0);
+
+  const finalUnitPrice = unitPrice != null ? unitPrice + geschenkAufpreis + holzAufpreis : null;
+
+  return {
+    isBook, variant, sprache, spracheForCart, zustandOptions, zustandValue, zustandLabel,
+    basePrice, unitPrice, usesZustandPreis,
+    geschenk, geschenkAufpreis, farbschnittHintergrund, farbschnittSchrift, farbschnittText,
+    isHolz, holzPersonalisiert, holzGlitzer, holzBemalt, holzAufpreis,
+    finalUnitPrice
+  };
 }
 
 function renderModalPriceForVariant(p) {
@@ -1672,7 +1770,17 @@ function renderModalPriceForVariant(p) {
     }
   }
 
-  const priceTxt = (sel.unitPrice != null) ? ` · ${formatEUR(sel.unitPrice)} / ${safeUnit(p)}` : "";
+  if (modalPrice && sel.geschenk && sel.geschenkAufpreis) {
+    modalPrice.innerHTML += ` <span class="fineprint">+ Geschenkverpackung: ${formatEUR(sel.geschenkAufpreis)} = ${formatEUR(sel.finalUnitPrice)} ${vat}</span>`;
+  }
+  if (modalPrice && sel.isHolz && sel.holzAufpreis) {
+    modalPrice.innerHTML += ` <span class="fineprint">+ Zusatzoptionen: ${formatEUR(sel.holzAufpreis)} = ${formatEUR(sel.finalUnitPrice)} ${vat}</span>`;
+  }
+  if (modalHolzPersonalisiertHinweis) {
+    modalHolzPersonalisiertHinweis.style.display = sel.holzPersonalisiert ? "" : "none";
+  }
+
+  const priceTxt = (sel.finalUnitPrice != null) ? ` · ${formatEUR(sel.finalUnitPrice)} / ${safeUnit(p)}` : "";
   modalUnit.textContent = `Einheit: ${safeUnit(p)}${priceTxt}`;
 }
 
@@ -1783,6 +1891,50 @@ function openProductModal(p, opts = {}) {
     modalReturn.onclick = () => openReturnMailto(p);
   }
 
+  // Geschenkverpackung (Farbschnitt + Personalisierung) — Bücher only,
+  // jeder Zustand. Reset bei jedem Öffnen, damit ein vorheriges Produkt
+  // die Auswahl nicht in ein anderes Produkt durchreicht.
+  if (modalGeschenkWrap) {
+    modalGeschenkWrap.style.display = p.category === "books" ? "" : "none";
+  }
+  if (modalGeschenk) modalGeschenk.checked = false;
+  if (modalGeschenkFields) modalGeschenkFields.style.display = "none";
+  if (modalFarbschnittText) modalFarbschnittText.value = "";
+  if (modalGeschenkLabel) {
+    modalGeschenkLabel.textContent = `Als Geschenk verpacken (Farbschnitt + Personalisierung, +${formatEUR(farbschnitt.preis)})`;
+  }
+  [modalFarbschnittHintergrund, modalFarbschnittSchrift].forEach(sel => {
+    if (!sel) return;
+    sel.innerHTML = "";
+    farbschnitt.farben.forEach(f => {
+      const opt = document.createElement("option");
+      opt.value = f;
+      opt.textContent = f;
+      sel.appendChild(opt);
+    });
+  });
+  if (modalGeschenk) {
+    modalGeschenk.onchange = () => {
+      if (modalGeschenkFields) modalGeschenkFields.style.display = modalGeschenk.checked ? "" : "none";
+      renderModalPriceForVariant(p);
+    };
+  }
+  [modalFarbschnittHintergrund, modalFarbschnittSchrift].forEach(sel => {
+    if (sel) sel.onchange = () => renderModalPriceForVariant(p);
+  });
+
+  // Holzschmuck-Zusatzoptionen — eigener Reset-Block, unabhängig von
+  // Farbschnitt oben. Drei Checkboxen, keine Dropdowns.
+  if (modalHolzWrap) modalHolzWrap.style.display = p.category === "holz" ? "" : "none";
+  [modalHolzPersonalisiert, modalHolzGlitzer, modalHolzBemalt].forEach(cb => { if (cb) cb.checked = false; });
+  if (modalHolzPersonalisiertHinweis) modalHolzPersonalisiertHinweis.style.display = "none";
+  if (modalHolzPersonalisiertLabel) modalHolzPersonalisiertLabel.textContent = `${holzschmuck.personalisiert.label || "Personalisiert"} (+${formatEUR(holzschmuck.personalisiert.preis)})`;
+  if (modalHolzGlitzerLabel) modalHolzGlitzerLabel.textContent = `${holzschmuck.glitzer.label || "Mit Glitzer verziert"} (+${formatEUR(holzschmuck.glitzer.preis)})`;
+  if (modalHolzBemaltLabel) modalHolzBemaltLabel.textContent = `${holzschmuck.bemalt.label || "Mit Acryl-/Wasserfarbe bemalt"} (+${formatEUR(holzschmuck.bemalt.preis)})`;
+  [modalHolzPersonalisiert, modalHolzGlitzer, modalHolzBemalt].forEach(cb => {
+    if (cb) cb.onchange = () => renderModalPriceForVariant(p);
+  });
+
   // price must be updated AFTER variants exist / selected. Special case:
   // a "Variante" whose label mentions "Mitglied" (currently just the
   // morphology tool's "Als Mitglied kaufen") isn't a cart item at all —
@@ -1840,7 +1992,10 @@ function openProductModal(p, opts = {}) {
       // to cart" can never disagree with what was shown on screen.
       const sel = resolveModalSelection(activeProduct);
 
-      const existing = cart.find(x => x.id === activeProduct.id && x.variant === sel.variant && (x.zustand || "regulaer") === sel.zustandValue && (x.sprache || null) === sel.spracheForCart);
+      const existing = cart.find(x => x.id === activeProduct.id && x.variant === sel.variant && (x.zustand || "regulaer") === sel.zustandValue && (x.sprache || null) === sel.spracheForCart
+        && !!x.geschenk === sel.geschenk && (x.farbschnittHintergrund || "") === sel.farbschnittHintergrund
+        && (x.farbschnittSchrift || "") === sel.farbschnittSchrift && (x.farbschnittText || "") === sel.farbschnittText
+        && !!x.holzPersonalisiert === sel.holzPersonalisiert && !!x.holzGlitzer === sel.holzGlitzer && !!x.holzBemalt === sel.holzBemalt);
       if (existing) {
         existing.qty = Math.min(50, (parseInt(existing.qty, 10) || 0) + qty);
       } else {
@@ -1851,10 +2006,17 @@ function openProductModal(p, opts = {}) {
           variant: sel.variant,
           qty,
           unit: safeUnit(activeProduct),
-          unitPrice: sel.unitPrice,
+          unitPrice: sel.finalUnitPrice,
           zustand: sel.zustandValue,
           zustandLabel: sel.zustandLabel,
           sprache: sel.spracheForCart,
+          geschenk: sel.geschenk,
+          farbschnittHintergrund: sel.farbschnittHintergrund,
+          farbschnittSchrift: sel.farbschnittSchrift,
+          farbschnittText: sel.farbschnittText,
+          holzPersonalisiert: sel.holzPersonalisiert,
+          holzGlitzer: sel.holzGlitzer,
+          holzBemalt: sel.holzBemalt,
           pickupRequired: !!activeProduct.pickupRequired
         });
 
@@ -2002,7 +2164,12 @@ function cartLinesText() {
     const p = typeof it.unitPrice === "number" ? ` — ${formatEUR(it.unitPrice)}` : "";
     const zustand = it.zustandLabel ? ` (${it.zustandLabel})` : "";
     const sprache = it.sprache ? ` — Sprache: ${it.sprache}` : "";
-    return `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${zustand}${sprache}${p}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`;
+    const geschenk = it.geschenk
+      ? ` — Geschenkverpackung: Farbschnitt Hintergrund ${it.farbschnittHintergrund}, Schrift ${it.farbschnittSchrift}, Text „${it.farbschnittText || "—"}“`
+      : "";
+    const holzOptionen = [it.holzPersonalisiert && "Personalisiert (Bild bitte als Anhang mitschicken!)", it.holzGlitzer && "Glitzer", it.holzBemalt && "Acryl-/Wasserfarbe"].filter(Boolean);
+    const holz = holzOptionen.length ? ` — Zusatzoptionen: ${holzOptionen.join(", ")}` : "";
+    return `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${zustand}${sprache}${p}${geschenk}${holz}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`;
   });
 }
 
@@ -2437,6 +2604,31 @@ async function loadMerchProducts() {
 
   const items = Array.isArray(data?.products) ? data.products : [];
 
+  // Farbschnitt (Geschenkoption) ist kein eigenes Produkt, sondern eine
+  // globale Konfiguration (Farben + ein Aufpreis) für alle Bücher — lebt
+  // deshalb als eigener Top-Level-Schlüssel in products.json, nicht
+  // dupliziert pro Buch. Gleicher Fetch, kein zweiter Request.
+  if (data?.farbschnitt) {
+    farbschnitt = {
+      farben: Array.isArray(data.farbschnitt.farben) ? data.farbschnitt.farben : [],
+      preis: toNumber(data.farbschnitt.preis) || 0
+    };
+  }
+
+  // Holzschmuck-Zusatzoptionen — eigene, unabhängige Konfiguration (NICHT
+  // dieselbe wie Farbschnitt, auf ausdrücklichen Wunsch getrennt gehalten),
+  // drei unabhängig wählbare Aufpreise statt einer Varianten-Auswahl.
+  if (data?.holzschmuck) {
+    ["personalisiert", "glitzer", "bemalt"].forEach(key => {
+      if (data.holzschmuck[key]) {
+        holzschmuck[key] = {
+          preis: toNumber(data.holzschmuck[key].preis) || 0,
+          label: String(data.holzschmuck[key].label || "")
+        };
+      }
+    });
+  }
+
   const salesById = new Map();
   (Array.isArray(data?.sales) ? data.sales : []).forEach(s => {
     if (s && s.id) salesById.set(String(s.id), s);
@@ -2461,7 +2653,7 @@ async function loadMerchProducts() {
         : null;
       return {
       id: p.id,
-      category: "merch",
+      category: p.category || "merch",
       name: p.name || p.id,
       description: p.description || "",
       longDescription: p.description || "",

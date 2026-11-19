@@ -3,34 +3,12 @@
     {
       "type": "work",
       "category": "articles",
-      "slug": "romane-machen-klueger",
-      "title": "Warum Romane uns klüger machen könnten als Sachbücher",
-      "published": "2026-09-22",
-      "updated": "2026-09-22",
-      "eigenanteil": "",
-      "hidden": false,
-      "tags": [
-        "psychology",
-        "reading",
-        "article"
-      ],
-      "excerpt": "Ein Psychologe empfiehlt in einem aktuellen Video Romane statt Sachbücher zum Abschalten. Was die Forschung zu Belletristik, Empathie und Wortschatz tatsächlich zeigt.",
-      "description": "",
-      "images": [
-        "/assets/work/articles/romane-machen-klueger/read.png"
-      ],
-      "cover": "/assets/work/articles/romane-machen-klueger/read.png",
-      "contentUrl": "/assets/work/articles/romane-machen-klueger/article.html",
-      "metaUrl": "/assets/work/articles/romane-machen-klueger/meta.json"
-    },
-    {
-      "type": "work",
-      "category": "articles",
       "slug": "400000",
       "title": "400.000",
       "published": "2023-03-30",
       "updated": "2023-03-30",
       "eigenanteil": "",
+      "hidden": false,
       "tags": [
         "politics",
         "article"
@@ -47,11 +25,35 @@
     {
       "type": "work",
       "category": "articles",
+      "slug": "buch-berlin",
+      "title": "BuchBerlin 2026: Erstmals personalisierter Farbschnitt im Gepäck",
+      "published": "2026-11-02",
+      "updated": "2026-11-02",
+      "eigenanteil": "",
+      "hidden": false,
+      "tags": [
+        "fair",
+        "publishing",
+        "farbschnitt"
+      ],
+      "excerpt": "Rückblick auf die BuchBerlin 2026: rund 300 unabhängige Verlage, dazu bei uns zum ersten Mal personalisierter Farbschnitt und viele gute Gespräche.",
+      "description": "",
+      "images": [
+        "/assets/work/articles/buch-berlin/IMG_20261101_153017.jpg"
+      ],
+      "cover": "/assets/work/articles/buch-berlin/IMG_20261101_153017.jpg",
+      "contentUrl": "/assets/work/articles/buch-berlin/article.html",
+      "metaUrl": "/assets/work/articles/buch-berlin/meta.json"
+    },
+    {
+      "type": "work",
+      "category": "articles",
       "slug": "ef-konferenz-2026",
       "title": "Der Samstag Vormittag der EF-Konferenz",
       "published": "2026-01-19",
       "updated": "2026-01-19",
       "eigenanteil": "",
+      "hidden": false,
       "tags": [
         "politics",
         "libertarian",
@@ -74,6 +76,7 @@
       "published": "2026-01-19",
       "updated": "2026-01-19",
       "eigenanteil": "",
+      "hidden": false,
       "tags": [
         "politics",
         "libertarian",
@@ -94,6 +97,7 @@
       "published": "2023-02-18",
       "updated": "2023-02-18",
       "eigenanteil": "",
+      "hidden": false,
       "tags": [
         "politics",
         "article"
@@ -110,19 +114,43 @@
     },
     {
       "type": "work",
+      "category": "articles",
+      "slug": "romane-machen-klueger",
+      "title": "Warum Romane uns klüger machen könnten als Sachbücher",
+      "published": "2026-09-22",
+      "updated": "2026-09-22",
+      "eigenanteil": "",
+      "hidden": false,
+      "tags": [
+        "psychology",
+        "reading",
+        "article"
+      ],
+      "excerpt": "Ein Psychologe empfiehlt in einem aktuellen Video Romane statt Sachbücher zum Abschalten. Was die Forschung zu Belletristik, Empathie und Wortschatz tatsächlich zeigt.",
+      "description": "",
+      "images": [
+        "/assets/work/articles/romane-machen-klueger/read.png"
+      ],
+      "cover": "/assets/work/articles/romane-machen-klueger/read.png",
+      "contentUrl": "/assets/work/articles/romane-machen-klueger/article.html",
+      "metaUrl": "/assets/work/articles/romane-machen-klueger/meta.json"
+    },
+    {
+      "type": "work",
       "category": "books",
       "slug": "jung-lichtstrahl",
       "title": "Ein Lichtstrahl seiner Liebe",
-      "published": "2025-02-18",
+      "published": "2024-10-01",
       "updated": "2025-02-18",
       "eigenanteil": "Übersetzung ins Englische",
+      "hidden": false,
       "tags": [
         "christian",
         "biography",
         "book",
         "translation"
       ],
-      "excerpt": "Eine ehemalige Bürgerin der DDR schreibt von ihren Erlebnissen mit Jesus.",
+      "excerpt": "Eine ehemalige Bürgerin der DDR berichtet von ihren Erlebnissen mit Jesus.",
       "description": "",
       "images": [
         "/assets/work/books/jung-lichtstrahl/angela_flyer+.png",
@@ -140,13 +168,14 @@
       "published": "2026-09-04",
       "updated": "2026-08-30",
       "eigenanteil": "Übersetzung ins Deutsche, Buchsatz, Verlegung und Marketing",
+      "hidden": false,
       "tags": [
         "therapy",
         "guide",
         "publishing",
         "translation"
       ],
-      "excerpt": "Die Hinweise eines Therapeuten an Jugendliche und alle, die mit sich selbst kämpfen.",
+      "excerpt": "Die Hinweise eines jüdischen Therapeuten an Jugendliche und alle, die mit sich hadern.",
       "description": "",
       "images": [
         "/assets/work/books/reznik-debater/flyer.jpg"
@@ -160,9 +189,10 @@
       "category": "books",
       "slug": "reznik-relationships",
       "title": "Morphologische Geheimnisse von erfolgreichen Beziehungen",
-      "published": "2026-02-14",
+      "published": "2026-02-12",
       "updated": "2026-01-19",
       "eigenanteil": "Übersetzung ins Deutsche, Buchsatz, Verlegung und Marketing",
+      "hidden": false,
       "tags": [
         "relationship",
         "facereading",
@@ -171,7 +201,7 @@
         "book",
         "translation"
       ],
-      "excerpt": "Das Buch richtet sich an alle phenomenologisch Interessierten.",
+      "excerpt": "Für alle, die an die Liebe auf den ersten Blick glauben, sowie phenomenologisch Interessierte.",
       "description": "",
       "images": [
         "/assets/work/books/reznik-relationships/flyer.png"
@@ -188,6 +218,7 @@
       "published": "2025-12-18",
       "updated": "2026-01-19",
       "eigenanteil": "Libertärer Standpunkt zur Unschuld der Boomer an der Wirtschaftskrise",
+      "hidden": false,
       "tags": [
         "libertarian",
         "politics",
@@ -211,11 +242,12 @@
       "published": "2026-10-19",
       "updated": "2026-10-19",
       "eigenanteil": "",
+      "hidden": false,
       "tags": [
         "morphology",
         "game"
       ],
-      "excerpt": "Ein Werkzeug um schnell dein Gegenüber einzuschätzen.",
+      "excerpt": "Ein Werkzeug um schnell Ihr Gegenüber einzuschätzen.",
       "description": "",
       "images": [
         "/assets/work/games/morphology/cover.png"

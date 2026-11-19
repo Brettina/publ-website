@@ -606,6 +606,40 @@ dazukommt:
   Shop zu einem "echten" Onlineshop machen — das war ausdrücklich NICHT
   gewünscht ("ich bin mir unsicher... ich mag das [aktuelle Modell]").
 
+### Umgesetzt: Produkt-Zusatzoptionen — Farbschnitt (Bücher) + Holzschmuck (2026-11-19)
+
+Zwei unabhängige Aufpreis-Mechanismen im Produkt-Modal, nach demselben
+Grundmuster (Checkbox/Felder nur bei passender `category`, Aufpreis
+additiv in `resolveModalSelection()`, nie in die Sale-Badge-Logik
+verwoben, eigene Felder im Warenkorb-Objekt + im Dedup-Vergleich, Ausgabe
+in `cartLinesText()`/Warenkorb-Anzeige) — **aber bewusst als zwei
+getrennte Code-Blöcke, nicht als ein gemeinsames generisches System**,
+auf ausdrücklichen Nutzerwunsch ("am Farbschnitt nix ändern").
+
+- **Farbschnitt** (`category === "books"`, `farbschnitt` in
+  `products.json`): Checkbox "Als Geschenk verpacken" → zwei Dropdowns
+  (Hintergrund-/Schriftfarbe, aus derselben Farbliste) + Text (max. 100
+  Zeichen). Ein Aufpreis, gilt für JEDEN Zustand (Neu/Werkstatt/
+  Gebraucht) — explizit so gewünscht, keine Einschränkung nach Zustand.
+- **Holzschmuck** (`category === "holz"`, `holzschmuck` in
+  `products.json`): drei unabhängige, frei kombinierbare Checkboxen
+  ("Personalisiert", "Mit Glitzer verziert", "Mit Acryl-/Wasserfarbe
+  bemalt"), je ein eigener Aufpreis (Personalisiert 10 €, die anderen
+  beiden je 5 €) — keine Varianten-Auswahl zwischen einem fertigen Motiv
+  und "personalisiert", wie ein erster Entwurf vorsah; stattdessen hat
+  jeder Holzartikel genau EIN Basis-Motiv/-Preis in `products`, und
+  "Personalisiert" ist einer von drei unabhängigen Zusatzoptionen
+  obendrauf.
+- **`category` in `products.json` statt hartcodiert:** `loadMerchProducts()`
+  liest jetzt `p.category || "merch"` statt immer "merch" zu setzen — eine
+  Zeile, generalisiert für künftige Nicht-Buch-Kategorien (aktuell
+  "merch" und "holz"), ohne bestehende Merch-Einträge zu beeinflussen.
+- **Bild-Upload bei "Personalisiert" — technische Grenze:** Der gesamte
+  Checkout läuft über `mailto:`, das keine Datei-Anhänge unterstützen
+  kann. Kein Datei-Upload-Feld (würde eine nicht vorhandene Funktion
+  vortäuschen), sondern ein Hinweistext im Modal UND in der Bestell-Mail:
+  Bild bitte manuell als Anhang an die E-Mail anfügen.
+
 ## Barrierefreiheitsstärkungsgesetz (BFSG) — Übergangsfrist läuft, bis 2030 aktiv angehen
 
 Fund aus dem ersten `.claude/skills/legal-check`-Baseline-Scan

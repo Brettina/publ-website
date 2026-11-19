@@ -74,8 +74,59 @@
       },
       "pickupRequired": false,
       "decorateJuice": false
+    },
+    {
+      "id": "lichterhaus",
+      "category": "holz",
+      "page": "webshop",
+      "name": "Lichterhaus (Reh)",
+      "description": "Lasergeschnittenes Holz-Lichterhaus, Motiv Reh.",
+      "image": "/assets/shop/holz/rehhuette.jpg",
+      "images": ["/assets/shop/holz/rehhuette.jpg"],
+      "status": "verfügbar",
+      "variants": ["Standard"],
+      "unit": "Stück",
+      "price": 15,
+      "pickupRequired": false
+    },
+    {
+      "id": "schwibbogen",
+      "category": "holz",
+      "page": "webshop",
+      "name": "Schwibbogen (Merz)",
+      "description": "Lasergeschnittener Holz-Schwibbogen, Motiv Merz.",
+      "image": "/assets/shop/holz/schwibbogen.png",
+      "images": ["/assets/shop/holz/schwibbogen.png"],
+      "status": "verfügbar",
+      "variants": ["Standard"],
+      "unit": "Stück",
+      "price": 15,
+      "pickupRequired": false
+    },
+    {
+      "id": "baumanhaenger",
+      "category": "holz",
+      "page": "webshop",
+      "name": "Baumanhänger (Weihnachten)",
+      "description": "Lasergraviertes Holz-Baumanhänger, Motiv Weihnachten.",
+      "image": "/assets/shop/holz/baumanhaenger.jpg",
+      "images": ["/assets/shop/holz/baumanhaenger.jpg"],
+      "status": "verfügbar",
+      "variants": ["Standard"],
+      "unit": "Stück",
+      "price": 10,
+      "pickupRequired": false
     }
   ],
+  "farbschnitt": {
+    "farben": ["Silber", "Glitzerorange"],
+    "preis": 5
+  },
+  "holzschmuck": {
+    "personalisiert": { "preis": 10, "label": "Personalisiert (eigenes Design hochladen)" },
+    "glitzer": { "preis": 5, "label": "Mit Glitzer verziert" },
+    "bemalt": { "preis": 5, "label": "Mit Acryl-/Wasserfarbe bemalt" }
+  },
   "order": {
     "pickupHint": "Bestellung = Reservierung zur Abholung. Du wählst Ort + Zeitpunkt, ich bestätige per Mail.",
     "defaultCenter": {

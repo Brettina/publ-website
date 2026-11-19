@@ -1,6 +1,50 @@
 {
-  "generatedAt": "2026-09-28T13:22:08.450Z",
+  "generatedAt": "2026-11-19T20:17:12.348Z",
   "items": [
+    {
+      "slug": "buch-berlin",
+      "title": "BuchBerlin 2026: Erstmals personalisierter Farbschnitt im Gepäck",
+      "date": "2026-11-02",
+      "excerpt": "Rückblick auf die BuchBerlin 2026: rund 300 unabhängige Verlage, dazu bei uns zum ersten Mal personalisierter Farbschnitt und viele gute Gespräche.",
+      "tags": [
+        "fair",
+        "publishing",
+        "farbschnitt"
+      ],
+      "cover": "/assets/work/articles/buch-berlin/IMG_20261101_153017.jpg",
+      "contentUrl": "/assets/work/blog/buch-berlin/article.html",
+      "sourceUrl": "/assets/work/articles/buch-berlin/article.html",
+      "sourceCategory": "articles"
+    },
+    {
+      "slug": "termin-2026-10-31",
+      "title": "Berliner Buchmesse",
+      "date": "2026-10-31",
+      "excerpt": ".",
+      "tags": [
+        "publishing",
+        "fair"
+      ],
+      "cover": "",
+      "contentUrl": "/assets/work/blog/termin-2026-10-31/article.html",
+      "sourceUrl": "",
+      "sourceCategory": "calendar",
+      "calendarDate": "2026-10-31"
+    },
+    {
+      "slug": "morphology",
+      "title": "Morphologie-Werkzeug",
+      "date": "2026-10-19",
+      "excerpt": "Ein Werkzeug um schnell Ihr Gegenüber einzuschätzen.",
+      "tags": [
+        "morphology",
+        "game"
+      ],
+      "cover": "/assets/work/games/morphology/cover.png",
+      "contentUrl": "/assets/work/blog/morphology/article.html",
+      "sourceUrl": "/assets/work/games/morphology/article.html",
+      "sourceCategory": "games"
+    },
     {
       "slug": "romane-machen-klueger",
       "title": "Warum Romane uns klüger machen könnten als Sachbücher",
