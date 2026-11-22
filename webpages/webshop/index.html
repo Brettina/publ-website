@@ -416,6 +416,21 @@
   height: auto;
 }
 
+/* Video braucht hier eine eigene Regel statt der Bild-Regel oben:
+   <video> kennt seine Eigengröße erst nach dem Laden der Metadaten, "auto"
+   fällt bis dahin auf eine Browser-Standardgröße zurück, die dann vom
+   überlaufenden .modal-img (overflow:hidden) abgeschnitten wirkt — genau
+   das sah man im Screenshot. object-fit:contain mit expliziten 100%
+   funktioniert für Video zuverlässig, unabhängig vom Ladezeitpunkt der
+   Metadaten; bewusst nicht an der Bild-Regel oben geändert (die hatte
+   genau mit object-fit schon mal Probleme, siehe deren Kommentar). */
+.modal-img video.gallery-img,
+.shop-img video.gallery-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 
     .cart-item {
       display: grid;
@@ -1112,6 +1127,7 @@
       video.className = "gallery-img";
       video.controls = true;
       video.playsInline = true;
+      video.preload = "metadata";
       video.style.display = "none";
 
       function renderCurrent() {
