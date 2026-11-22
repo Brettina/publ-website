@@ -97,7 +97,7 @@
       "name": "Schwibbogen (Merz)",
       "description": "Holz-Schwibbogen, Motiv Merz. 1cm breit, 15cm lang, 10cm hoch, Auslieferung ohne Lichterkette",
       "image": "/assets/shop/holz/schwibbogen.png",
-      "images": ["/assets/shop/holz/schwibbogen.png", "/assets/shop/holz/schwibbogen-vid.mp4"],
+      "images": ["/assets/shop/holz/schwibbogen.png", "/assets/shop/holz/schwibbogen-detail.png", "/assets/shop/holz/schwibbogen-vid.mp4"],
       "status": "verfügbar",
       "variants": ["Standard"],
       "unit": "Stück",
