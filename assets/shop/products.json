@@ -93,10 +93,11 @@
       "id": "schwibbogen",
       "category": "holz",
       "page": "webshop",
+      "comingSoon": true,
       "name": "Schwibbogen (Merz)",
       "description": "Holz-Schwibbogen, Motiv Merz. 1cm breit, 15cm lang, 10cm hoch, Auslieferung ohne Lichterkette",
       "image": "/assets/shop/holz/schwibbogen.png",
-      "images": ["/assets/shop/holz/schwibbogen.png"],
+      "images": ["/assets/shop/holz/schwibbogen.png", "/assets/shop/holz/schwibbogen-vid.mp4"],
       "status": "verfügbar",
       "variants": ["Standard"],
       "unit": "Stück",
@@ -110,7 +111,21 @@
       "name": "Baumanhänger (Weihnachten)",
       "description": "Holz-Baumanhänger, Motiv Weihnachten. je nach Wunsch 3-7cm Duchmesser",
       "image": "/assets/shop/holz/baumanhaenger.jpg",
-      "images": ["/assets/shop/holz/baumanhaenger.jpg"],
+      "images": ["/assets/shop/holz/baumanhaenger.jpg", "/assets/shop/holz/baumanhaenger+.jpg", "/assets/shop/holz/baumanhaenger+.png"],
+      "status": "verfügbar",
+      "variants": ["Standard"],
+      "unit": "Stück",
+      "price": 10,
+      "pickupRequired": false
+    },
+     {
+      "id": "lesezeichen",
+      "category": "holz",
+      "page": "webshop",
+      "name": "Lesezeichen",
+      "description": "Ein Lesezeichen mit Ihrem Motiv. Standard: ca. 11x4,5cm; je nach Wunsch bis zu 16x6cm",
+      "image": "/assets/shop/holz/lesezeichen+.png",
+      "images": ["/assets/shop/holz/lesezeichen+.png", "/assets/shop/holz/lesezeichen bemalt und mit kordel.png"],
       "status": "verfügbar",
       "variants": ["Standard"],
       "unit": "Stück",
@@ -128,7 +143,8 @@
         "/assets/shop/covers/photo_2026-11-19_22-29-44.jpg",
         "/assets/shop/covers/photo_2026-11-03_17-51-33.jpg",
         "/assets/shop/covers/photo_2026-11-19_22-29-48.png",
-        "/assets/shop/covers/photo_2026-11-19_22-29-49.jpg"
+        "/assets/shop/covers/photo_2026-11-19_22-29-49.jpg",
+        "/assets/shop/covers/buch_aufgeschlagen.jpg"
       ],
       "status": "verfügbar",
       "variants": ["Textilkunst", "Blumen", "Holz", "eigene Idee"],
@@ -154,8 +170,12 @@
   },
   "holzschmuck": {
     "personalisiert": { "preis": 10, "label": "Personalisiert (eigenes Design hochladen)" },
-    "glitzer": { "preis": 5, "label": "Mit Glitzer verziert" },
-    "bemalt": { "preis": 5, "label": "Mit Acryl-/Wasserfarbe bemalt" }
+    "glitzer": { "preis": 2, "label": "Mit Glitzer verziert" },
+    "bemalt": { "preis": 2, "label": "Mit Acryl-/Wasserfarbe bemalt" }
+  },
+  "kordel": {
+    "arten": ["Blumen", "Quaste", "Bommel", "Quaste mit dicken Streifen"],
+    "preis": 2
   },
   "order": {
     "pickupHint": "Bestellung = Reservierung zur Abholung. Du wählst Ort + Zeitpunkt, ich bestätige per Mail.",

@@ -787,6 +787,17 @@
             Bitte Ihr Wunschbild als <strong>Anhang an die E-Mail</strong> anfügen, bevor Sie sie senden — ein Mailto-Link kann keine Datei automatisch mitschicken.
           </p>
 
+          <!-- "Mit Kordel" — nur beim Lesezeichen (siehe JS-Gate
+               p.id === "lesezeichen"), eigener Block. -->
+          <div class="field checkbox" id="modal-kordel-wrap" style="display:none;">
+            <input id="modal-kordel-add" type="checkbox" />
+            <label for="modal-kordel-add" id="modal-kordel-add-label">Mit Kordel</label>
+          </div>
+          <div class="field" id="modal-kordel-art-wrap" style="display:none;">
+            <label for="modal-kordel-art">Stil</label>
+            <select id="modal-kordel-art"></select>
+          </div>
+
           <!-- "Eigenes Cover" als Zugabe zu einem Buch (Weg 2) — eigener,
                unabhängiger Block, analog zu Farbschnitt/Holzschmuck. -->
           <div class="field checkbox" id="modal-cover-wrap" style="display:none;">
@@ -1046,6 +1057,11 @@
     const modalHolzBemalt = $("#modal-holz-bemalt");
     const modalHolzBemaltLabel = $("#modal-holz-bemalt-label");
     const modalHolzPersonalisiertHinweis = $("#modal-holz-personalisiert-hinweis");
+    const modalKordelWrap = $("#modal-kordel-wrap");
+    const modalKordelAdd = $("#modal-kordel-add");
+    const modalKordelAddLabel = $("#modal-kordel-add-label");
+    const modalKordelArtWrap = $("#modal-kordel-art-wrap");
+    const modalKordelArt = $("#modal-kordel-art");
     const modalCoverWrap = $("#modal-cover-wrap");
     const modalCoverAdd = $("#modal-cover-add");
     const modalCoverAddLabel = $("#modal-cover-add-label");
@@ -1063,6 +1079,7 @@
     let farbschnitt = { farben: [], preis: 0 }; // loaded from products.json in init()
     let holzschmuck = { personalisiert: { preis: 0 }, glitzer: { preis: 0 }, bemalt: { preis: 0 } }; // loaded from products.json in init()
     let coverZugabe = { arten: [], preis: 0, preiseByArt: {} }; // "Eigenes Cover" als Zugabe zu einem Buch — loaded from products.json in init()
+    let kordel = { arten: [], preis: 0 }; // "Mit Kordel"-Option fürs Lesezeichen — loaded from products.json in init()
 
     function normalize(s) { return (s || "").toString().toLowerCase().trim(); }
     function compare(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
@@ -1070,6 +1087,12 @@
     function safeImage(p) { return p?.image || "/img/webicon.png"; }
     function safeImages(p) {
       return (Array.isArray(p?.images) && p.images.length) ? p.images : [safeImage(p)];
+    }
+
+    // Video-Dateien in einer Produktgalerie — gleiche Slideshow wie Bilder,
+    // nur Dateiendung entscheidet, ob <img> oder <video> gezeigt wird.
+    function isVideoPath(src) {
+      return /\.(mp4|webm|mov|ogg)$/i.test(String(src || ""));
     }
 
     function buildGallery(images, altText) {
@@ -1083,14 +1106,36 @@
       img.className = "gallery-img";
       img.loading = "lazy";
       img.alt = altText || "";
-      img.src = imgs[0];
       img.addEventListener("error", () => { img.src = "/img/webicon.png"; });
+
+      const video = document.createElement("video");
+      video.className = "gallery-img";
+      video.controls = true;
+      video.playsInline = true;
+      video.style.display = "none";
+
+      function renderCurrent() {
+        const src = imgs[idx];
+        if (isVideoPath(src)) {
+          img.style.display = "none";
+          video.style.display = "";
+          if (!video.src.endsWith(src)) video.src = src;
+        } else {
+          video.pause();
+          video.style.display = "none";
+          img.style.display = "";
+          img.src = src;
+        }
+      }
+
       wrap.appendChild(img);
+      wrap.appendChild(video);
+      renderCurrent();
 
       if (imgs.length > 1) {
         function show(i) {
           idx = (i + imgs.length) % imgs.length;
-          img.src = imgs[idx];
+          renderCurrent();
           Array.from(dots.children).forEach((d, di) => d.classList.toggle("is-active", di === idx));
         }
 
@@ -1555,6 +1600,10 @@
           meta.appendChild(document.createTextNode("•"));
           meta.appendChild(document.createTextNode(`Maße: ${it.coverHoehe ?? "?"}×${it.coverBreite ?? "?"}×${it.coverTiefe ?? "?"} cm`));
         }
+        if (it.kordelAdd) {
+          meta.appendChild(document.createTextNode("•"));
+          meta.appendChild(document.createTextNode(`Kordel: ${it.kordelArt}`));
+        }
         if (it.pickupRequired) {
           meta.appendChild(document.createTextNode("•"));
           meta.appendChild(document.createTextNode("Abholung erforderlich"));
@@ -1762,7 +1811,13 @@ function resolveModalSelection(p) {
   const coverBreite = isCoverProdukt ? (toNumber(modalCoverBreite?.value) ?? null) : null;
   const coverTiefe = isCoverProdukt ? (toNumber(modalCoverTiefe?.value) ?? null) : null;
 
-  const finalUnitPrice = unitPrice != null ? unitPrice + geschenkAufpreis + holzAufpreis + coverAufpreis : null;
+  // "Mit Kordel" — nur beim Lesezeichen, eigener, unabhängiger Block.
+  const isLesezeichen = p.id === "lesezeichen";
+  const kordelAdd = isLesezeichen && !!modalKordelAdd?.checked;
+  const kordelArt = kordelAdd ? (modalKordelArt?.value || kordel.arten[0] || "") : "";
+  const kordelAufpreis = kordelAdd ? (kordel.preis || 0) : 0;
+
+  const finalUnitPrice = unitPrice != null ? unitPrice + geschenkAufpreis + holzAufpreis + coverAufpreis + kordelAufpreis : null;
 
   return {
     isBook, variant, sprache, spracheForCart, zustandOptions, zustandValue, zustandLabel,
@@ -1770,6 +1825,7 @@ function resolveModalSelection(p) {
     geschenk, geschenkAufpreis, farbschnittHintergrund, farbschnittSchrift, farbschnittText,
     isHolz, holzPersonalisiert, holzGlitzer, holzBemalt, holzAufpreis,
     coverAdd, coverArt, coverAufpreis, isCoverProdukt, coverHoehe, coverBreite, coverTiefe,
+    kordelAdd, kordelArt, kordelAufpreis,
     finalUnitPrice
   };
 }
@@ -1857,6 +1913,9 @@ function renderModalPriceForVariant(p) {
   }
   if (modalCoverPersonalisiertHinweis) {
     modalCoverPersonalisiertHinweis.style.display = (sel.isCoverProdukt || sel.coverAdd) ? "" : "none";
+  }
+  if (modalPrice && sel.kordelAdd && sel.kordelAufpreis) {
+    modalPrice.innerHTML += ` <span class="fineprint">+ Kordel (${escapeHtmlAttr(sel.kordelArt)}): ${formatEUR(sel.kordelAufpreis)} = ${formatEUR(sel.finalUnitPrice)} ${vat}</span>`;
   }
 
   const priceTxt = (sel.finalUnitPrice != null) ? ` · ${formatEUR(sel.finalUnitPrice)} / ${safeUnit(p)}` : "";
@@ -2048,6 +2107,30 @@ function openProductModal(p, opts = {}) {
     if (inp) inp.onchange = () => renderModalPriceForVariant(p);
   });
 
+  // "Mit Kordel" — nur beim Lesezeichen, eigener Reset-Block.
+  if (modalKordelWrap) modalKordelWrap.style.display = p.id === "lesezeichen" ? "" : "none";
+  if (modalKordelAdd) modalKordelAdd.checked = false;
+  if (modalKordelArtWrap) modalKordelArtWrap.style.display = "none";
+  if (modalKordelAddLabel) {
+    modalKordelAddLabel.textContent = `Mit Kordel (+${formatEUR(kordel.preis)})`;
+  }
+  if (modalKordelArt) {
+    modalKordelArt.innerHTML = "";
+    kordel.arten.forEach(art => {
+      const opt = document.createElement("option");
+      opt.value = art;
+      opt.textContent = art;
+      modalKordelArt.appendChild(opt);
+    });
+  }
+  if (modalKordelAdd) {
+    modalKordelAdd.onchange = () => {
+      if (modalKordelArtWrap) modalKordelArtWrap.style.display = modalKordelAdd.checked ? "" : "none";
+      renderModalPriceForVariant(p);
+    };
+  }
+  if (modalKordelArt) modalKordelArt.onchange = () => renderModalPriceForVariant(p);
+
   // price must be updated AFTER variants exist / selected. Special case:
   // a "Variante" whose label mentions "Mitglied" (currently just the
   // morphology tool's "Als Mitglied kaufen") isn't a cart item at all —
@@ -2110,7 +2193,8 @@ function openProductModal(p, opts = {}) {
         && (x.farbschnittSchrift || "") === sel.farbschnittSchrift && (x.farbschnittText || "") === sel.farbschnittText
         && !!x.holzPersonalisiert === sel.holzPersonalisiert && !!x.holzGlitzer === sel.holzGlitzer && !!x.holzBemalt === sel.holzBemalt
         && !!x.coverAdd === sel.coverAdd && (x.coverArt || "") === sel.coverArt
-        && (x.coverHoehe ?? null) === sel.coverHoehe && (x.coverBreite ?? null) === sel.coverBreite && (x.coverTiefe ?? null) === sel.coverTiefe);
+        && (x.coverHoehe ?? null) === sel.coverHoehe && (x.coverBreite ?? null) === sel.coverBreite && (x.coverTiefe ?? null) === sel.coverTiefe
+        && !!x.kordelAdd === sel.kordelAdd && (x.kordelArt || "") === sel.kordelArt);
       if (existing) {
         existing.qty = Math.min(50, (parseInt(existing.qty, 10) || 0) + qty);
       } else {
@@ -2137,6 +2221,8 @@ function openProductModal(p, opts = {}) {
           coverHoehe: sel.coverHoehe,
           coverBreite: sel.coverBreite,
           coverTiefe: sel.coverTiefe,
+          kordelAdd: sel.kordelAdd,
+          kordelArt: sel.kordelArt,
           pickupRequired: !!activeProduct.pickupRequired
         });
 
@@ -2293,7 +2379,8 @@ function cartLinesText() {
     const coverMasse = (it.coverHoehe != null || it.coverBreite != null || it.coverTiefe != null)
       ? ` — Maße: ${it.coverHoehe ?? "?"}×${it.coverBreite ?? "?"}×${it.coverTiefe ?? "?"} cm`
       : "";
-    return `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${zustand}${sprache}${p}${geschenk}${holz}${coverAdd}${coverMasse}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`;
+    const kordelAdd = it.kordelAdd ? ` — Kordel: ${it.kordelArt}` : "";
+    return `- ${it.name} — ${it.qty} ${it.unit} — Variante: ${it.variant}${zustand}${sprache}${p}${geschenk}${holz}${coverAdd}${coverMasse}${kordelAdd}${it.pickupRequired ? " (Abholung erforderlich)" : ""}`;
   });
 }
 
@@ -2762,6 +2849,15 @@ async function loadMerchProducts() {
       arten: Array.isArray(data.cover.arten) ? data.cover.arten : [],
       preis: toNumber(data.cover.preis) || 0,
       preiseByArt: (data.cover.preiseByArt && typeof data.cover.preiseByArt === "object") ? data.cover.preiseByArt : {}
+    };
+  }
+
+  // "Mit Kordel"-Option fürs Lesezeichen — eigene Konfiguration, nur bei
+  // diesem einen Produkt relevant (siehe p.id === "lesezeichen"-Gate).
+  if (data?.kordel) {
+    kordel = {
+      arten: Array.isArray(data.kordel.arten) ? data.kordel.arten : [],
+      preis: toNumber(data.kordel.preis) || 0
     };
   }
 

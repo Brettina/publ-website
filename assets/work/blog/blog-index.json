@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-19T20:28:20.871Z",
+  "generatedAt": "2026-11-22T10:05:00.119Z",
   "items": [
     {
       "slug": "termin-2026-10-31",
@@ -16,20 +16,6 @@
       "sourceUrl": "",
       "sourceCategory": "calendar",
       "calendarDate": "2026-10-31"
-    },
-    {
-      "slug": "morphology",
-      "title": "Morphologie-Werkzeug",
-      "date": "2026-10-19",
-      "excerpt": "Ein Werkzeug um schnell Ihr Gegenüber einzuschätzen.",
-      "tags": [
-        "morphology",
-        "game"
-      ],
-      "cover": "/assets/work/games/morphology/cover.png",
-      "contentUrl": "/assets/work/blog/morphology/article.html",
-      "sourceUrl": "/assets/work/games/morphology/article.html",
-      "sourceCategory": "games"
     },
     {
       "slug": "romane-machen-klueger",

@@ -673,6 +673,34 @@ Mechanismen:
   40,00 €; Weg 2 Buch (8 €) + Cover "Holz" (25 €) → 33,00 €, beides
   korrekt im Warenkorb, der Preisanzeige und im Bestelltext.
 
+### Umgesetzt: Lesezeichen + "Mit Kordel"-Option (2026-11-22)
+
+Neuer Holzschmuck-Artikel "Lesezeichen" (`category: "holz"`), nutzt die
+drei bestehenden Holzschmuck-Felder (Personalisiert/Glitzer/Bemalt)
+unverändert mit — **Preise dabei korrigiert: Glitzer und Bemalt kosten
+jetzt beide 2 € statt 5 €** (gilt global für alle Holzschmuck-Artikel,
+da gemeinsame Konfiguration — betrifft also auch Lichterhaus/
+Schwibbogen/Baumanhänger, nicht nur das Lesezeichen).
+
+Dazu eine vierte, komplett neue Option **"Mit Kordel"** — eigener,
+unabhängiger Code-Block, nur beim Lesezeichen sichtbar (`p.id ===
+"lesezeichen"`, nicht alle Holzschmuck-Artikel, da bisher nur hier
+angefragt). Checkbox blendet ein Dropdown mit vier Kordel-Stilen ein
+(Blumen/Quaste/Bommel/Quaste mit dicken Streifen, aus Referenzfotos im
+Holz-Ordner erkannt), Aufpreis 2 €, eigene `kordel`-Konfiguration in
+`products.json` (`arten` + `preis`, gleiche Form wie `cover`).
+
+Per echtem Codelauf geprüft: Lesezeichen (10 €) + Personalisiert (10 €)
++ Glitzer (2 €) + Bemalt (2 €) + Kordel "Bommel" (2 €) = 26,00 € —
+korrekt im Warenkorb, der Preisanzeige und im Bestelltext.
+
+Nebenbei erledigt: Schwibbogen (Merz) auf `comingSoon: true` gestellt
+("Bald wieder verfügbar"). Morphologie-Werkzeug aus dem Homepage-
+Karussell entfernt — Datum war in `meta.json` schon auf 2026-12-19
+(Zukunft) gesetzt, `work-index.json` musste nur noch neu generiert
+werden (`python convert_articles.py`), damit die bestehende "noch nicht
+veröffentlicht"-Logik (siehe weiter oben) tatsächlich greift.
+
 ## Barrierefreiheitsstärkungsgesetz (BFSG) — Übergangsfrist läuft, bis 2030 aktiv angehen
 
 Fund aus dem ersten `.claude/skills/legal-check`-Baseline-Scan
