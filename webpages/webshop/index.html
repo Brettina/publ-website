@@ -166,6 +166,11 @@
       justify-content: center;
       gap: 6px;
       z-index: 2;
+      /* Sitzt direkt über der nativen Video-Steuerleiste (Play/Pause,
+         Zeitleiste). Ohne das hier fängt dieser (optisch leere) Streifen
+         Klicks ab, bevor sie das Video erreichen — Video liess sich dann
+         nicht bedienen. Die Punkte selbst bleiben klickbar (siehe unten). */
+      pointer-events: none;
     }
     .gallery-dot {
       width: 7px;
@@ -175,6 +180,7 @@
       border: 1px solid rgba(0,0,0,0.25);
       padding: 0;
       cursor: pointer;
+      pointer-events: auto;
     }
     .gallery-dot.is-active { background: #fff; }
 
@@ -429,6 +435,13 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+/* Nur während ein (meist Hochkant-)Video die aktive Ansicht ist: größere Box,
+   damit es nicht winzig/pillarboxed wirkt. Betrifft nicht die normale
+   Bild-Höhe oben (.modal-img ohne diese Klasse bleibt unverändert). */
+.modal-img.has-video-current {
+  height: clamp(320px, 75vh, 640px);
 }
 
 
@@ -1135,7 +1148,8 @@
 
       function renderCurrent() {
         const src = imgs[idx];
-        if (isVideoPath(src)) {
+        const isVideo = isVideoPath(src);
+        if (isVideo) {
           img.style.display = "none";
           video.style.display = "";
           if (!video.src.endsWith(src)) video.src = src;
@@ -1145,6 +1159,13 @@
           img.style.display = "";
           img.src = src;
         }
+        // .modal-img/.shop-img sind auf Produktfotos (eher breit/quadratisch)
+        // zugeschnitten. Ein Hochkant-Video wird darin von object-fit:contain
+        // stark eingepasst (Pillarboxing) und wirkt dadurch winzig/unscharf.
+        // Diese Klasse vergrößert nur die Box, während gerade ein Video
+        // gezeigt wird — Bilder und ihre sorgfältig austarierte Größe bleiben
+        // unangetastet.
+        if (wrap.parentElement) wrap.parentElement.classList.toggle("has-video-current", isVideo);
       }
 
       wrap.appendChild(img);
